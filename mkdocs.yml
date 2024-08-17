@@ -1,13 +1,15 @@
 # Project information
-
 site_name: 솜솜한 코딩 도서관
 site_url: https://achieveonepark.github.io/cording-library
 
 # Repository
-
 repo_name: achieveonepark
 repo_url: https://github.com/achieveonepark/
 
 nav:
- - 홈 : index.md
- - 사용법 : how.md
+    - Home: index.md
+    - Documents:
+        - AchievePurchase: Documents/AchievePurchase/AchievePurchase.md
+
+theme:
+  name: material
