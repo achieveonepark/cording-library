@@ -508,9 +508,11 @@
 
 <h1 id="data-protector">Data Protector</h1>
 <p>| <a href="https://github.com/achieveonepark/DataProtector">🪄github 바로가기</a></p>
-<p>byte[], string 형태의 데이터를 물리적 저장을 하기 전에 외부에서 데이터를 조회하기 힘들도록 압축 및 암호화를 하는 기능을 제공합니다.
-암호화를 위해선 사용자가 직접 <code>16byte</code>의 <code>string key</code> 값을 입력해주어야 합니다.
-또한 파일의 변경사항이 있는지 <code>SHA256</code>을 이용한 <code>byte[] 또는 string의 Hash값을 추출</code>하여 비교하는 로직도 제공합니다.</p>
+<ul>
+<li>byte[], string 형태의 데이터를 물리적 저장을 하기 전에 외부에서 데이터를 조회하기 힘들도록 압축 및 암호화를 하는 기능을 제공합니다.<br></li>
+<li>암호화를 위해선 사용자가 직접 <code>16byte</code>의 <code>string key</code> 값을 입력해주어야 합니다.<br></li>
+<li>파일의 변경사항이 있는지 <code>SHA256</code>을 이용한 <code>byte[] 또는 string의 Hash값을 추출</code>하여 비교하는 로직도 제공합니다.<br></li>
+</ul>
 <h2 id="_1">암호화 방식?</h2>
 <ol>
 <li>AES-128 방식을 사용합니다.</li>
