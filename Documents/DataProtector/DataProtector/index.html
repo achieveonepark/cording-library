@@ -416,26 +416,26 @@
         <li class="md-nav__item">
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
-      암호화 방식?
+      설명
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="설명">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      압축, 암호화?
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#api" class="md-nav__link">
     <span class="md-ellipsis">
       API
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="API">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#changelog" class="md-nav__link">
-    <span class="md-ellipsis">
-      ChangeLog
     </span>
   </a>
   
@@ -443,6 +443,15 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changelog" class="md-nav__link">
+    <span class="md-ellipsis">
+      ChangeLog
+    </span>
+  </a>
   
 </li>
       
@@ -524,26 +533,26 @@
         <li class="md-nav__item">
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
-      암호화 방식?
+      설명
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="설명">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      압축, 암호화?
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#api" class="md-nav__link">
     <span class="md-ellipsis">
       API
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="API">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#changelog" class="md-nav__link">
-    <span class="md-ellipsis">
-      ChangeLog
     </span>
   </a>
   
@@ -551,6 +560,15 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changelog" class="md-nav__link">
+    <span class="md-ellipsis">
+      ChangeLog
+    </span>
+  </a>
   
 </li>
       
@@ -579,6 +597,7 @@
 <li>암호화를 위해선 사용자가 직접 <code>16byte</code>의 <code>string key</code> 값을 입력해주어야 합니다.<br></li>
 <li>파일의 변경사항이 있는지 <code>SHA256</code>을 이용한 <code>byte[] 또는 string의 Hash값을 추출</code>하여 비교하는 로직도 제공합니다.<br></li>
 </ul>
+<hr />
 <h2 id="_1">빠른 시작</h2>
 <p>아래 두 가지 방법 중 하나를 선택합니다.</p>
 <blockquote>
@@ -595,19 +614,22 @@
 <li><code>Unity Project/Packages/manifest.json</code> 파일을 실행합니다.</li>
 <li><code>Dependencies</code>에 <code>"com.achieve.data-protector": "https://github.com/achieveonepark/DataProtector.git#1.0.0"</code> 내용을 추가합니다.</li>
 </ol>
-<h2 id="_3">암호화 방식?</h2>
+<hr />
+<h2 id="_3">설명</h2>
+<h3 id="_4">압축, 암호화?</h3>
 <ol>
 <li><a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES-128</a> 방식을 사용합니다.</li>
 <li>C#에서 제공하는 [GZipStream](https://learn.microsoft.com/ko-kr/dotnet/api/system.io.compression.gzipstream?view=net-8.0을 사용하여 압축을 진행합니다.</li>
 </ol>
-<h2 id="api">API</h2>
+<h3 id="api">API</h3>
 <p>이 패키지는 아래의 기능을 제공합니다.</p>
 <pre><code>DataProtector.Encrypt        | 압축 후 암호화한 결과 값
 DataProtector.Decrypt        | 복호화 후 압축 해제한 결과 값
 HaskChecker.ComputeHash      | Encrypt 된 데이터의 Hash 값 추출
 HaskChecker.ValidateHash     | 두 Hash값을 비교
 </code></pre>
-<h3 id="changelog">ChangeLog</h3>
+<hr />
+<h2 id="changelog">ChangeLog</h2>
 <p><a href="https://github.com/achieveonepark/DataProtector/blob/main/CHANGELOG.md">link</a></p>
 
 
