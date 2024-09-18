@@ -383,6 +383,39 @@
         <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
+      빠른 시작
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="빠른 시작">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upm" class="md-nav__link">
+    <span class="md-ellipsis">
+      UPM에서 사용하기
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      직접 추가하기
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
       암호화 방식?
     </span>
   </a>
@@ -458,6 +491,39 @@
         <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
+      빠른 시작
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="빠른 시작">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upm" class="md-nav__link">
+    <span class="md-ellipsis">
+      UPM에서 사용하기
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      직접 추가하기
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
       암호화 방식?
     </span>
   </a>
@@ -513,10 +579,26 @@
 <li>암호화를 위해선 사용자가 직접 <code>16byte</code>의 <code>string key</code> 값을 입력해주어야 합니다.<br></li>
 <li>파일의 변경사항이 있는지 <code>SHA256</code>을 이용한 <code>byte[] 또는 string의 Hash값을 추출</code>하여 비교하는 로직도 제공합니다.<br></li>
 </ul>
-<h2 id="_1">암호화 방식?</h2>
+<h2 id="_1">빠른 시작</h2>
+<p>아래 두 가지 방법 중 하나를 선택합니다.</p>
+<blockquote>
+<p>github URL의 # 뒷버전은 Changelog의 최신 사항을 참고해주세요.</p>
+</blockquote>
+<h3 id="upm">UPM에서 사용하기</h3>
 <ol>
-<li>AES-128 방식을 사용합니다.</li>
-<li>C#에서 제공하는 GZipStream을 사용하여 압축을 진행합니다.</li>
+<li>UPM을 연 후 좌측 상단의 + 버튼을 누릅니다.</li>
+<li><code>Install package from git URL...</code>을 선택합니다.</li>
+<li><code>https://github.com/achieveonepark/DataProtector.git#1.0.0</code>를 입력 후 Install합니다.</li>
+</ol>
+<h3 id="_2">직접 추가하기</h3>
+<ol>
+<li><code>Unity Project/Packages/manifest.json</code> 파일을 실행합니다.</li>
+<li><code>Dependencies</code>에 <code>"com.achieve.data-protector": "https://github.com/achieveonepark/DataProtector.git#1.0.0"</code> 내용을 추가합니다.</li>
+</ol>
+<h2 id="_3">암호화 방식?</h2>
+<ol>
+<li><a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES-128</a> 방식을 사용합니다.</li>
+<li>C#에서 제공하는 [GZipStream](https://learn.microsoft.com/ko-kr/dotnet/api/system.io.compression.gzipstream?view=net-8.0을 사용하여 압축을 진행합니다.</li>
 </ol>
 <h2 id="api">API</h2>
 <p>이 패키지는 아래의 기능을 제공합니다.</p>
