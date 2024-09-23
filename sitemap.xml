@@ -2,37 +2,42 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://achieveonepark.github.io/cording-library/</loc>
-         <lastmod>2024-09-18</lastmod>
+         <lastmod>2024-09-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Documents/Documents/</loc>
-         <lastmod>2024-09-18</lastmod>
+         <lastmod>2024-09-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Documents/BreezeIAP/BreezeIAP/</loc>
-         <lastmod>2024-09-18</lastmod>
+         <lastmod>2024-09-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Documents/BreezeIAP/Troubleshooting/Troubleshooting/</loc>
-         <lastmod>2024-09-18</lastmod>
+         <lastmod>2024-09-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Documents/DataProtector/DataProtector/</loc>
-         <lastmod>2024-09-18</lastmod>
+         <lastmod>2024-09-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Documents/InfinityValue/InfinityValue/</loc>
-         <lastmod>2024-09-18</lastmod>
+         <lastmod>2024-09-23</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://achieveonepark.github.io/cording-library/Documents/QuickSave/QuickSave/</loc>
+         <lastmod>2024-09-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Documents/TableCraft/TableCraft/</loc>
-         <lastmod>2024-09-18</lastmod>
+         <lastmod>2024-09-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
