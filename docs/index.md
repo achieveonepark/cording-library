@@ -1,11 +1,8 @@
-# Welcome to SomSom Library
+# Welcome to TechDocs
 
-솜솜한 코딩 도서관에 오신 것을 환영합니다! 이 블로그에서는 직접 제작한 Unity 패키지들에 대한 설명 문서를 제공합니다.
-
-## Project layout
-
-    BreezeIAP    # 편리한 결제 로직 제공
-    TableCraft   # Table Class cs파일 제작, 테이블 데이터 작성 및 json 파일로 압축, 암호화 하여 임포트 및 로드 기능 제공
+이 문서에서는 [Unity](https://unity.com)에서 사용할 수 있는 직접 제작한 패키지들을 소개합니다.
 
 
-© 2024 achieveonepark. All rights reserved.
+<div style="position: fixed; bottom: 0; width: 100%; background-color: #f8f9fa; padding: 10px; text-align: center;">
+© 2024 [achieveonepark](https://github.com/achieveonepark). All rights reserved.
+</div>
