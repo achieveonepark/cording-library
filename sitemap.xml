@@ -2,72 +2,87 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://achieveonepark.github.io/cording-library/</loc>
-         <lastmod>2024-10-08</lastmod>
+         <lastmod>2024-11-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://achieveonepark.github.io/cording-library/Analysis/Photon%20Quantum3/Matchmaking/</loc>
+         <lastmod>2024-11-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Documents/Documents/</loc>
-         <lastmod>2024-10-08</lastmod>
+         <lastmod>2024-11-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Documents/BreezeIAP/BreezeIAP/</loc>
-         <lastmod>2024-10-08</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://achieveonepark.github.io/cording-library/Documents/BreezeIAP/Troubleshooting/Troubleshooting/</loc>
-         <lastmod>2024-10-08</lastmod>
+         <lastmod>2024-11-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Documents/DataProtector/DataProtector/</loc>
-         <lastmod>2024-10-08</lastmod>
+         <lastmod>2024-11-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://achieveonepark.github.io/cording-library/Documents/GameFramework/GameFramework/</loc>
+         <lastmod>2024-11-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Documents/InfinityValue/InfinityValue/</loc>
-         <lastmod>2024-10-08</lastmod>
+         <lastmod>2024-11-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://achieveonepark.github.io/cording-library/Documents/LiteDB/LiteDB/</loc>
+         <lastmod>2024-11-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Documents/QuickSave/QuickSave/</loc>
-         <lastmod>2024-10-08</lastmod>
+         <lastmod>2024-11-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://achieveonepark.github.io/cording-library/Documents/SmartAddressables/SmartAddressables/</loc>
+         <lastmod>2024-11-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Documents/TableCraft/TableCraft/</loc>
-         <lastmod>2024-10-08</lastmod>
+         <lastmod>2024-11-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Feature%20Analysis/Documents/</loc>
-         <lastmod>2024-10-08</lastmod>
+         <lastmod>2024-11-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Feature%20Analysis/DataProtector/DataProtector/</loc>
-         <lastmod>2024-10-08</lastmod>
+         <lastmod>2024-11-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Feature%20Analysis/InfinityValue/InfinityValue/</loc>
-         <lastmod>2024-10-08</lastmod>
+         <lastmod>2024-11-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Feature%20Analysis/QuickSave/QuickSave/</loc>
-         <lastmod>2024-10-08</lastmod>
+         <lastmod>2024-11-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Feature%20Analysis/R3/R3/</loc>
-         <lastmod>2024-10-08</lastmod>
+         <lastmod>2024-11-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://achieveonepark.github.io/cording-library/Feature%20Analysis/TableCraft/TableCraft/</loc>
-         <lastmod>2024-10-08</lastmod>
+         <lastmod>2024-11-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
