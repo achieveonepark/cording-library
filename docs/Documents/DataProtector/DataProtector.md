@@ -27,7 +27,7 @@
 
 ### 압축, 암호화?
 1. [AES-128](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) 방식을 사용합니다.
-2. C#에서 제공하는 [GZipStream](https://learn.microsoft.com/ko-kr/dotnet/api/system.io.compression.gzipstream?view=net-8.0을 사용하여 압축을 진행합니다.
+2. C#에서 제공하는 [GZipStream](https://learn.microsoft.com/ko-kr/dotnet/api/system.io.compression.gzipstream?view=net-8.0)을 사용하여 압축을 진행합니다.
 
 ### API
 
