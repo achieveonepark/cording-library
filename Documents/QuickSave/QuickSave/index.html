@@ -1838,45 +1838,46 @@
 <h2 id="_3">설명</h2>
 <h3 id="api">API</h3>
 <p>이 패키지는 아래의 기능을 제공합니다.</p>
-<div class="highlight"><pre><span></span><code>QuickSave.Builder           | QuickSave 객체를 생성합니다.
+<pre><code>QuickSave.Builder           | QuickSave 객체를 생성합니다.
 QuickSave.SaveData&lt;T&gt;       | T 클래스의 데이터를 Binary 파일로 persistentDataPath에 Save합니다.
 QuickSave.LoadData&lt;T&gt;       | T 클래스의 데이터를 persistentDataPath에서 가져와 Load합니다.
-</code></pre></div>
+</code></pre>
 <h3 id="_4">사용 방법</h3>
-<div class="highlight"><pre><span></span><code><span class="na">[MemoryPackable]</span>
-<span class="k">public</span><span class="w"> </span><span class="k">partial</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">Monster</span>
-<span class="p">{</span>
-<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">HP</span><span class="p">;</span>
-<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">Attack</span><span class="p">;</span>
-<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">Defense</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="k">using</span><span class="w"> </span><span class="nn">Achieve.QuickSave</span>
+<pre><code class="language-csharp">[MemoryPackable]
+public partial class Monster
+{
+    public int HP;
+    public long Attack;
+    public long Defense;
+}
+</code></pre>
+<pre><code class="language-csharp">using Achieve.QuickSave
 
-<span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">DataMng</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">MonoBehaviour</span>
-<span class="p">{</span>
-<span class="w">    </span><span class="n">QuickSave</span><span class="o">&lt;</span><span class="n">Monster</span><span class="o">&gt;</span><span class="w"> </span><span class="n">data</span><span class="p">;</span>
+public class DataMng : MonoBehaviour
+{
+    QuickSave&lt;Monster&gt; data;
 
-<span class="w">    </span><span class="k">void</span><span class="w"> </span><span class="nf">Start</span><span class="p">()</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="n">Monster</span><span class="w"> </span><span class="n">monster</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Monster</span><span class="p">();</span>
-<span class="w">        </span><span class="n">monster</span><span class="p">.</span><span class="n">HP</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10000</span><span class="p">;</span>
-<span class="w">        </span><span class="n">monster</span><span class="p">.</span><span class="n">Attack</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10000</span><span class="p">;</span>
-<span class="w">        </span><span class="n">monster</span><span class="p">.</span><span class="n">Defense</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">100000</span><span class="p">;</span>
+    void Start()
+    {
+        Monster monster = new Monster();
+        monster.HP = 10000;
+        monster.Attack = 10000;
+        monster.Defense = 100000;
 
-<span class="w">        </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">QuickSave</span><span class="o">&lt;</span><span class="n">Monster</span><span class="o">&gt;</span><span class="p">.</span><span class="n">Builder</span><span class="p">()</span>
-<span class="w">                                     </span><span class="p">.</span><span class="n">UseEncryption</span><span class="p">(</span><span class="s">&quot;ejrjejrtlq3mgfeq&quot;</span><span class="p">)</span><span class="w"> </span><span class="c1">// Data Protector를 추가한 경우 사용 가능합니다.</span>
-<span class="w">                                     </span><span class="p">.</span><span class="n">UseVersion</span><span class="p">(</span><span class="m">55</span><span class="p">)</span><span class="w"> </span><span class="c1">// 데이터에 대한 버전을 설정합니다.</span>
-<span class="w">                                     </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
+        data = new QuickSave&lt;Monster&gt;.Builder()
+                                     .UseEncryption(&quot;ejrjejrtlq3mgfeq&quot;) // Data Protector를 추가한 경우 사용 가능합니다.
+                                     .UseVersion(55) // 데이터에 대한 버전을 설정합니다.
+                                     .Build();
 
-<span class="w">        </span><span class="c1">// 데이터를 저장합니다.</span>
-<span class="w">        </span><span class="n">data</span><span class="p">.</span><span class="n">SaveData</span><span class="p">(</span><span class="n">monster</span><span class="p">);</span>
+        // 데이터를 저장합니다.
+        data.SaveData(monster);
 
-<span class="w">        </span><span class="c1">// 물리적으로 저장 된 데이터를 Load합니다.</span>
-<span class="w">         </span><span class="kt">var</span><span class="w"> </span><span class="n">loadMonster</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">LoadData</span><span class="p">();</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
+        // 물리적으로 저장 된 데이터를 Load합니다.
+         var loadMonster = data.LoadData();
+    }
+}
+
+</code></pre>
 <hr />
 <h2 id="dependencies">Dependencies</h2>
 <p><a href="https://github.com/achieveonepark/MemoryPack#1.21.1">Memory Pack</a> (1.21.1)</p>
@@ -1933,10 +1934,6 @@ QuickSave.LoadData&lt;T&gt;       | T 클래스의 데이터를 persistentDataPa
     
     
       <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-      
-        <script src="../../../overrides/mermaid-init.js"></script>
       
     
   </body>

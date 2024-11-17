@@ -1811,54 +1811,54 @@
 <h2 id="_3">설명</h2>
 <h3 id="api">API</h3>
 <p>이 패키지는 아래의 기능을 제공합니다.</p>
-<div class="highlight"><pre><span></span><code>BreezeIAP.Initialize      | Unity IAP Initialize
+<pre><code>BreezeIAP.Initialize      | Unity IAP Initialize
 BreezeIAP.Purchase        | 결제 시도
 BreezeIAP.Confirm         | 결제 성공 후 완료 처리
 BreezeIAP.GetPendingList  | 결제 완료 처리가 되지 않은 상품 리스트 획득
 BreezeIAP.GetRestoreList  | Android, iOS 별 구매 복원 할 상품 리스트 획득
-</code></pre></div>
+</code></pre>
 <h3 id="initialize">Initialize</h3>
 <p>Unity IAP의 초기화 과정을 비동기 방식으로 처리하여 완료 시점을 알 수 있도록 구현하였습니다.<br>
 초기화 이전에 스토어에 등록된 ProductId를 런타임에서 획득할 수 있는지 확인 부탁드립니다.</p>
-<div class="highlight"><pre><span></span><code><span class="k">using</span><span class="w"> </span><span class="nn">Achieve.IAP</span><span class="p">;</span>
+<pre><code class="language-csharp">using Achieve.IAP;
 
-<span class="k">private</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">Start</span><span class="p">()</span>
-<span class="p">{</span>
-<span class="w">    </span><span class="c1">// Array, List 모두 가능</span>
-<span class="w">    </span><span class="n">List</span><span class="o">&lt;</span><span class="n">InitializeDto</span><span class="o">&gt;</span><span class="w"> </span><span class="n">dtoList</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">InitializeDto</span><span class="o">&gt;</span><span class="p">();</span>
+private async void Start()
+{
+    // Array, List 모두 가능
+    List&lt;InitializeDto&gt; dtoList = new List&lt;InitializeDto&gt;();
 
-<span class="w">    </span><span class="c1">// 스토어에 등록 된 Product의 Id와 상품 타입을 Dto에 등록하여 List에 추가합니다.    </span>
-<span class="w">    </span><span class="n">dtoList</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">InitializeDto</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="n">ProductId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Consumable&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="n">ProductType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ProductType</span><span class="p">.</span><span class="n">Consumable</span>
-<span class="w">    </span><span class="p">});</span>
+    // 스토어에 등록 된 Product의 Id와 상품 타입을 Dto에 등록하여 List에 추가합니다.    
+    dtoList.Add(new InitializeDto
+    {
+        ProductId = &quot;Consumable&quot;,
+        ProductType = ProductType.Consumable
+    });
 
-<span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="n">BreezeIAP</span><span class="p">.</span><span class="n">InitializeAsync</span><span class="p">(</span><span class="n">dtoList</span><span class="p">);</span>
-<span class="p">}</span>
-</code></pre></div>
+    await BreezeIAP.InitializeAsync(dtoList);
+}
+</code></pre>
 <h3 id="purchase-confirm">Purchase, Confirm</h3>
 <p>결제 시도부터 성공 및 실패 시점까지 사용자가 명확하게 판단할 수 있도록 인터페이스와 에러 메시지를 제공합니다.</p>
-<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">PurchaseAsync</span><span class="p">(</span><span class="kt">string</span><span class="w"> </span><span class="n">productId</span><span class="p">)</span>
-<span class="p">{</span>
-<span class="w">    </span><span class="n">PurchaseResult</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="n">BreezeIAP</span><span class="p">.</span><span class="n">PurchaseAsync</span><span class="p">(</span><span class="n">productId</span><span class="p">);</span>
+<pre><code class="language-csharp">public async void PurchaseAsync(string productId)
+{
+    PurchaseResult result = await BreezeIAP.PurchaseAsync(productId);
 
-<span class="w">    </span><span class="c1">// 성공 시</span>
-<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">IsSuccess</span><span class="p">)</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="c1">// 서버를 통한 영수증 검증을 진행하신다면 이 시점에 추가해주세요. </span>
+    // 성공 시
+    if(result.IsSuccess)
+    {
+        // 서버를 통한 영수증 검증을 진행하신다면 이 시점에 추가해주세요. 
 
-<span class="w">        </span><span class="c1">// PurchaseResult, Product 모두 가능</span>
-<span class="w">        </span><span class="n">BreezeIAP</span><span class="p">.</span><span class="n">Confirm</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
+        // PurchaseResult, Product 모두 가능
+        BreezeIAP.Confirm(result);
 
-<span class="w">        </span><span class="c1">// 아이템 지급</span>
+        // 아이템 지급
 
-<span class="w">        </span><span class="k">return</span><span class="p">;</span>
-<span class="w">    </span><span class="p">}</span>
+        return;
+    }
 
-<span class="w">    </span><span class="n">Debug</span><span class="p">.</span><span class="n">Log</span><span class="p">(</span><span class="s">$&quot;[{result.Product.definition.id}] 상품 구매에 실패했습니다. 이유 : {result.ErrorMessage}&quot;</span><span class="p">);</span>
-<span class="p">}</span>
-</code></pre></div>
+    Debug.Log($&quot;[{result.Product.definition.id}] 상품 구매에 실패했습니다. 이유 : {result.ErrorMessage}&quot;);
+}
+</code></pre>
 <hr />
 <h2 id="dependencies">Dependencies</h2>
 <p><a href="https://docs.unity3d.com/Packages/com.unity.purchasing@4.12/manual/index.html">In App Purchasing</a> (4.12.0)</p>
@@ -1915,10 +1915,6 @@ BreezeIAP.GetRestoreList  | Android, iOS 별 구매 복원 할 상품 리스트 
     
     
       <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-      
-        <script src="../../../overrides/mermaid-init.js"></script>
       
     
   </body>

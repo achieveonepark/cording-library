@@ -1837,63 +1837,63 @@
 <h2 id="quick-start">Quick Start</h2>
 <h3 id="config">Config</h3>
 <p><code>ConfigManager</code>에 추가된 모든 데이터는 <code>PlayerPrefs</code>에 저장됩니다.</p>
-<div class="highlight"><pre><span></span><code><span class="n">ConfigManager</span><span class="p">.</span><span class="n">AddKey</span><span class="p">(</span><span class="s">&quot;Sound&quot;</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">);</span>
-<span class="n">ConfigManager</span><span class="p">.</span><span class="n">AddKey</span><span class="p">(</span><span class="s">&quot;BGM&quot;</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">);</span>
-<span class="n">ConfigManager</span><span class="p">.</span><span class="n">AddKey</span><span class="p">(</span><span class="s">&quot;DataKey&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;DataValue&quot;</span><span class="p">);</span>
+<pre><code class="language-csharp">ConfigManager.AddKey(&quot;Sound&quot;, 0);
+ConfigManager.AddKey(&quot;BGM&quot;, 0);
+ConfigManager.AddKey(&quot;DataKey&quot;, &quot;DataValue&quot;);
 
-<span class="kt">var</span><span class="w"> </span><span class="n">sound</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ConfigManager</span><span class="p">.</span><span class="n">GetConfig</span><span class="p">(</span><span class="s">&quot;Sound&quot;</span><span class="p">);</span>
-<span class="n">ConfigManager</span><span class="p">.</span><span class="n">SetConfig</span><span class="p">(</span><span class="s">&quot;Sound&quot;</span><span class="p">,</span><span class="w"> </span><span class="m">100</span><span class="p">);</span>
-</code></pre></div>
+var sound = ConfigManager.GetConfig(&quot;Sound&quot;);
+ConfigManager.SetConfig(&quot;Sound&quot;, 100);
+</code></pre>
 <h3 id="popup">Popup</h3>
 <p>에디터 설정:</p>
 <ol>
 <li><code>PopupManager</code>를 Hierarchy에 추가합니다. (DontDestroyOnLoad로 활성화됩니다.)</li>
 <li><code>PopupManager</code> 컴포넌트의 <code>popups</code> Field에 사용할 Popup들을 모두 캐싱합니다.</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">SettingPopup</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">Popup</span>
-<span class="p">{</span>
-<span class="w">    </span><span class="c1">// ...</span>
-<span class="p">}</span>
-<span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">CommonPopup</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">Popup</span>
-<span class="p">{</span>
-<span class="w">    </span><span class="c1">// ...</span>
-<span class="p">}</span>
-<span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">SettingData</span>
-<span class="p">{</span>
-<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Volume</span><span class="p">;</span>
-<span class="w">    </span><span class="c1">// ...</span>
-<span class="p">}</span>
+<pre><code class="language-csharp">public class SettingPopup : Popup
+{
+    // ...
+}
+public class CommonPopup : Popup
+{
+    // ...
+}
+public class SettingData
+{
+    public int Volume;
+    // ...
+}
 
-<span class="c1">// Calling GetPopup will also trigger the popup&#39;s Open method.</span>
-<span class="kt">var</span><span class="w"> </span><span class="n">commonPopup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PopupManager</span><span class="p">.</span><span class="n">GetPopup</span><span class="o">&lt;</span><span class="n">CommonPopup</span><span class="o">&gt;</span><span class="p">();</span>
+// Calling GetPopup will also trigger the popup's Open method.
+var commonPopup = PopupManager.GetPopup&lt;CommonPopup&gt;();
 
-<span class="c1">// objName : Txt_Level, TMP Support</span>
-<span class="kt">var</span><span class="w"> </span><span class="n">lvTxt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">commonPopup</span><span class="p">.</span><span class="n">Get</span><span class="o">&lt;</span><span class="n">Text</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Level&quot;</span><span class="p">);</span>
-<span class="kt">var</span><span class="w"> </span><span class="n">lvTxt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">commonPopup</span><span class="p">.</span><span class="n">Get</span><span class="o">&lt;</span><span class="n">TMP_Text</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Level&quot;</span><span class="p">);</span><span class="w"> </span>
+// objName : Txt_Level, TMP Support
+var lvTxt = commonPopup.Get&lt;Text&gt;(&quot;Level&quot;);
+var lvTxt = commonPopup.Get&lt;TMP_Text&gt;(&quot;Level&quot;); 
 
-<span class="n">SettingData</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SettingData</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">Volume</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">200</span><span class="w"> </span><span class="p">};</span>
-<span class="kt">var</span><span class="w"> </span><span class="n">settingPopup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PopupManager</span><span class="p">.</span><span class="n">GetPopup</span><span class="o">&lt;</span><span class="n">SettingPopup</span><span class="o">&gt;</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
-</code></pre></div>
+SettingData data = new SettingData { Volume = 200 };
+var settingPopup = PopupManager.GetPopup&lt;SettingPopup&gt;(data);
+</code></pre>
 <h3 id="time-management">Time Management</h3>
 <p><code>TimeManager</code>로 현재 시간을 받아오거나, 게임의 TimeScale를 조정합니다.</p>
-<div class="highlight"><pre><span></span><code><span class="n">DateTime</span><span class="w"> </span><span class="n">now</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TimeManager</span><span class="p">.</span><span class="n">Now</span><span class="p">;</span>
-<span class="n">TimeManager</span><span class="p">.</span><span class="n">TimeScale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">;</span>
-</code></pre></div>
+<pre><code class="language-csharp">DateTime now = TimeManager.Now;
+TimeManager.TimeScale = 2;
+</code></pre>
 <h3 id="uibinding-using-unitaskpubsub">UIBinding using UniTaskPubSub</h3>
 <blockquote>
 <p><a href="https://github.com/hadashiA/UniTaskPubSub">hadashiA/UniTaskPubSub</a>을 사용한 기능입니다.<br>
 기능에 대한 설명은 링크를 참조해주세요.<br> </p>
 </blockquote>
 <p>이 설정을 통해 이벤트 관리가 간소화됩니다. UI 호출 및 상태 변경 처리에 용이합니다.</p>
-<div class="highlight"><pre><span></span><code><span class="c1">// Register</span>
-<span class="n">UIBindingManager</span><span class="p">.</span><span class="n">Subscribe</span><span class="o">&lt;</span><span class="n">SettingData</span><span class="o">&gt;</span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">=&gt;</span>
-<span class="p">{</span>
-<span class="w">    </span><span class="n">SetVolume</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">Volume</span><span class="p">);</span>
-<span class="p">});</span>
+<pre><code class="language-csharp">// Register
+UIBindingManager.Subscribe&lt;SettingData&gt;(data =&gt;
+{
+    SetVolume(data.Volume);
+});
 
-<span class="c1">// Call</span>
-<span class="n">UIBindingManager</span><span class="p">.</span><span class="n">Publish</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">SettingData</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">Volume</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="p">});</span>
-</code></pre></div>
+// Call
+UIBindingManager.Publish(new SettingData { Volume = 5 });
+</code></pre>
 <h3 id="singleton">Singleton</h3>
 <ul>
 <li><strong>MonoSingleton</strong>: MonoBehavior를 상속 받는 Singleton</li>
@@ -1904,25 +1904,25 @@
 <p>패키지에는 기본 <code>Log</code> 클래스가 포함되어 있습니다. (GameLog)<br>
 사용자 지정이 필요한 경우 <code>IGameLog</code> 에서 상속하여 사용자 지정 로거를 구현할 수 있습니다.<br>
 패키지의 <code>GameLog.cs</code> 를 참조하세요.</p>
-<div class="highlight"><pre><span></span><code><span class="n">GameLog</span><span class="p">.</span><span class="n">Debug</span><span class="p">(</span><span class="s">&quot;Debug&quot;</span><span class="p">);</span>
-<span class="n">GameLog</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">&quot;Info&quot;</span><span class="p">);</span>
-<span class="n">GameLog</span><span class="p">.</span><span class="n">Warning</span><span class="p">(</span><span class="s">&quot;Warning&quot;</span><span class="p">);</span>
-<span class="n">GameLog</span><span class="p">.</span><span class="n">Error</span><span class="p">(</span><span class="s">&quot;Error&quot;</span><span class="p">);</span>
-<span class="k">throw</span><span class="w"> </span><span class="n">GameLog</span><span class="p">.</span><span class="n">Fatal</span><span class="p">(</span><span class="s">&quot;Fatal&quot;</span><span class="p">);</span>
-</code></pre></div>
+<pre><code class="language-csharp">GameLog.Debug(&quot;Debug&quot;);
+GameLog.Info(&quot;Info&quot;);
+GameLog.Warning(&quot;Warning&quot;);
+GameLog.Error(&quot;Error&quot;);
+throw GameLog.Fatal(&quot;Fatal&quot;);
+</code></pre>
 <h3 id="unitywebrequest-wrapper">UnityWebRequest Wrapper</h3>
 <p>이 class는 UnityWebRequest를 간편하게 사용하기 위해 제작되었습니다.</p>
-<div class="highlight"><pre><span></span><code><span class="kt">var</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HttpLink</span><span class="p">.</span><span class="n">Builder</span><span class="p">()</span>
-<span class="w">    </span><span class="p">.</span><span class="n">SetUrl</span><span class="p">(</span><span class="s">&quot;https://jsonplaceholder.typicode.com/posts/1&quot;</span><span class="p">)</span>
-<span class="w">    </span><span class="p">.</span><span class="n">SetMethod</span><span class="p">(</span><span class="s">&quot;GET&quot;</span><span class="p">)</span>
-<span class="w">    </span><span class="p">.</span><span class="n">Build</span><span class="p">();</span>
-<span class="k">await</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">SendAsync</span><span class="p">();</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">Success</span><span class="p">)</span>
-<span class="p">{</span>
-<span class="w">    </span><span class="kt">var</span><span class="w"> </span><span class="n">resultBytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">ReceiveData</span><span class="p">;</span>
-<span class="w">    </span><span class="kt">var</span><span class="w"> </span><span class="n">resultStr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="n">ReceiveDataString</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div>
+<pre><code class="language-csharp">var result = new HttpLink.Builder()
+    .SetUrl(&quot;https://jsonplaceholder.typicode.com/posts/1&quot;)
+    .SetMethod(&quot;GET&quot;)
+    .Build();
+await result.SendAsync();
+if (result.Success)
+{
+    var resultBytes = result.ReceiveData;
+    var resultStr = result.ReceiveDataString;
+}
+</code></pre>
 <h2 id="changelog">ChangeLog</h2>
 <p><a href="https://github.com/achieveonepark/game-framework/blob/main/CHANGELOG.md">link</a></p>
 
@@ -1975,10 +1975,6 @@
     
     
       <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-      
-        <script src="../../../overrides/mermaid-init.js"></script>
       
     
   </body>

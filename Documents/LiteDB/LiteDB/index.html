@@ -1797,14 +1797,14 @@
 <li>csv 파일과 db 파일을 캐싱한 후 insert!를 클릭하여 db에 포함합니다.</li>
 </ol>
 <h3 id="api">API</h3>
-<div class="highlight"><pre><span></span><code><span class="n">LiteDB</span><span class="p">.</span><span class="n">Initialize</span><span class="p">(</span><span class="s">$&quot;{Application.dataPath}/Resources/data.db&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// Path</span>
+<pre><code class="language-csharp">LiteDB.Initialize($&quot;{Application.dataPath}/Resources/data.db&quot;); // Path
 
-<span class="kt">var</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LiteDB</span><span class="p">.</span><span class="n">Get</span><span class="o">&lt;</span><span class="n">Quest</span><span class="o">&gt;</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">LiteDB</span><span class="p">.</span><span class="n">TryGetValue</span><span class="o">&lt;</span><span class="n">Quest</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Quest&quot;</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="k">out</span><span class="w"> </span><span class="kt">var</span><span class="w"> </span><span class="n">quest</span><span class="p">))</span>
-<span class="p">{</span>
-<span class="w">    </span><span class="kt">var</span><span class="w"> </span><span class="n">reward</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">quest</span><span class="p">.</span><span class="n">reward</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div>
+var a = LiteDB.Get&lt;Quest&gt;(1);
+if (LiteDB.TryGetValue&lt;Quest, int&gt;(&quot;Quest&quot;, 1, out var quest))
+{
+    var reward = quest.reward;
+}
+</code></pre>
 <h2 id="dependencies">Dependencies</h2>
 <hr />
 <h2 id="changelog">ChangeLog</h2>
@@ -1859,10 +1859,6 @@
     
     
       <script src="../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
-      
-        <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-      
-        <script src="../../../overrides/mermaid-init.js"></script>
       
     
   </body>
