@@ -1811,14 +1811,14 @@
 
 
 <h1 id="command">Command</h1>
-<pre><code class="language-mermaid">graph TD
+<div class="highlight"><pre><span></span><code>graph TD
     Client[Client] --&gt;|Command 생성 및 설정| Invoker
     Client --&gt;|Command 정의| ConcreteCommand
     Invoker[Invoker] --&gt;|실행| Command
     Command[Command] --&gt;|Execute 구현| ConcreteCommand[ConcreteCommand]
     ConcreteCommand --&gt;|작업 위임| Receiver[Receiver]
     Receiver --&gt;|실행| Action[Action/Operation]
-</code></pre>
+</code></pre></div>
 <p>요청을 객체로 캡슐화하여, 실행 주체와 실행 방법을 분리하고 요청의 기록, 취소, 재실행 등의 기능을 유연하게 제공하는 패턴입니다.</p>
 <h2 id="_1">구현부</h2>
 <p>기본적으로 4가지의 객체를 구현합니다.</p>
@@ -1844,136 +1844,135 @@
 <h2 id="example">Example</h2>
 <p>이 문서에서는 Command를 이용하여 캐릭터가 공격 및 점프하는 기능을 구현합니다.</p>
 <h3 id="receiver_1">Receiver</h3>
-<pre><code class="language-csharp">
-public class Player : MonoBehaviour
-{
-    public void Attack(Transform target)
-    {
-        Debug.Log($&quot;Attack! {target.name}&quot;);
-    }
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">Player</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">MonoBehaviour</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">Attack</span><span class="p">(</span><span class="n">Transform</span><span class="w"> </span><span class="n">target</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Debug</span><span class="p">.</span><span class="n">Log</span><span class="p">(</span><span class="s">$&quot;Attack! {target.name}&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
 
-    public void Jump()
-    {
-        Debug.Log(&quot;Jump...&quot;);
-    }
-}
-</code></pre>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">Jump</span><span class="p">()</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Debug</span><span class="p">.</span><span class="n">Log</span><span class="p">(</span><span class="s">&quot;Jump...&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 <h3 id="command_2">Command</h3>
-<pre><code class="language-csharp">// 모든 커맨드는 이 인터페이스를 상속받습니다.
-public interface ICommand
-{
-    void Execute();
-}
+<div class="highlight"><pre><span></span><code><span class="c1">// 모든 커맨드는 이 인터페이스를 상속받습니다.</span>
+<span class="k">public</span><span class="w"> </span><span class="k">interface</span><span class="w"> </span><span class="n">ICommand</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">void</span><span class="w"> </span><span class="nf">Execute</span><span class="p">();</span>
+<span class="p">}</span>
 
-// 데이터 크기가 작은 명령은 struct를 사용합니다.
-public readonly struct AttackCommand : ICommand
-{
-    private readonly Player _player;
-    private readonly Transform _target;
+<span class="c1">// 데이터 크기가 작은 명령은 struct를 사용합니다.</span>
+<span class="k">public</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">AttackCommand</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">ICommand</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="n">Player</span><span class="w"> </span><span class="n">_player</span><span class="p">;</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="n">Transform</span><span class="w"> </span><span class="n">_target</span><span class="p">;</span>
 
-    public AttackCommand(Player player, Transform target)
-    {
-        _player = player;
-        _target = target;
-    }
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="nf">AttackCommand</span><span class="p">(</span><span class="n">Player</span><span class="w"> </span><span class="n">player</span><span class="p">,</span><span class="w"> </span><span class="n">Transform</span><span class="w"> </span><span class="n">target</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">_player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">player</span><span class="p">;</span>
+<span class="w">        </span><span class="n">_target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">target</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
 
-    public void Execute()
-    {
-        _player.Attack(_target);
-    }
-}
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">Execute</span><span class="p">()</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">_player</span><span class="p">.</span><span class="n">Attack</span><span class="p">(</span><span class="n">_target</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
 
-public readonly struct JumpCommand : ICommand
-{
-    private readonly Player _player;
+<span class="k">public</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">JumpCommand</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">ICommand</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">readonly</span><span class="w"> </span><span class="n">Player</span><span class="w"> </span><span class="n">_player</span><span class="p">;</span>
 
-    public JumpCommand(Player player)
-    {
-        _player = player;
-    }
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="nf">JumpCommand</span><span class="p">(</span><span class="n">Player</span><span class="w"> </span><span class="n">player</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">_player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">player</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
 
-    public void Execute()
-    {
-        _player.Jump();
-    }
-}
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">Execute</span><span class="p">()</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">_player</span><span class="p">.</span><span class="n">Jump</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
 
-// 자료구조를 쓰거나 데이터가 방대하고 변경될 수 있는 명령은 class를 사용합니다.
-public class MultiAttackCommand : ICommand
-{
-    private Player _player;
-    private List&lt;Transform&gt; _monsterTargets;
+<span class="c1">// 자료구조를 쓰거나 데이터가 방대하고 변경될 수 있는 명령은 class를 사용합니다.</span>
+<span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">MultiAttackCommand</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">ICommand</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">Player</span><span class="w"> </span><span class="n">_player</span><span class="p">;</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">Transform</span><span class="o">&gt;</span><span class="w"> </span><span class="n">_monsterTargets</span><span class="p">;</span>
 
-    public MultiAttackCommand(Player player, List&lt;Transform&gt; monsterTargets)
-    {
-        _player = player;
-        _monsterTargets = monsterTargets;
-    }
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="nf">MultiAttackCommand</span><span class="p">(</span><span class="n">Player</span><span class="w"> </span><span class="n">player</span><span class="p">,</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">Transform</span><span class="o">&gt;</span><span class="w"> </span><span class="n">monsterTargets</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">_player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">player</span><span class="p">;</span>
+<span class="w">        </span><span class="n">_monsterTargets</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">monsterTargets</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
 
-    public void Execute()
-    {
-        foreach (var monster in _monsterTargets)
-        {
-            _player.Attack(monster);
-        }
-    }
-}
-</code></pre>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">Execute</span><span class="p">()</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">foreach</span><span class="w"> </span><span class="p">(</span><span class="kt">var</span><span class="w"> </span><span class="n">monster</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">_monsterTargets</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">_player</span><span class="p">.</span><span class="n">Attack</span><span class="p">(</span><span class="n">monster</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 <h3 id="invoker_1">Invoker</h3>
-<pre><code class="language-csharp">// 새로운 Command를 Set한 후 Execute만 담당 
-public class InputHandler : MonoBehaviour
-{
-    private ICommand _currentCommand;
+<div class="highlight"><pre><span></span><code><span class="c1">// 새로운 Command를 Set한 후 Execute만 담당 </span>
+<span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">InputHandler</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">MonoBehaviour</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">ICommand</span><span class="w"> </span><span class="n">_currentCommand</span><span class="p">;</span>
 
-    public void SetCommand(ICommand command)
-    {
-        _currentCommand = command;
-    }
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">SetCommand</span><span class="p">(</span><span class="n">ICommand</span><span class="w"> </span><span class="n">command</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">_currentCommand</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">command</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
 
-    public void ExecuteCommand()
-    {
-        _currentCommand?.Execute();
-    }
-}
-</code></pre>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">ExecuteCommand</span><span class="p">()</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">_currentCommand</span><span class="o">?.</span><span class="n">Execute</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 <h3 id="client_1">Client</h3>
-<pre><code class="language-csharp">public class StartUp : MonoBehaviour
-{
-    [SerializeField] private Player _player;
-    [SerializeField] private InputHandler _handler;
-    [SerializeField] private Transform[] _monsters;
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">StartUp</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">MonoBehaviour</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">Player</span><span class="w"> </span><span class="n">_player</span><span class="p">;</span>
+<span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">InputHandler</span><span class="w"> </span><span class="n">_handler</span><span class="p">;</span>
+<span class="w">    </span><span class="na">[SerializeField]</span><span class="w"> </span><span class="k">private</span><span class="w"> </span><span class="n">Transform</span><span class="p">[]</span><span class="w"> </span><span class="n">_monsters</span><span class="p">;</span>
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            if (_monsters.Length == 0)
-            {
-                return;
-            }
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">Update</span><span class="p">()</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Input</span><span class="p">.</span><span class="n">GetKeyDown</span><span class="p">(</span><span class="n">KeyCode</span><span class="p">.</span><span class="n">A</span><span class="p">))</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_monsters</span><span class="p">.</span><span class="n">Length</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
 
-            if (_monsters.Length == 1)
-            {
-                var attackCommand = new AttackCommand(_player, _monsters[0]);
-                _handler.SetCommand(attackCommand);    
-            }
-            else
-            {
-                var multiAttackCommand = new MultiAttackCommand(_player, _monsters.ToList());
-                _handler.SetCommand(multiAttackCommand);    
-            }
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_monsters</span><span class="p">.</span><span class="n">Length</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">1</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="kt">var</span><span class="w"> </span><span class="n">attackCommand</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">AttackCommand</span><span class="p">(</span><span class="n">_player</span><span class="p">,</span><span class="w"> </span><span class="n">_monsters</span><span class="p">[</span><span class="m">0</span><span class="p">]);</span>
+<span class="w">                </span><span class="n">_handler</span><span class="p">.</span><span class="n">SetCommand</span><span class="p">(</span><span class="n">attackCommand</span><span class="p">);</span><span class="w">    </span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">else</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="kt">var</span><span class="w"> </span><span class="n">multiAttackCommand</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">MultiAttackCommand</span><span class="p">(</span><span class="n">_player</span><span class="p">,</span><span class="w"> </span><span class="n">_monsters</span><span class="p">.</span><span class="n">ToList</span><span class="p">());</span>
+<span class="w">                </span><span class="n">_handler</span><span class="p">.</span><span class="n">SetCommand</span><span class="p">(</span><span class="n">multiAttackCommand</span><span class="p">);</span><span class="w">    </span>
+<span class="w">            </span><span class="p">}</span>
 
-            _handler.ExecuteCommand();
-        }
-        else if (Input.GetKeyDown(KeyCode.Space))
-        {
-            var jumpCommand = new JumpCommand(_player);
-            _handler.SetCommand(jumpCommand);
-            _handler.ExecuteCommand();
-        }
-    }
-}
-</code></pre>
+<span class="w">            </span><span class="n">_handler</span><span class="p">.</span><span class="n">ExecuteCommand</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">else</span><span class="w"> </span><span class="nf">if</span><span class="w"> </span><span class="p">(</span><span class="n">Input</span><span class="p">.</span><span class="n">GetKeyDown</span><span class="p">(</span><span class="n">KeyCode</span><span class="p">.</span><span class="n">Space</span><span class="p">))</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="kt">var</span><span class="w"> </span><span class="n">jumpCommand</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">JumpCommand</span><span class="p">(</span><span class="n">_player</span><span class="p">);</span>
+<span class="w">            </span><span class="n">_handler</span><span class="p">.</span><span class="n">SetCommand</span><span class="p">(</span><span class="n">jumpCommand</span><span class="p">);</span>
+<span class="w">            </span><span class="n">_handler</span><span class="p">.</span><span class="n">ExecuteCommand</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 
 
 
@@ -2024,6 +2023,8 @@ public class InputHandler : MonoBehaviour
     
     
       <script src="../../../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
       
     
   </body>
