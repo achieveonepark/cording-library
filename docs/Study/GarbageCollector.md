@@ -1,4 +1,4 @@
-# GarbageCollector, Memory
+# GarbageCollector
 
 ## GarbageCollector?
 - 더 이상 사용하지 않는 객체를 찾아서 메모리에서 해제해 주는 시스템.
