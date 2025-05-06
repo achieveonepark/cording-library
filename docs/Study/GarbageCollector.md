@@ -52,3 +52,27 @@ numbers.Where(x => x > 0;) // int -> object
 ```
 - 결론 : 적절한 사용 시기는 한 번 실행하고 끝날 때나, 컴파일 타임 또는 로딩 시
 
+### foreach
+```csharp
+foreach (Transform trf in transforms)
+{
+    // 
+}
+```
+- Unity의 Transform 컴포넌트처럼 struct 기반 커스텀 Enumerator를 사용하는 경우, foreach 구문이 내부적으로 IEnumerator 인터페이스로 캐스팅하면서 박싱이 발생할 수 있음,
+따라서 성능이 중요한 상황에서는 for 루프 사용이 권장된다.
+- 일반적으로 구조체를 foreach로 순회할 때, 구조체가 IEnumerator 인터페이스로 변환되는 과정에서 박싱이 발생할 수 있음.
+- 결론 : 참조형 클래스 순회, 컬렉션 크기가 작으며 구조적으로 명확하거나 제네릭 컬렉션을 순회할 때 안전하게 사용 가능함
+
+### 람다식 및 익명 메서드
+```csharp
+button.onClick.AddListener(() => Debug.Log("Clicked"));
+```
+- 람다 내부에 캡처가 있으면 힙에 객체 생성 됨
+- 캡처가 없더라도 Delegate 객체 생성 -> GC Alloc
+- 결론 : 함수를 미리 정의, 그 함수 참조로 대체
+
+### Instantiate / Destroy
+- 너무나도 당연한 이야기지만 생성, 삭제를 직접 하는 경우에도 GC Alloc
+- Destory는 실제 파괴가 프레임 뒤에 일어나며 메모리 정리도 늦게 진행되며 연속적으로 사용 시 GC 밀집 발생 (심한 프레임 드랍)
+- 결론 : Pooling을 쓰자~
