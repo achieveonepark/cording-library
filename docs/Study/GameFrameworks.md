@@ -3,14 +3,19 @@
 ## 사용하고자 하는 패키지
 ### 데이터
 - ### VContainer
-- ### LiteDB
+- ### LiteDB (Local Save)
+- ### Cloud Firestore (Cloud Save)
 
 ### 리소스
-- ### Addressables
+- ### Unity Addressables
 
 ### UI 및 시스템
 - ### UniTask
 - ### R3
+- ### Breeze IAP
+- ### Google Sign in
+- ### Apple Sign in
+- ### Unity Ads
 
 ## 데이터 흐름
 ### SP : VContainer LifetimeScope에서 데이터 주입
