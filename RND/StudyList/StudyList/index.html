@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://achieveonepark.github.io/cording-library/DesignPattern/GameProgramming/DirtyFlag/">
+        <link rel="canonical" href="https://achieveonepark.github.io/cording-library/RND/StudyList/StudyList/">
       
       
-        <link rel="prev" href="../DataLocality/">
+        <link rel="prev" href="../../../Analysis/Addressables/Addressables/">
       
       
-        <link rel="next" href="../EventQueue/">
+        <link rel="next" href="../../../DesignPattern/GoF/Behavioral/ChainOfResponsibility/">
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>DirtyFlag - achieveone's tech-blog</title>
+        <title>연구해보기 - achieveone's tech-blog</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#dirtyflag" class="md-skip">
+        <a href="#study-list" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              DirtyFlag
+              연구해보기
             
           </span>
         </div>
@@ -646,17 +646,19 @@
       
   
   
+    
   
   
+  
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -670,7 +672,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             R&D
@@ -681,10 +683,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../../RND/StudyList/StudyList/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    연구해보기
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -693,6 +715,98 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-garbagecollector" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. GarbageCollector
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Framework 구상하기
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Memory
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. 구조체 기반의 수치 연산
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-jit-aot" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. 런타임 구조 (JIT, AOT 등등)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. 프로세스란?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. 빌드 시스템 구체화
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-script-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Script Lifecycle
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -705,7 +819,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../RND/GarbageCollector/GarbageCollector.md" class="md-nav__link">
+      <a href="../../GarbageCollector/GarbageCollector.md" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -726,7 +840,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../RND/GameFramworks/GameFramworks.md" class="md-nav__link">
+      <a href="../../GameFramworks/GameFramworks.md" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -747,7 +861,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../RND/Memory/Memory.md" class="md-nav__link">
+      <a href="../../Memory/Memory.md" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -772,19 +886,17 @@
       
   
   
-    
   
   
-  
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
@@ -798,7 +910,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             DesignPattern
@@ -882,7 +994,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Behavioral/ChainOfResponsibility/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Behavioral/ChainOfResponsibility/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -903,7 +1015,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Behavioral/Command/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Behavioral/Command/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -924,7 +1036,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Behavioral/Interpreter/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Behavioral/Interpreter/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -945,7 +1057,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Behavioral/Iterator/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Behavioral/Iterator/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -966,7 +1078,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Behavioral/Mediator/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Behavioral/Mediator/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -987,7 +1099,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Behavioral/Memento/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Behavioral/Memento/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1008,7 +1120,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Behavioral/Observer/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Behavioral/Observer/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1029,7 +1141,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Behavioral/State/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Behavioral/State/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1050,7 +1162,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Behavioral/Strategy/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Behavioral/Strategy/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1071,7 +1183,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Behavioral/TemplateMethod/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Behavioral/TemplateMethod/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1092,7 +1204,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Behavioral/Visitor/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Behavioral/Visitor/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1156,7 +1268,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Structural/Adapter/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Structural/Adapter/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1177,7 +1289,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Structural/Bridge/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Structural/Bridge/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1198,7 +1310,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Structural/Composite/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Structural/Composite/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1219,7 +1331,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Structural/Decorator/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Structural/Decorator/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1240,7 +1352,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Structural/Facade/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Structural/Facade/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1261,7 +1373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Structural/FactoryMethod/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Structural/FactoryMethod/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1282,7 +1394,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Structural/Flyweight/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Structural/Flyweight/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1303,7 +1415,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Structural/Proxy/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Structural/Proxy/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1367,7 +1479,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Creational/AbstractFactory/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Creational/AbstractFactory/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1388,7 +1500,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Creational/Builder/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Creational/Builder/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1409,7 +1521,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Creational/Prototype/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Creational/Prototype/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1430,7 +1542,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../GoF/Creational/Singleton/" class="md-nav__link">
+      <a href="../../../DesignPattern/GoF/Creational/Singleton/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1464,19 +1576,17 @@
                 
   
   
-    
   
   
-  
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" >
         
           
           <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
@@ -1490,7 +1600,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5_2">
             <span class="md-nav__icon md-icon"></span>
             Game Programming
@@ -1504,7 +1614,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../Component/" class="md-nav__link">
+      <a href="../../../DesignPattern/GameProgramming/Component/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1525,7 +1635,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../DataLocality/" class="md-nav__link">
+      <a href="../../../DesignPattern/GameProgramming/DataLocality/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1543,19 +1653,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../../DesignPattern/GameProgramming/DirtyFlag/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1564,7 +1665,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -1577,7 +1677,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../EventQueue/" class="md-nav__link">
+      <a href="../../../DesignPattern/GameProgramming/EventQueue/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1598,7 +1698,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../GameLoop/" class="md-nav__link">
+      <a href="../../../DesignPattern/GameProgramming/GameLoop/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1619,7 +1719,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ObjectPool/" class="md-nav__link">
+      <a href="../../../DesignPattern/GameProgramming/ObjectPool/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1640,7 +1740,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ServiceLocator/" class="md-nav__link">
+      <a href="../../../DesignPattern/GameProgramming/ServiceLocator/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1661,7 +1761,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SubclassSandbox/" class="md-nav__link">
+      <a href="../../../DesignPattern/GameProgramming/SubclassSandbox/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1682,7 +1782,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../TypeObject/" class="md-nav__link">
+      <a href="../../../DesignPattern/GameProgramming/TypeObject/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1731,6 +1831,86 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-garbagecollector" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. GarbageCollector
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Framework 구상하기
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Memory
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. 구조체 기반의 수치 연산
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-jit-aot" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. 런타임 구조 (JIT, AOT 등등)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. 프로세스란?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. 빌드 시스템 구체화
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-script-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Script Lifecycle
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1747,7 +1927,15 @@
   
 
 
-<h1 id="dirtyflag">DirtyFlag</h1>
+<h1 id="study-list">Study List</h1>
+<h2 id="1-garbagecollector">1. <a href="../GarbageCollector/GarbageCollector/">GarbageCollector</a></h2>
+<h2 id="2-framework">2. <a href="../GameFrameworks/GameFrameworks/">Framework 구상하기</a></h2>
+<h2 id="3-memory">3. <a href="../Memory/Memory/">Memory</a></h2>
+<h2 id="4">4. 구조체 기반의 수치 연산</h2>
+<h2 id="5-jit-aot">5. 런타임 구조 (JIT, AOT 등등)</h2>
+<h2 id="6">6. 프로세스란?</h2>
+<h2 id="7">7. 빌드 시스템 구체화</h2>
+<h2 id="8-script-lifecycle">8. Script Lifecycle</h2>
 
 
 
