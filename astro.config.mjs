@@ -2,17 +2,20 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import mermaid from 'astro-mermaid';
-import starlightGiscus from 'starlight-giscus'; // 🔹 추가
+import starlightGiscus from 'starlight-giscus';
+import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
 	site: 'https://library.a1tech.dev',
 	integrations: [
+		sitemap(),
 		mermaid({
 			theme: 'neutral',
 			autoTheme: true
 		}),
 		starlight({
 			title: 'A1 TECH',
+			description: 'Unity Game 개발, C#, .NET, 패턴/아키텍처 정리 라이브러리 사이트',
 			customCss: [
 				'./src/styles.css',
 			],
