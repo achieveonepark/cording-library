@@ -83,13 +83,15 @@ pre code {
     padding: 1rem 1.5rem;
 }
 
-/* src/styles/custom.css */
+/* ================================
+   4) 사이드바 메뉴 간격 조정
+   ================================ */
 
 /* 메뉴 항목 높이 증가 */
 .sidebar nav a {
-    padding-block: 0.75rem; /* 상하 패딩 증가 */
-    padding-inline: 1rem; /* 좌우 패딩 */
-    line-height: 1.6; /* 줄 높이 */
+    padding-block: 0.75rem;
+    padding-inline: 1rem;
+    line-height: 1.6;
 }
 
 /* 항목 간 간격 추가 */
@@ -108,9 +110,9 @@ pre code {
     margin-bottom: 0.5rem;
 }
 
-/* 콘텐츠 영역 최대 너비 */
-:root {
-}
+/* ================================
+   5) 콘텐츠 영역 조정
+   ================================ */
 
 /* 콘텐츠 패딩 */
 .content-panel {
@@ -155,12 +157,9 @@ pre code {
     font-weight: 700;
 }
 
-/* 
-------------------------------------
-toggle
-------------------------------------
-
- */
+/* ================================
+   6) 토글 버튼
+   ================================ */
 
 /* 토글 버튼 스타일 */
 .sidebar-toggle {
@@ -190,4 +189,131 @@ body.sidebar-hidden .sidebar-pane {
 /* 사이드바 숨김 시 콘텐츠 영역 확장 */
 body.sidebar-hidden .main-frame {
     margin-inline-start: 0;
+}
+
+/* ================================
+   7) 모바일 최적화 (768px 이하)
+   ================================ */
+
+@media (max-width: 768px) {
+    /* 사이드바 너비 줄이기 */
+    :root {
+        --sl-sidebar-width: 100%;
+    }
+
+    /* 콘텐츠 패딩 줄이기 */
+    .content-panel {
+        padding: 1rem 1.5rem;
+    }
+
+    /* 사이드바 패딩 조정 */
+    .sidebar {
+        padding: 1rem;
+    }
+
+    /* 메뉴 항목 패딩 조정 */
+    .sidebar nav a {
+        padding-block: 0.5rem;
+        padding-inline: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    /* 대주제 간격 줄이기 */
+    .sidebar nav > ul > li {
+        margin-bottom: 1rem;
+    }
+
+    /* 제목 크기 조정 */
+    .sl-markdown-content h1 {
+        font-size: 1.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .sl-markdown-content h2 {
+        font-size: 1.35rem;
+        margin-top: 2rem;
+    }
+
+    .sl-markdown-content h3 {
+        font-size: 1.15rem;
+        margin-top: 1.5rem;
+    }
+
+    .sl-markdown-content h4 {
+        font-size: 1rem;
+        margin-top: 1rem;
+    }
+
+    /* 코드 블록 조정 */
+    pre code {
+        font-size: 0.85rem;
+    }
+
+    /* 로고 크기 조정 */
+    .sl-logo img {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* 토글 버튼 모바일에서 숨기기 (Starlight 기본 토글 사용) */
+    .sidebar-toggle {
+        display: none;
+    }
+}
+
+/* ================================
+   8) 작은 모바일 (480px 이하)
+   ================================ */
+
+@media (max-width: 480px) {
+    /* 콘텐츠 패딩 더 줄이기 */
+    .content-panel {
+        padding: 0.75rem 1rem;
+    }
+
+    /* 제목 크기 더 조정 */
+    .sl-markdown-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .sl-markdown-content h2 {
+        font-size: 1.25rem;
+    }
+
+    .sl-markdown-content h3 {
+        font-size: 1.1rem;
+    }
+
+    /* 텍스트 크기 조정 */
+    :root {
+        --sl-text-base: 0.95rem;
+        --sl-text-lg: 1.05rem;
+        --sl-text-sm: 0.85rem;
+    }
+
+    /* 코드 블록 더 작게 */
+    pre code {
+        font-size: 0.8rem;
+    }
+}
+
+/* ================================
+   9) 태블릿 최적화 (769px ~ 1024px)
+   ================================ */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* 사이드바 너비 중간 크기 */
+    :root {
+        --sl-sidebar-width: 15rem;
+    }
+
+    /* 콘텐츠 너비 조정 */
+    :root {
+        --sl-content-width: 60rem;
+    }
+
+    /* 콘텐츠 패딩 */
+    .content-panel {
+        padding: 1.5rem 2rem;
+    }
 }

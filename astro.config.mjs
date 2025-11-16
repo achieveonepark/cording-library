@@ -9,15 +9,10 @@ export default defineConfig({
 			title: 'A1 TECH',
 			customCss: [
 				'./src/styles.css',
-			],      
-			components: {
-				Footer: './src/components/Footer.astro',
-			},
+			],
 			logo: {
 				src: './src/assets/logo.png',
 				alt: 'A1 TECH keyboard logo',
-				// 로고만 쓰고 타이틀 텍스트는 숨기고 싶으면:
-				// replacesTitle: true,
 			},
 			social: [
 				{
