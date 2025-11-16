@@ -1,0 +1,32 @@
+---
+// src/components/Footer.astro
+import Default from '@astrojs/starlight/components/Footer.astro';
+---
+
+<Default {...Astro.props}>
+    <div class="custom-footer">
+        <p>
+            © 2024 <a href="https://github.com/achieveonepark" target="_blank" rel="noopener">achieveonepark</a>. All rights reserved.
+        </p>
+    </div>
+</Default>
+
+<style>
+    .custom-footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--sl-color-hairline);
+        text-align: center;
+        color: var(--sl-color-gray-3);
+        font-size: 0.875rem;
+    }
+
+    .custom-footer a {
+        color: var(--sl-color-text-accent);
+        text-decoration: none;
+    }
+
+    .custom-footer a:hover {
+        text-decoration: underline;
+    }
+</style>

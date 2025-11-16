@@ -1,0 +1,193 @@
+/* ================================
+   0) Font
+   ================================ */
+
+/* 폰트 import */
+@font-face {
+    font-family: 'NoonnuBasicGothic';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noon-2410@1.0/NoonnuBasicGothicRegular.woff2') format('woff2');
+    font-weight: normal;
+    font-display: swap;
+}
+
+/* 전역 폰트 적용 */
+:root {
+    --sl-font: 'NoonnuBasicGothic', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --sl-font-system: 'NoonnuBasicGothic', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+
+/* ================================
+   1) A1 TECH Neo Green Dev 기본 색
+   ================================ */
+
+/* 라이트 모드 기본 (브라우저가 라이트일 때) */
+:root {
+    /* 포인트 컬러 (링크, 버튼 등) */
+    --sl-color-accent: #22c55e;         /* tailwind emerald-500 느낌 */
+    --sl-color-accent-soft: #dcfce7;    /* 연한 초록 배경 */
+    --sl-sidebar-width: 17rem; /* 기본값보다 넓게 */
+    --sl-content-width: 80rem;
+
+    /* 필요하면 라이트 배경도 살짝 톤 줄 수 있음 */
+    /* --sl-color-bg: #f9fafb; */
+}
+
+/* 다크 모드 (Starlight가 data-theme="dark" 붙여줌) */
+:root[data-theme="dark"] {
+    /* 전체 배경 톤 */
+    --sl-color-bg: #050810;             /* 거의 블랙에 가까운 남색톤 */
+
+    /* 포인트 컬러 */
+    --sl-color-accent: #22c55e;
+    --sl-color-accent-soft: #064e3b;
+}
+
+/* ================================
+   2) 헤더/로고/텍스트 약간 튜닝
+   ================================ */
+
+/* 헤더 배경을 전체 배경과 맞추기 */
+.sl-header {
+    background-color: var(--sl-color-bg);
+}
+
+/* 로고 이미지 크기 (원하는 값으로 튜닝) */
+.sl-logo img {
+    width: 40px;
+    height: 40px;
+}
+
+/* 로고와 타이틀 간격 살짝 조정 */
+.sl-logo {
+    gap: 0.5rem;
+}
+
+/* ================================
+   3) 코드 블록 / 링크 느낌 보정
+   ================================ */
+
+/* 링크 hover 시 살짝 더 진하게 */
+a:hover {
+    color: var(--sl-color-accent);
+}
+
+/* 코드 블록 글자 살짝만 키우고, 줄간격 조정 */
+pre code {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* 사이드바 패딩 조정 */
+.sidebar {
+    padding: 1rem 1.5rem;
+}
+
+/* src/styles/custom.css */
+
+/* 메뉴 항목 높이 증가 */
+.sidebar nav a {
+    padding-block: 0.75rem; /* 상하 패딩 증가 */
+    padding-inline: 1rem; /* 좌우 패딩 */
+    line-height: 1.6; /* 줄 높이 */
+}
+
+/* 항목 간 간격 추가 */
+.sidebar nav ul li {
+    margin-bottom: 0.5rem;
+}
+
+/* 대주제(Study, Analysis 등) 간격 더 크게 */
+.sidebar nav > ul > li {
+    margin-bottom: 1.5rem;
+}
+
+/* 대주제 제목 여백 */
+.sidebar nav > ul > li > div {
+    padding-block: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+/* 콘텐츠 영역 최대 너비 */
+:root {
+}
+
+/* 콘텐츠 패딩 */
+.content-panel {
+    padding: 2rem 3rem;
+}
+
+/* 전체 텍스트 크기 */
+:root {
+    --sl-text-base: 1rem;
+    --sl-text-lg: 1.125rem;
+    --sl-text-sm: 0.875rem;
+}
+
+/* 메인 콘텐츠 영역의 제목들 */
+.sl-markdown-content h1 {
+    font-size: 2rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.sl-markdown-content h2 {
+    font-size: 1.5rem;
+    margin-top: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.sl-markdown-content h3 {
+    font-size: 1.25rem;
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.sl-markdown-content h4 {
+    font-size: 1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* 제목 폰트 굵기 조정 */
+.sl-markdown-content h2,
+.sl-markdown-content h3 {
+    font-weight: 700;
+}
+
+/* 
+------------------------------------
+toggle
+------------------------------------
+
+ */
+
+/* 토글 버튼 스타일 */
+.sidebar-toggle {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 100;
+    padding: 0.5rem;
+    background: var(--sl-color-bg-nav);
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* 사이드바 애니메이션 */
+.sidebar-pane {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* 사이드바 숨김 상태 */
+body.sidebar-hidden .sidebar-pane {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+
+/* 사이드바 숨김 시 콘텐츠 영역 확장 */
+body.sidebar-hidden .main-frame {
+    margin-inline-start: 0;
+}
