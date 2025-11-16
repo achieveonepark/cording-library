@@ -32,30 +32,17 @@ export default defineConfig({
 			],
 			sidebar: [
 				{
+					label: 'Diagnostics',
+					autogenerate: { directory: 'Diagnostics' },
+				},
+				{
+					label: 'Packages',
+					autogenerate: { directory: 'Packages' },
+				},
+				{
 					label: 'Study',
 					autogenerate: { directory: 'Study' },
-				},
-				{
-					label: 'Analysis',
-					autogenerate: { directory: 'Analysis' },
-				},
-				{
-					label: 'Documents',
-					autogenerate: { directory: 'Documents' },
-				},
-				{
-					label: 'DesignPattern',
-					items: [
-						{
-							label: 'GoF',
-							autogenerate: { directory: 'DesignPattern/GoF' },
-						},
-						{
-							label: 'GameProgramming',
-							autogenerate: { directory: 'DesignPattern/GameProgramming' },
-						},
-					],
-				},
+				}
 			],
 			plugins: [
 				starlightGiscus({
