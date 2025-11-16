@@ -1,0 +1,5 @@
+---
+title: TypeObject
+---
+
+# TypeObject
