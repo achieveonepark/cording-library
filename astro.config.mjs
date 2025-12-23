@@ -33,14 +33,17 @@ export default defineConfig({
 			sidebar: [
 				{
 					label: 'Diagnostics',
+					collapsed: true,
 					autogenerate: { directory: 'Diagnostics' },
 				},
 				{
 					label: 'Packages',
+					collapsed: true,
 					autogenerate: { directory: 'Packages' },
 				},
 				{
 					label: 'Study',
+					collapsed: true,
 					autogenerate: { directory: 'Study' },
 				}
 			],
