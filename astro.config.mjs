@@ -14,10 +14,10 @@ export default defineConfig({
 			autoTheme: true
 		}),
 		starlight({
-			title: 'A1 TECH',
+			title: '게임 개발자의 머릿속',
 			description: 'Unity Game 개발, C#, .NET, 패턴/아키텍처 정리 라이브러리 사이트',
 			customCss: [
-				'./src/styles.css',
+				'/src/styles.css',
 			],
 			logo: {
 				src: './src/assets/logo.png',
@@ -49,16 +49,15 @@ export default defineConfig({
 			],
 			plugins: [
 				starlightGiscus({
-					repo: 'achieveonepark/cording-library',          // giscus data-repo
-					repoId: 'R_kgDOMj5hYA',                           // giscus data-repo-id
-					category: 'General',                              // giscus data-category
-					categoryId: 'DIC_kwDOMj5hYM4Cx16X',               // giscus data-category-id
-
-					// 선택 옵션들 (원하면 나중에 튜닝 가능)
-					mapping: 'pathname',          // 페이지 → Discussion 매핑 방식
-					reactions: true,       // 😄 / 🚀 같은 리액션
-					inputPosition: 'bottom',      // 댓글 입력창 위치
-					lang: 'ko',                   // UI 언어
+					repo: 'achieveonepark/cording-library',
+					repoId: 'R_kgDOMj5hYA',
+					category: 'General',
+					categoryId: 'DIC_kwDOMj5hYM4Cx16X',
+					
+					mapping: 'pathname',
+					reactions: true,
+					inputPosition: 'bottom',
+					lang: 'ko',
 				}),
 			],
 		}),

@@ -1,5 +1,7 @@
 ﻿---
 title: Garbage Collection
+sidebar:
+  order: 8
 ---
 
 > 언제 튀는가, 왜 튀는가, 어떻게 피하는가

@@ -1,5 +1,7 @@
 ---
-title: Introduction
+title: Overview
+sidebar:
+  order: 0
 ---
 
 :::note
@@ -14,7 +16,7 @@ title: Introduction
 
 ### Languages
 
-#### [C# / .NET](../languages/think-csharp/)
+#### [C# / .NET](./languages/think-csharp/)
 
 * 게임 클라이언트(Unity), 툴링, 서버까지 폭넓게 사용됨
 * 주요 대화 포인트
@@ -24,7 +26,7 @@ title: Introduction
   * IL2CPP / AOT 환경에서 무엇이 달라지는가
 * **"왜 이 코드는 allocation이 많죠?"** 같은 질문에 답할 수 있어야 신뢰가 생김
 
-#### [TypeScript](../languages/think-type-script/)
+#### [TypeScript](./languages/think-type-script/)
 
 * JS 생태계에서 **협업을 가능하게 만드는 언어**
 * 주요 대화 포인트
@@ -33,7 +35,7 @@ title: Introduction
   * any를 쓰는 순간 무슨 비용이 발생하는가
   * API 변경이 컴파일 타임에 어떻게 감지되는가
 
-#### [JavaScript](../languages/think-java-script/)
+#### [JavaScript](./languages/think-java-script/)
 
 * 모든 웹 기술의 기반
 * 주요 대화 포인트
@@ -42,7 +44,7 @@ title: Introduction
   * Promise 체이닝 vs async/await
   * 싱글 스레드인데 왜 병렬처럼 보이는가
 
-#### [Python](../languages/think-python/)
+#### [Python](./languages/think-python/)
 
 * 빠른 검증과 자동화의 언어
 * 주요 대화 포인트
@@ -50,7 +52,7 @@ title: Introduction
   * GIL의 의미와 한계
   * 왜 서버는 Python으로 시작했다가 다른 언어로 옮기는가
 
-#### [Go](../languages/think-go/)
+#### [Go](./languages/think-go/)
 
 * 단순함을 무기로 한 서버·CLI 언어
 * 주요 대화 포인트
@@ -59,7 +61,7 @@ title: Introduction
   * 채널 기반 설계의 장단점
   * 왜 DevOps 도구는 Go가 많은가
 
-#### [Bash / PowerShell](../languages/think-bash-powershell/)
+#### [Bash / PowerShell](./languages/think-bash-powershell/)
 
 * 인프라 감각의 바로미터
 * 주요 대화 포인트
@@ -71,20 +73,25 @@ title: Introduction
 
 ### Runtime Concepts
 
-* **CLR / JIT / AOT**
+* [**CLR / JIT / AOT**](./runtime-concepts/think-clr-jit-aot)<br/>
   → 빌드 시간 vs 실행 시간 vs 메모리 사용량의 트레이드오프
 
-* **Garbage Collection**
+* [**Garbage Collection**](./runtime-concepts/think-gc)<br/>
   → 언제 튀는가, 왜 튀는가, 어떻게 피하는가
 
-* **Thread / Task / Async Runtime**
+* [**Thread / Task / Async Runtime**](./runtime-concepts/think-thread-task)<br/>
   → CPU-bound / IO-bound 구분이 되는가
 
-* **Event Loop (Node.js)**
+* [**Event Loop (Node.js)**](./runtime-concepts/think-eventloop)<br/>
   → 비동기 코드 순서를 그림으로 설명할 수 있는가
 
-* **Native Interop (P/Invoke, JNI)**
+* [**Native Interop (P/Invoke, JNI)**](./runtime-concepts/think-native-interop)<br/>
   → 엔진/플랫폼 이야기로 넘어갈 때 필수
+
+* **그 외 Model들**<br/>
+  → [Execution Model](./runtime-concepts/think-execution-model)<br/>
+  → [Memory Model](./runtime-concepts/think-memory-model)<br/>
+  → [Concurrency Model](./runtime-concepts/think-concurrency-model)
 
 ---
 
@@ -94,20 +101,22 @@ title: Introduction
 
 ### Architectural Styles
 
-* **Layered Architecture**
+* [**Layered Architecture**](./architecture--design/think-layered-architecture)<br/>
   → 단순하지만 의존성 방향이 무너지기 쉬움
 
-* **Clean Architecture**
+* [*Clean Architecture**](./architecture--design/think-clean-architecture)<br/>
   → 테스트와 장기 유지보수를 중시할 때
 
-* **Hexagonal (Ports & Adapters)**
+* [**Hexagonal (Ports & Adapters)**](./architecture--design/think-hexagonal-architecture)<br/>
   → 외부 세계(DB, 네트워크, UI)를 교체 가능하게 만드는 구조
 
-* **MVC / MVP / MVVM**
+* [**MVC / MVP / MVVM**](./architecture--design/think-mvc-mvvm-architecture)<br/>
   → UI와 상태 관리의 책임 분리
 
-* **CQRS / Event-driven**
+* [**CQRS / Event-driven**](./architecture--design/think-cqrs-event-driven-architecture)<br/>
   → 규모가 커질 때 등장하는 선택지
+
+* [**Unity-Oriented**](./architecture--design/think-additional-architecture)
 
 ---
 

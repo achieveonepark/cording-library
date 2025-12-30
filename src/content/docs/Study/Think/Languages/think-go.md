@@ -1,5 +1,7 @@
 ﻿---
 title: Go
+sidebar:
+  order: 5
 ---
 
 > 단순함을 무기로 한 서버·CLI 언어

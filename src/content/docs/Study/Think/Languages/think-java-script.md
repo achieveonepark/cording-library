@@ -1,5 +1,7 @@
 ﻿---
 title: JavaScript
+sidebar:
+  order: 3
 ---
 
 > 모든 웹 기술의 기반이 되는 언어
