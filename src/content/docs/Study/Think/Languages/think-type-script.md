@@ -1,5 +1,7 @@
 ﻿---
 title: TypeScript
+sidebar:
+  order: 2
 ---
 
 > JS 생태계에서 **협업을 가능하게 만드는 언어**

@@ -1,5 +1,7 @@
 ﻿---
 title: Python
+sidebar:
+  order: 4
 ---
 
 > 빠른 검증과 자동화의 언어

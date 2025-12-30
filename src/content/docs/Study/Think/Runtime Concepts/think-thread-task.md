@@ -1,5 +1,7 @@
 ﻿---
 title: Thread / Task / Async Runtime
+sidebar:
+  order: 9
 ---
 
 > CPU-bound / IO-bound 구분이 되는가

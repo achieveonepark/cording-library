@@ -1,5 +1,7 @@
 ﻿---
 title: CLR / JIT / AOT
+sidebar:
+  order: 7
 ---
 
 > 빌드 시간 · 실행 시간 · 메모리 사용량 사이의 트레이드오프

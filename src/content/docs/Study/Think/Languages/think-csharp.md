@@ -1,5 +1,7 @@
 ﻿---
 title: C# / .NET
+sidebar:
+  order: 1
 ---
 
 ## 1. GC 압박은 언제 발생하는가

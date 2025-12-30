@@ -1,5 +1,7 @@
 ﻿---
 title: Event Loop
+sidebar:
+  order: 10
 ---
 
 > 비동기 코드 순서를 설명할 수 있는가

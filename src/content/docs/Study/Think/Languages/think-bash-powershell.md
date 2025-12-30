@@ -1,5 +1,7 @@
 ﻿---
 title: Bash / Powershell
+sidebar:
+  order: 6
 ---
 
 > 인프라 감각의 바로미터

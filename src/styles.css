@@ -78,37 +78,43 @@ pre code {
     line-height: 1.5;
 }
 
-/* 사이드바 패딩 조정 */
-.sidebar {
+/* ================================
+   Sidebar spacing (Starlight DOM 기준)
+   ================================ */
+
+/* Sidebar 전체 패딩 */
+.sl-sidebar {
     padding: 1rem 1.5rem;
 }
 
-/* ================================
-   4) 사이드바 메뉴 간격 조정
-   ================================ */
-
-/* 메뉴 항목 높이 증가 */
-.sidebar nav a {
-    padding-block: 0.75rem;
-    padding-inline: 1rem;
-    line-height: 1.6;
+/* 카테고리 블록 간 간격 */
+.sl-sidebar details.sl-sidebar-section {
+    margin-bottom: 1rem;
 }
 
-/* 항목 간 간격 추가 */
-.sidebar nav ul li {
-    margin-bottom: 0.5rem;
+/* 열려 있는 카테고리는 더 여유 */
+.sl-sidebar details.sl-sidebar-section[open] {
+    margin-bottom: 1.25rem;
 }
 
-/* 대주제(Study, Analysis 등) 간격 더 크게 */
-.sidebar nav > ul > li {
-    margin-bottom: 1.5rem;
+/* 카테고리 제목 (Diagnostics, Packages, Study) */
+.sl-sidebar details.sl-sidebar-section > summary {
+    padding: 0.75rem 0;
+    font-weight: 600;
 }
 
-/* 대주제 제목 여백 */
-.sidebar nav > ul > li > div {
-    padding-block: 0.75rem;
-    margin-bottom: 0.5rem;
+/* 메뉴 항목 */
+.sl-sidebar nav a {
+    padding: 0.45rem 1rem;
+    line-height: 1.55;
+    font-weight: 400;
 }
+
+/* 항목 간 간격 */
+.sl-sidebar nav li {
+    margin-bottom: 0.35rem;
+}
+
 
 /* ================================
    5) 콘텐츠 영역 조정
@@ -205,24 +211,7 @@ body.sidebar-hidden .main-frame {
     .content-panel {
         padding: 1rem 1.5rem;
     }
-
-    /* 사이드바 패딩 조정 */
-    .sidebar {
-        padding: 1rem;
-    }
-
-    /* 메뉴 항목 패딩 조정 */
-    .sidebar nav a {
-        padding-block: 0.5rem;
-        padding-inline: 0.75rem;
-        font-size: 0.9rem;
-    }
-
-    /* 대주제 간격 줄이기 */
-    .sidebar nav > ul > li {
-        margin-bottom: 1rem;
-    }
-
+    
     /* 제목 크기 조정 */
     .sl-markdown-content h1 {
         font-size: 1.75rem;
