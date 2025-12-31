@@ -104,7 +104,7 @@ sidebar:
 * [**Layered Architecture**](./architecture--design/think-layered-architecture)<br/>
   → 단순하지만 의존성 방향이 무너지기 쉬움
 
-* [*Clean Architecture**](./architecture--design/think-clean-architecture)<br/>
+* [**Clean Architecture**](./architecture--design/think-clean-architecture)<br/>
   → 테스트와 장기 유지보수를 중시할 때
 
 * [**Hexagonal (Ports & Adapters)**](./architecture--design/think-hexagonal-architecture)<br/>
@@ -120,13 +120,13 @@ sidebar:
 
 ---
 
-### Design Concepts (대화에 반드시 나오는 단어들)
+### [**Design Concepts**](./design-concepts/think-design-concepts) (대화에 반드시 나오는 단어들)
 
-* **Ownership**: 이 데이터는 누가 책임지는가
-* **Lifecycle**: 언제 생성되고 언제 파괴되는가
-* **Boundary**: 여기까지가 이 시스템의 책임인가
-* **Coupling / Cohesion**: 바꾸기 쉬운가
-* **Trade-offs**: 무엇을 포기했는가
+* [**Ownership**](./design-concepts/think-design-concepts#1-ownership--책임은-어디에-있는가): 이 데이터는 누가 책임지는가
+* [**Lifecycle**](./design-concepts/think-design-concepts#2-lifecycle--언제-존재해야-정상인가): 언제 생성되고 언제 파괴되는가
+* [**Boundary**](./design-concepts/think-design-concepts#3-boundary--책임의-경계는-어디까지인가): 여기까지가 이 시스템의 책임인가
+* [**Coupling / Cohesion**](./design-concepts/think-design-concepts#4-coupling--cohesion--바꾸기-쉬운-구조인가): 바꾸기 쉬운가
+* [**Trade-offs**](./design-concepts/think-design-concepts#5-trade-offs--무엇을-포기했는가): 무엇을 포기했는가
 
 > 설계 리뷰에서 코드보다 먼저 나오는 질문들
 
@@ -138,11 +138,11 @@ sidebar:
 
 ### Async Models
 
-* async / await
-* Promise / Future
-* Coroutine
-* Reactive (Rx)
-* Actor Model
+* [async / await](./async--concurrency/think-async-models)
+* [Promise / Future](./async--concurrency/think-promise-future)
+* [Coroutine](./async--concurrency-think-coroutine)
+* [Reactive (Rx)](./async--concurrency/think-reactive)
+* [Actor Model](./async--concurrency/think-actor-model)
 
 **대화 포인트**
 
@@ -153,11 +153,11 @@ sidebar:
 
 ### Concurrency Primitives
 
-* ThreadPool
-* Job Queue
-* Channel / Queue
-* Lock / Mutex / Semaphore
-* CAS / Lock-free
+* [ThreadPool](./async--concurrency/concurrency-primitives/think-threadpool)
+* [Job Queue](./async--concurrency/concurrency-primitives/think-jopqueue)
+* [Channel / Queue](./async--concurrency/concurrency-primitives/think-channel-queue)
+* [Lock / Mutex / Semaphore](./async--concurrency/concurrency-primitives/think-lock-mutex-semaphore)
+* [CAS / Lock-free](./async--concurrency/concurrency-primitives/think-cas-lock-free)
 
 **"thread-safe한가요?"** 라는 질문은
 → **어떤 상태를 보호하고 있는가**라는 질문이다.
@@ -199,6 +199,7 @@ sidebar:
 * Stage / Job
 * Artifact
 * Cache
+* Triggering & Scheduling
 * Matrix Build
 * Reproducible Build
 
@@ -213,9 +214,11 @@ sidebar:
 
 ### Containers
 
+* Image vs Container
 * Dockerfile
 * Multi-stage Build
 * Image Layer Cache
+* Public vs. Private Registries (Docker Hub, AWS ECR, GCP GCR)
 
 **"내 컴퓨터에선 됐는데요"** 를 없애기 위한 도구
 
@@ -232,6 +235,8 @@ sidebar:
 
 ### Serverless
 
+* IaaS (VMs) vs. CaaS (Containers) vs. PaaS (App Service) vs. FaaS (Serverless
+  Functions
 * AWS Lambda
 * Google Cloud Functions
 * Firebase Functions
@@ -248,6 +253,15 @@ sidebar:
 * gRPC
 * WebSocket
 
+### Messaging & Eventing
+
+* SQS
+* RabbitMQ
+* Kafka
+* Kinesis
+
+### SQL, NoSQL, NewSQL?
+
 **대화 포인트**
 
 * 동기 vs 비동기
@@ -262,12 +276,22 @@ sidebar:
 * PostgreSQL / MySQL
 * Redis
 * Firestore
+* CDN
 
 ### Data Formats
 
 * JSON
 * Protobuf
 * MessagePack
+
+### Storage Types
+
+* [**Block Storage**]()<br>
+  → EBS, for VMs
+* [**Fire Storage**]()<br/>
+  → NFS, EFS, for shared access
+* [**Object Storage**]()<br/>
+  → S3, GCS, for blobs, backups, static assets
 
 **"왜 이 포맷을 썼나요?"** 에 답할 수 있어야 함
 
@@ -279,6 +303,14 @@ sidebar:
 * JWT
 * API Key
 * IAM / RBAC
+* OpenID Connect (OIDC)
+* SAML (Enterprice SSO)
+
+### Access Control:
+
+* RBAC
+* ABAC
+* IAM
 
 > 보안은 기능이 아니라 **전제 조건**이다.
 
@@ -299,9 +331,11 @@ sidebar:
 
 ### Reliability Patterns
 
+* Health Checks
 * Retry
 * Timeout
 * Circuit Breaker
+* Rate Limiting & Throttling
 
 ---
 
