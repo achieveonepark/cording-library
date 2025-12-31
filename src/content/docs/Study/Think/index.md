@@ -154,7 +154,7 @@ sidebar:
 ### Concurrency Primitives
 
 * [ThreadPool](./async--concurrency/concurrency-primitives/think-threadpool)
-* [Job Queue](./async--concurrency/concurrency-primitives/think-jopqueue)
+* [Job Queue](./async--concurrency/concurrency-primitives/think-jobqueue)
 * [Channel / Queue](./async--concurrency/concurrency-primitives/think-channel-queue)
 * [Lock / Mutex / Semaphore](./async--concurrency/concurrency-primitives/think-lock-mutex-semaphore)
 * [CAS / Lock-free](./async--concurrency/concurrency-primitives/think-cas-lock-free)
