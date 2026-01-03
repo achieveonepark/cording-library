@@ -24,7 +24,7 @@
 /* 라이트 모드 기본 (브라우저가 라이트일 때) */
 :root {
     /* 포인트 컬러 (링크, 버튼 등) */
-    --sl-color-accent: #22c55e;         /* tailwind emerald-500 느낌 */
+    --sl-color-accent: #125c2d;         /* tailwind emerald-500 느낌 */
     --sl-color-accent-soft: #dcfce7;    /* 연한 초록 배경 */
     --sl-sidebar-width: 17rem; /* 기본값보다 넓게 */
     --sl-content-width: 80rem;
@@ -39,7 +39,7 @@
     --sl-color-bg: #050810;             /* 거의 블랙에 가까운 남색톤 */
 
     /* 포인트 컬러 */
-    --sl-color-accent: #22c55e;
+    --sl-color-accent: #125c2d;
     --sl-color-accent-soft: #064e3b;
 }
 
