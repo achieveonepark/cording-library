@@ -189,78 +189,54 @@ sidebar:
 
 ---
 
-## 5. CI / CD & Automation
-
-> CI는 개발 문화의 압축 파일이다.
-
-### CI Concepts
-
-* Pipeline
-* Stage / Job
-* Artifact
-* Cache
-* Triggering & Scheduling
-* Matrix Build
-* Reproducible Build
-
-**중요한 질문**
-
-* 이 빌드는 언제 깨지는가
-* 로컬과 CI의 차이는 무엇인가
-
----
-
-## 6. Containers & Execution Environments
-
-### Containers
-
-* Image vs Container
-* Dockerfile
-* Multi-stage Build
-* Image Layer Cache
-* Public vs. Private Registries (Docker Hub, AWS ECR, GCP GCR)
-
-**"내 컴퓨터에선 됐는데요"** 를 없애기 위한 도구
-
-### Orchestration
-
-* Kubernetes
-* Helm / Kustomize
-
-> 직접 쓰지 않더라도 개념을 알면 서버 팀과 대화가 된다.
-
----
-
-## 7. Cloud & Backend
+## 5. Cloud & Backend
 
 ### Serverless
 
-* IaaS (VMs) vs. CaaS (Containers) vs. PaaS (App Service) vs. FaaS (Serverless
-  Functions
-* AWS Lambda
-* Google Cloud Functions
-* Firebase Functions
+* [IaaS (VMs) vs. CaaS (Containers) vs. PaaS (App Service) vs. FaaS (Serverless
+  Functions)](./cloud--backend/serverless/think-serverless)
+* [AWS Lambda](./cloud--backend/serverless/think-aws-lambda)
+* [Google Cloud Functions](./cloud--backend/serverless/think-gcf)
+* [Firebase Functions](./cloud--backend/serverless/think-firebase-functions)
 
 ### Managed Services
 
-* Cloud Run
-* ECS / Fargate
+* [Cloud Run](./cloud--backend/managed-services/think-cloud-run)
+* [ECS / Fargate](./cloud--backend/managed-services/think-ecs-fargate)
 
 ### APIs & Communication
 
-* REST
-* GraphQL
-* gRPC
-* WebSocket
+* [REST](./cloud--backend/apis--communication/think-rest)
+* [GraphQL](./cloud--backend/apis--communication/think-graph-ql)
+* [gRPC](./cloud--backend/apis--communication/think-grpc)
+* [WebSocket](./cloud--backend/apis--communication/think-websocket)
+
+
 
 ### Messaging & Eventing
 
-* SQS
-* RabbitMQ
-* Kafka
-* Kinesis
+* [SQS](./cloud--backend/messaging--eventing/think-sqs): 안전한 비동기 작업 큐
+* [RabbitMQ](./cloud--backend/messaging--eventing/think-rabbit-mq): 실시간 이벤트 분배
+* [Kafka](./cloud--backend/messaging--eventing/think-kafka): 대규모 이벤트 기록과 분석
+* [Kinesis](./cloud--backend/messaging--eventing/think-kinesis): AWS 기반 실시간 스트리밍
+
+```mermaid
+flowchart LR
+    U[Unity Client]
+    A[API Server]
+
+    U -->|HTTP| A
+    A -->|Async| M[Messaging System]
+    M --> C[Consumers]
+```
+- Unity는 항상 HTTP까지만 책임
+- 메시징 시스템은 서버 내부 구조
+- 클라이언트는 비동기 처리 결과를 “기다리지 않는다”
 
 ### SQL, NoSQL, NewSQL?
+
+- [관련 문서](./cloud--backend/sql-nosql-newsql/think-overview)
+- [흐름](./cloud--backend/sql-nosql-newsql/think-flow)
 
 **대화 포인트**
 
@@ -269,7 +245,7 @@ sidebar:
 
 ---
 
-## 8. Data & Storage
+## 6. Data & Storage
 
 ### Databases
 
@@ -297,7 +273,7 @@ sidebar:
 
 ---
 
-## 9. Security & Identity
+## 7. Security & Identity
 
 * OAuth 2.0
 * JWT
@@ -313,6 +289,49 @@ sidebar:
 * IAM
 
 > 보안은 기능이 아니라 **전제 조건**이다.
+
+---
+
+
+## 8. CI / CD & Automation
+
+> CI는 개발 문화의 압축 파일이다.
+
+### CI Concepts
+
+* Pipeline
+* Stage / Job
+* Artifact
+* Cache
+* Triggering & Scheduling
+* Matrix Build
+* Reproducible Build
+
+**중요한 질문**
+
+* 이 빌드는 언제 깨지는가
+* 로컬과 CI의 차이는 무엇인가
+
+---
+
+## 9. Containers & Execution Environments
+
+### Containers
+
+* Image vs Container
+* Dockerfile
+* Multi-stage Build
+* Image Layer Cache
+* Public vs. Private Registries (Docker Hub, AWS ECR, GCP GCR)
+
+**"내 컴퓨터에선 됐는데요"** 를 없애기 위한 도구
+
+### Orchestration
+
+* Kubernetes
+* Helm / Kustomize
+
+> 직접 쓰지 않더라도 개념을 알면 서버 팀과 대화가 된다.
 
 ---
 

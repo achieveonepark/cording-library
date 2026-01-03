@@ -1,7 +1,7 @@
 ﻿---
 title: CAS / Lock-free
 sidebar:
-  order: 29
+  order: 32
 ---
 
 ## 개요
