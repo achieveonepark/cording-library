@@ -3,141 +3,165 @@ title: Game Framework
 ---
 
 
-| [🪄github 바로가기][git]
+| [🪄github 바로가기](https://github.com/achieveonepark/game-framework)
 
----
+# Game Framework
 
-게임 제작을 수월하게 하기 위해 유니티에서 사용할 수 있는 프레임워크를 제작했습니다.
+Unity에서의 게임 개발을 빠르게 진행할 수 있도록 설계된  
+사전 구축된 시스템과 확장 기능들의 모음입니다.
 
-### 포함 된 기능:
+이 프레임워크는 다양한 매니저와 시스템을 포함하는  
+중앙 정적 클래스 `GameFramework.Core`를 기준으로 구성되어 있습니다.
 
-1. [Config](https://github.com/achieveonepark/GameFramework?tab=readme-ov-file#config)
-2. [Popup / Scene Base Classes](https://github.com/achieveonepark/GameFramework?tab=readme-ov-file#popup)
-3. [Time Management](https://github.com/achieveonepark/GameFramework?tab=readme-ov-file#time-management)
-4. [UIBinding using UniTaskPubSub](https://github.com/achieveonepark/GameFramework?tab=readme-ov-file#uibinding-using-unitaskpubsub)
-5. [Singleton Pattern](https://github.com/achieveonepark/GameFramework?tab=readme-ov-file#singleton)
-6. [Logging](https://github.com/achieveonepark/GameFramework?tab=readme-ov-file#logging)
-7. [User-Friendly UnityWebRequest Wrapper](https://github.com/achieveonepark/GameFramework?tab=readme-ov-file#user-friendly-unitywebrequest-wrapper)
+## UPM Installation
 
+1. Unity Package Manager를 엽니다 (`Window > Package Manager`).
+2. 좌측 상단의 `+` 아이콘을 클릭한 후 `Add package from git URL...`을 선택합니다.
+3. 다음 URL을 입력합니다:  
+   `https://github.com/achieveonepark/game-framework.git`
 
-### 추천 기능:
-1. [Quick Save](https://github.com/achieveonepark/quicksave): 메모리팩을 이용한 효율적인 데이터 물리 저장 / 로드 기능 제공
-2. [Data Protector](https://github.com/achieveonepark/dataprotector): AES-128을 이용한 암/복호화 기능 제공
-3. [Infinity Value](https://github.com/achieveonepark/infinityValue): 천 단위 그룹이 있는 무한한 숫자를 위한 값의 구조체 제공
-4. [Smart Addressables](https://github.com/achieveonepark/SmartAddressables): 유니티 어드레서블 사용의 편의성과 효율성 제공
-5. [Lite DB](https://github.com/achieveonepark/LiteDB): SQLite를 사용하여 데이터를 효율적으로 관리하도록 기능 제공
+## Dependencies
 
-## Quick Start
+이 프레임워크는 전체 기능을 사용하기 위해 몇 가지 외부 패키지에 의존합니다.
 
-### Config
-`ConfigManager`에 추가된 모든 데이터는 `PlayerPrefs`에 저장됩니다.
+### Required
+- **[UniTask](https://github.com/Cysharp/UniTask):**  
+  프레임워크 전반에서 비동기 작업을 처리하기 위해 필수로 사용됩니다.  
+  Game Framework 패키지를 설치하기 **이전에 반드시 설치**해야 합니다.
 
+### Optional
+다음 패키지들은 추가 기능을 활성화하기 위해 선택적으로 설치할 수 있습니다.
+
+- **[UniTaskPubSub](https://github.com/hadashiA/UniTaskPubSub):**  
+  반응형(Event 기반) UI를 위한 `UIBindingManager` 기능을 활성화합니다.
+- **[QuickSave](https://github.com/achieveonepark/quicksave):**  
+  `Core.Player`의 데이터 영속화 기능을 활성화합니다.  
+  사용하려면 프로젝트의 Scripting Define Symbols에  
+  `USE_QUICK_SAVE`를 추가해야 합니다.
+
+## Features & API
+
+프레임워크의 대부분의 모듈은  
+정적 클래스 `GameFramework.Core` 내부의 중첩 클래스로 제공됩니다.
+
+### Access Patterns
+- **Static Classes**  
+  직접 접근합니다 (예: `Core.Time.TimeScale`)
+- **MonoBehaviour Singletons**  
+  `Instance` 프로퍼티를 통해 접근합니다  
+  (예: `Core.Sound.Instance.PlayBGM()`)  
+  → 씬에 해당 GameObject가 존재해야 합니다.
+
+### System Modules
+| 클래스 | 접근 방식 | 설명 |
+| :--- | :--- | :--- |
+| `Core.Log` | Static | 다양한 레벨의 콘솔 로그 출력을 처리합니다. |
+| `Core.Config` | Static | PlayerPrefs에 저장되는 키-값 설정을 관리합니다. |
+| `Core.Player` | Static | "Container" 기반의 런타임 플레이어 데이터 중앙 관리 클래스입니다. |
+| `Core.Time` | Static | 전역 타임 스케일 제어 및 현재 시간을 제공합니다. |
+| `Core.Scene` | Singleton | 씬 로딩 및 언로딩을 관리합니다. |
+| `Core.Popup` | Singleton | UI 팝업의 생성 및 라이프사이클을 관리합니다. |
+
+### Other Features
+- **유틸리티 및 확장 메서드**  
+  Unity 및 C# 기본 타입을 위한 다양한 확장 메서드를 제공합니다.  
+  `Runtime/Extensions` 폴더를 참고하세요.
+- **UI 컴포넌트**  
+  `SafeArea`, `Draggable`과 같은 UI 보조 컴포넌트를 포함합니다.
+
+## Quick Start Examples
+
+### `Core.Log`
+카테고리별 콘솔 로그를 처리합니다.
 ```csharp
-ConfigManager.AddKey("Sound", 0);
-ConfigManager.AddKey("BGM", 0);
-ConfigManager.AddKey("DataKey", "DataValue");
-
-var sound = ConfigManager.GetConfig("Sound");
-ConfigManager.SetConfig("Sound", 100);
+Core.Log.Debug("디버그 메시지입니다.");
+Core.Log.Info("중요한 정보 출력용 로그입니다.");
+Core.Log.Warning("문제가 발생할 수 있습니다.");
 ```
 
-### Popup
-에디터 설정:
+### Core.Config
 
-1. `PopupManager`를 Hierarchy에 추가합니다. (DontDestroyOnLoad로 활성화됩니다.)
-2. `PopupManager` 컴포넌트의 `popups` Field에 사용할 Popup들을 모두 캐싱합니다.
+PlayerPrefs에 저장되는 간단한 데이터를 관리합니다.
 
 ```csharp
-public class SettingPopup : Popup
+// 키가 존재하지 않을 경우 초기값 설정
+Core.Config.AddKey("BGMVolume", 0.8f);
+
+// 값 설정 및 조회
+Core.Config.SetConfig("BGMVolume", 0.7f);
+float currentVolume = (float)Core.Config.GetConfig("BGMVolume");
+```
+
+### Core.Player (데이터 관리)
+
+컨테이너 클래스를 통해 런타임 데이터를 관리합니다.
+
+1. 데이터와 컨테이너 정의
+
+```csharp
+// 실제 데이터 구조
+public class CharacterData : PlayerDataBase
 {
-    // ...
+    public string Name;
+    public int Level;
 }
-public class CommonPopup : Popup
+
+// 데이터를 담는 컨테이너
+public class CharacterDataContainer : PlayerDataContainerBase<int, CharacterData>
 {
-    // ...
-}
-public class SettingData
-{
-    public int Volume;
-    // ...
-}
-
-// Calling GetPopup will also trigger the popup's Open method.
-var commonPopup = PopupManager.GetPopup<CommonPopup>();
-
-// objName : Txt_Level, TMP Support
-var lvTxt = commonPopup.Get<Text>("Level");
-var lvTxt = commonPopup.Get<TMP_Text>("Level"); 
-
-SettingData data = new SettingData { Volume = 200 };
-var settingPopup = PopupManager.GetPopup<SettingPopup>(data);
-```
-
-### Time Management
-`TimeManager`로 현재 시간을 받아오거나, 게임의 TimeScale를 조정합니다.
-
-```csharp
-DateTime now = TimeManager.Now;
-TimeManager.TimeScale = 2;
-```
-
-### UIBinding using UniTaskPubSub
-
->[hadashiA/UniTaskPubSub](https://github.com/hadashiA/UniTaskPubSub)을 사용한 기능입니다.<br>
-기능에 대한 설명은 링크를 참조해주세요.<br> 
-
-이 설정을 통해 이벤트 관리가 간소화됩니다. UI 호출 및 상태 변경 처리에 용이합니다.
-
-```csharp
-// Register
-UIBindingManager.Subscribe<SettingData>(data =>
-{
-    SetVolume(data.Volume);
-});
-
-// Call
-UIBindingManager.Publish(new SettingData { Volume = 5 });
-```
-
-### Singleton
-
-- **MonoSingleton**: MonoBehavior를 상속 받는 Singleton
-- **PersistentMonoSingleton**: MonoSingleton과 같은 기능이지만 `DontDestroyOnLoad`로 로드합니다.
-- **Singleton**: MonoBehavior 상속받지 않는 객체를 Singleton으로 사용합니다.
-
-### Logging
-
-패키지에는 기본 `Log` 클래스가 포함되어 있습니다. (GameLog)<br>
-사용자 지정이 필요한 경우 `IGameLog` 에서 상속하여 사용자 지정 로거를 구현할 수 있습니다.<br>
-패키지의 `GameLog.cs` 를 참조하세요.
-
-```csharp
-GameLog.Debug("Debug");
-GameLog.Info("Info");
-GameLog.Warning("Warning");
-GameLog.Error("Error");
-throw GameLog.Fatal("Fatal");
-```
-
-### UnityWebRequest Wrapper
-
-이 class는 UnityWebRequest를 간편하게 사용하기 위해 제작되었습니다.
-
-```csharp
-var result = new HttpLink.Builder()
-    .SetUrl("https://jsonplaceholder.typicode.com/posts/1")
-    .SetMethod("GET")
-    .Build();
-await result.SendAsync();
-if (result.Success)
-{
-    var resultBytes = result.ReceiveData;
-    var resultStr = result.ReceiveDataString;
+    public CharacterDataContainer()
+    {
+        // 중요: GetContainer<T> 사용을 위해
+        // DataKey는 반드시 클래스 이름과 동일해야 합니다.
+        DataKey = typeof(CharacterDataContainer).Name;
+    }
 }
 ```
 
+2. 컨테이너 등록 및 사용
 
-## ChangeLog
-[link](https://github.com/achieveonepark/game-framework/blob/main/CHANGELOG.md)
+```csharp
+// 게임 시작 시 컨테이너 생성 및 등록
+var characterContainer = new CharacterDataContainer();
+characterContainer.Add(1, new CharacterData { Id = 1, Name = "Hero", Level = 1 });
+Core.Player.AddContainer(characterContainer);
 
-[git]: https://github.com/achieveonepark/game-framework
+// 다른 위치에서 데이터 조회 및 사용
+var myChars = Core.Player.GetContainer<CharacterDataContainer>();
+var mainChar = myChars.GetInfo(1);
+mainChar.Level++;
+
+// 전체 데이터 저장 / 로드 (USE_QUICK_SAVE 필요)
+Core.Player.Save();
+Core.Player.Load();
+```
+
+### Core.Popup (Singleton)
+
+Core.Popup 스크립트와 팝업 프리팹 리스트를 가진
+PopupManager GameObject가 필요합니다.
+
+```csharp
+// 매니저에 등록된 특정 타입의 팝업 열기
+// Open() 메서드는 자동으로 호출됩니다.
+var myPopup = Core.Popup.Instance.Open<MyAwesomePopup>();
+
+// 팝업 오픈 시 데이터 전달
+var data = new MyPopupData { Message = "Hello!" };
+Core.Popup.Instance.Open<MyAwesomePopup>(data);
+
+// 팝업 닫기
+myPopup.Close();
+```
+
+### Core.Time
+
+Unity의 Time과 Ping 쏴서 가져 온 시간의 DateTime을 감싼 래퍼 클래스입니다.
+
+```csharp
+// 게임 속도를 2배로 설정
+Core.Time.TimeScale = 2.0f;
+
+// 현재 실제 시간 가져오기
+DateTime now = Core.Time.Now;
+```
