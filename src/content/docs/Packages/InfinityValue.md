@@ -2,7 +2,7 @@
 title: Infinity Value
 ---
 
-| [🪄github 바로가기][def]
+| [🪄github 바로가기](https://github.com/achieveonepark/infinity-value]
 
 ## Install
 
@@ -14,7 +14,7 @@ title: Infinity Value
 
 1. Unity Package Manager를 열고 좌측 상단의 `+` 버튼을 클릭합니다.
 2. `Install package from git URL...`을 선택합니다.
-3. `https://github.com/achieveonepark/InfinityValue.git#1.0.1` 을 입력한 뒤 Install을 클릭합니다.
+3. `https://github.com/achieveonepark/infinity-value.git#1.0.1` 을 입력한 뒤 Install을 클릭합니다.
 
 ### Manual Addition
 
@@ -22,7 +22,7 @@ Unity 프로젝트의 `Packages` 폴더에 있는 `manifest.json` 파일을 엽�
 `dependencies` 항목 아래에 다음 라인을 추가합니다.
 
 ```json
-"com.achieve.infinity-value": "https://github.com/achieveonepark/InfinityValue.git#1.0.1"
+"com.achieve.infinity-value": "https://github.com/achieveonepark/infinity-value.git#1.0.1"
 ```
 
 ### Description
@@ -43,7 +43,7 @@ Unity 프로젝트의 `Packages` 폴더에 있는 `manifest.json` 파일을 엽�
 - float
 ```
 
-### 사용 예시
+### Quick Start
 
 ```csharp
 using Achieve.InfinityValue;
