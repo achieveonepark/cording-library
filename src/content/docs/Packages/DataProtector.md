@@ -10,23 +10,28 @@ title: Data Protector
 
 ---
 
-## 빠른 시작
-아래 두 가지 방법 중 하나를 선택합니다.
+## Install
 
->github URL의 # 뒷버전은 Changelog의 최신 사항을 참고해주세요.
+다음 설치 방법 중 하나를 선택하세요.
 
-### UPM에서 사용하기
-1. UPM을 연 후 좌측 상단의 + 버튼을 누릅니다.
+> 참고: GitHub URL의 `#` 뒤에 있는 버전은 Changelog에 기재된 최신 변경 사항을 기준으로 확인하세요.
+
+### Install via Unity Package Manager (UPM)
+
+1. Unity Package Manager를 열고 좌측 상단의 `+` 버튼을 클릭합니다.
 2. `Install package from git URL...`을 선택합니다.
-3. `https://github.com/achieveonepark/data-protector.git#1.0.0`를 입력 후 Install합니다.
+3. `https://github.com/achieveonepark/data-protector.git#1.0.0` 을 입력한 뒤 Install을 클릭합니다.
 
-### 직접 추가하기
-1. `Unity Project/Packages/manifest.json` 파일을 실행합니다.
-2. `Dependencies`에 `"com.achieve.data-protector": "https://github.com/achieveonepark/data-protector.git#1.0.0"` 내용을 추가합니다.
+### Manual Addition
 
----
+Unity 프로젝트의 `Packages` 폴더에 있는 `manifest.json` 파일을 엽니다.  
+`dependencies` 항목 아래에 다음 라인을 추가합니다.
 
-## 설명
+```json
+"com.achieve.infinity-value": "https://github.com/achieveonepark/data-protector.git#1.0.0"
+```
+
+## Description
 
 ### 압축, 암호화?
 1. [AES-128](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) 방식을 사용합니다.
@@ -42,8 +47,3 @@ title: Data Protector
     HaskChecker.ValidateHash     | 두 Hash값을 비교
 
 ---
-
-## ChangeLog
-[link](https://github.com/achieveonepark/DataProtector/blob/main/CHANGELOG.md)
-
-[def]: https://github.com/achieveonepark/data-protector
