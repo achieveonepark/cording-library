@@ -2,9 +2,10 @@
 title: BreezeIAP
 ---
 
-| [🪄github 바로가기][def]
+| [🪄github 바로가기](https://github.com/achieveonepark/breeze-iap)
 
-[Unity IAP](https://docs.unity3d.com/kr/2022.1/Manual/UnityIAP.html)를 Wrapping하여 사용자가 보다 편리하게 접근할 수 있도록 인터페이스를 제공합니다.
+[Unity IAP](https://docs.unity3d.com/kr/2022.1/Manual/UnityIAP.html)를 Wrapping하여 사용자가 보다 편리하게 접근할 수 있도록 인터페이스를 제공합니다. <br/>
+단, 영수증 검증 로직은 따로 구현해주셔야 합니다.
 
 ## 빠른 시작
 아래 두 가지 방법 중 하나를 선택합니다.

@@ -2,7 +2,7 @@
 title: QuickSave
 ---
 
-| [🪄github 바로가기][git]
+| [🪄github 바로가기](https://github.com/achieveonepark/quick-save)
 
 Cysharp의 [MemoryPack](https://github.com/cysharp/memorypack)을 이용하여 Binary 파일을 Serialize, Deserialize하여 데이터를 저장 및 로드하는 기능을 제공합니다.<br>
 [Data Protector](https://github.com/achieveonepark/dataprotector)를 설치하시면 데이터를 압축하여 암/복호화할 수 있는 기능도 제공합니다. ([문서](https://achieveonepark.github.io/cording-library/Documents/DataProtector/DataProtector/))
