@@ -2,7 +2,7 @@
 title: Infinity Value
 ---
 
-| [🪄github 바로가기](https://github.com/achieveonepark/infinity-value]
+| [🪄github 바로가기](https://github.com/achieveonepark/infinity-value)
 
 ## Install
 
