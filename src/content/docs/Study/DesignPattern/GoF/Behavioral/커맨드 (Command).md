@@ -2,164 +2,66 @@
 title: Command
 ---
 
-```mermaid
-graph TD
-    Client[Client] -->|Command 생성 및 설정| Invoker
-    Client -->|Command 정의| ConcreteCommand
-    Invoker[Invoker] -->|실행| Command
-    Command[Command] -->|Execute 구현| ConcreteCommand[ConcreteCommand]
-    ConcreteCommand -->|작업 위임| Receiver[Receiver]
-    Receiver -->|실행| Action[Action/Operation]
-```
+# Command
 
-요청을 객체로 캡슐화하여, 실행 주체와 실행 방법을 분리하고 요청의 기록, 취소, 재실행 등의 기능을 유연하게 제공하는 패턴입니다.<br>
-이 문서에서는 Command 패턴을 이용하여 캐릭터가 공격 및 점프하는 기능을 구현합니다.
-## 구현부
-기본적으로 4가지의 객체를 구현합니다.
+## 패턴 한 줄 설명
+요청을 객체로 만들고 실행/취소/큐잉을 유연하게 처리하는 패턴입니다.
 
-### Receiver
-- Core 로직을 담당하는 구현부
-- 컴포넌트를 초기화 및 연결 
+## Unity에서 쓰는 대표 상황
+- 입력 리플레이/매크로를 구현할 때
+- Undo/Redo가 필요할 때
+
+## 구성 요소 (역할)
+- Command
+- Invoker
+- Receiver
+
+## Unity 예시 (C#)
 ```csharp
+using System.Collections.Generic;
 
-public class Player : MonoBehaviour
-{
-    public void Attack(Transform target)
-    {
-        Debug.Log($"Attack! {target.name}");
-    }
-
-    public void Jump()
-    {
-        Debug.Log("Jump...");
-    }
-}
-```
-
-### Command
-- Receiver의 메서드를 호출하는 명령을 정의
-- 생성 시 Receiver 객체 필요
-```csharp
-// 모든 커맨드는 이 인터페이스를 상속받습니다.
 public interface ICommand
 {
     void Execute();
+    void Undo();
 }
 
-// 데이터 크기가 작은 명령은 struct를 사용합니다.
-public readonly struct AttackCommand : ICommand
+public sealed class MoveUnitCommand : ICommand
 {
-    private readonly Player _player;
-    private readonly Transform _target;
+    private readonly Unit controlledUnit;
+    private readonly int deltaX;
 
-    public AttackCommand(Player player, Transform target)
+    public MoveUnitCommand(Unit controlledUnit, int deltaX)
     {
-        _player = player;
-        _target = target;
+        this.controlledUnit = controlledUnit;
+        this.deltaX = deltaX;
     }
-    
-    public void Execute()
-    {
-        _player.Attack(_target);
-    }
+
+    public void Execute() => controlledUnit.X += deltaX;
+    public void Undo() => controlledUnit.X -= deltaX;
 }
 
-public readonly struct JumpCommand : ICommand
+public sealed class CommandHistory
 {
-    private readonly Player _player;
+    private readonly Stack<ICommand> executedCommands = new();
 
-    public JumpCommand(Player player)
+    public void ExecuteCommand(ICommand command)
     {
-        _player = player;
-    }
-    
-    public void Execute()
-    {
-        _player.Jump();
-    }
-}
-
-// 자료구조를 쓰거나 데이터가 방대하고 변경될 수 있는 명령은 class를 사용합니다.
-public class MultiAttackCommand : ICommand
-{
-    private Player _player;
-    private List<Transform> _monsterTargets;
-
-    public MultiAttackCommand(Player player, List<Transform> monsterTargets)
-    {
-        _player = player;
-        _monsterTargets = monsterTargets;
-    }
-    
-    public void Execute()
-    {
-        foreach (var monster in _monsterTargets)
-        {
-            _player.Attack(monster);
-        }
+        command.Execute();
+        executedCommands.Push(command);
     }
 }
 ```
 
-### Invoker
-- Command를 실행하는 실행부
-- Command를 조합하거나 저장하여 사용
-```csharp
-// 새로운 Command를 Set한 후 Execute만 담당 
-public class InputHandler : MonoBehaviour
-{
-    private ICommand _currentCommand;
+## 장점
+- 행동 로직을 분리해 변경 영향도를 줄일 수 있습니다.
+- 규칙 추가/교체가 비교적 안전합니다.
 
-    public void SetCommand(ICommand command)
-    {
-        _currentCommand = command;
-    }
+## 주의할 점
+- 객체 수와 간접 호출이 늘어 흐름 파악이 어려워질 수 있습니다.
+- 전환/실행 순서 버그를 테스트로 고정해야 합니다.
 
-    public void ExecuteCommand()
-    {
-        _currentCommand?.Execute();
-    }
-}
-```
-
-### Client
-- Command들을 선언, Receiver와 Invoker를 캐싱 및 사용
-
-```csharp
-public class StartUp : MonoBehaviour
-{
-[SerializeField] private Player _player;
-[SerializeField] private InputHandler _handler;
-[SerializeField] private Transform[] _monsters;
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            if (_monsters.Length == 0)
-            {
-                return;
-            }
-            
-            if (_monsters.Length == 1)
-            {
-                var attackCommand = new AttackCommand(_player, _monsters[0]);
-                _handler.SetCommand(attackCommand);    
-            }
-            else
-            {
-                var multiAttackCommand = new MultiAttackCommand(_player, _monsters.ToList());
-                _handler.SetCommand(multiAttackCommand);    
-            }
-            
-            _handler.ExecuteCommand();
-        }
-        else if (Input.GetKeyDown(KeyCode.Space))
-        {
-            var jumpCommand = new JumpCommand(_player);
-            _handler.SetCommand(jumpCommand);
-            _handler.ExecuteCommand();
-        }
-    }
-}
-```
+## 같이 보면 좋은 패턴
+- Memento
+- Event Queue
+- Chain of Responsibility

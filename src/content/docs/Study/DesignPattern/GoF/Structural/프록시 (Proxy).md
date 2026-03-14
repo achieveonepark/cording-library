@@ -1,102 +1,57 @@
 ---
 title: Proxy
 ---
+
 # Proxy
 
-다른 객체에 대한 접근을 제어하기 위해 대리인(Proxy)을 제공하는 패턴입니다. 프록시는 실제 객체와 동일한 인터페이스를 가지며, 클라이언트는 실제 객체 대신 프록시 객체를 통해 간접적으로 실제 객체에 접근합니다. 이를 통해 접근 제어, 비용이 큰 객체의 지연 로딩, 원격 객체 접근 등 다양한 기능을 추가할 수 있습니다.
+## 패턴 한 줄 설명
+실제 객체 접근 앞에 대리 객체를 두어 제어/지연 로딩/캐싱을 담당시키는 패턴입니다.
 
-## 구현부
-Proxy 패턴은 주로 다음 요소들로 구성됩니다.
+## Unity에서 쓰는 대표 상황
+- 무거운 리소스를 지연 로딩할 때
+- 원격 호출 앞단에 캐시/권한 검사를 둘 때
 
-### Subject (주체)
-- RealSubject와 Proxy가 공통으로 구현하는 인터페이스입니다. 클라이언트는 이 인터페이스를 통해 RealSubject와 Proxy를 동일하게 다룰 수 있습니다.
+## 구성 요소 (역할)
+- Subject
+- Real Subject
+- Proxy
 
-### RealSubject (실제 주체)
-- 프록시가 제어하려는 실제 객체입니다.
-
-### Proxy (프록시)
-- RealSubject와 동일한 인터페이스를 가지며, RealSubject에 대한 참조를 유지합니다.
-- 클라이언트의 요청을 중간에서 가로채, 추가적인 로직(접근 제어, 캐싱 등)을 수행한 후 RealSubject에게 요청을 전달하거나 직접 처리합니다.
-
-## 예시
-
-### 가상 프록시 (Virtual Proxy)
-- 생성 비용이 큰 객체의 생성을 필요한 시점까지 지연시키는 예시입니다.
-
+## Unity 예시 (C#)
 ```csharp
-using System;
+using System.Collections.Generic;
 
-// Subject 인터페이스
-public interface IImage
+public interface IRemoteInventoryService
 {
-    void Display();
+    IReadOnlyList<string> GetItemIds();
 }
 
-// RealSubject: 실제 이미지 객체 (생성 비용이 크다고 가정)
-public class RealImage : IImage
+public sealed class CachingInventoryProxy : IRemoteInventoryService
 {
-    private string _fileName;
+    private readonly IRemoteInventoryService remoteService;
+    private IReadOnlyList<string> cachedItemIds;
 
-    public RealImage(string fileName)
+    public CachingInventoryProxy(IRemoteInventoryService remoteService)
     {
-        _fileName = fileName;
-        LoadFromDisk(fileName);
+        this.remoteService = remoteService;
     }
 
-    private void LoadFromDisk(string fileName)
+    public IReadOnlyList<string> GetItemIds()
     {
-        Console.WriteLine($"Loading image: {fileName}");
-        // 디스크에서 이미지를 로드하는 복잡한 작업 시뮬레이션
-        System.Threading.Thread.Sleep(2000);
-    }
-
-    public void Display()
-    {
-        Console.WriteLine($"Displaying image: {_fileName}");
-    }
-}
-
-// Proxy: 이미지 로딩을 지연시키는 프록시
-public class ProxyImage : IImage
-{
-    private RealImage _realImage;
-    private string _fileName;
-
-    public ProxyImage(string fileName)
-    {
-        _fileName = fileName;
-    }
-
-    public void Display()
-    {
-        if (_realImage == null)
-        {
-            // 실제 이미지가 필요한 시점에 생성
-            _realImage = new RealImage(_fileName);
-        }
-        _realImage.Display();
-    }
-}
-
-// 사용 예시
-public class ProxyExample
-{
-    public static void Run()
-    {
-        // 프록시를 통해 이미지 객체 생성 (이때는 로딩되지 않음)
-        IImage image1 = new ProxyImage("image1.jpg");
-        IImage image2 = new ProxyImage("image2.png");
-
-        Console.WriteLine("--- First Display Call ---");
-        // Display 메서드가 처음 호출될 때 실제 이미지가 로딩됨
-        image1.Display();
-
-        Console.WriteLine("\n--- Second Display Call (Cached) ---");
-        // 이미 로딩되었으므로 바로 표시됨
-        image1.Display();
-
-        Console.WriteLine("\n--- Displaying another image ---");
-        image2.Display();
+        cachedItemIds ??= remoteService.GetItemIds();
+        return cachedItemIds;
     }
 }
 ```
+
+## 장점
+- 모듈 경계를 명확히 해 결합도를 낮출 수 있습니다.
+- 기존 코드 수정 없이 기능 확장/통합이 쉬워집니다.
+
+## 주의할 점
+- 래퍼/어댑터 계층이 깊어지면 디버깅이 어려워집니다.
+- 책임 경계가 흐려지지 않도록 인터페이스를 작게 유지해야 합니다.
+
+## 같이 보면 좋은 패턴
+- Adapter
+- Facade
+- Decorator

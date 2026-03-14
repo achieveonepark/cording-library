@@ -2,171 +2,51 @@
 title: Visitor
 ---
 
-객체 구조를 변경하지 않고 새로운 연산을 추가할 수 있게 하는 패턴입니다. 연산을 수행할 객체(Visitor)와 연산을 적용받을 객체(Element)를 분리하여, 새로운 연산을 추가할 때마다 Element 클래스를 수정할 필요 없이 Visitor 클래스만 추가하면 됩니다.
+# Visitor
 
-## 구현부
-Visitor 패턴은 주로 다음 요소들로 구성됩니다.
+## 패턴 한 줄 설명
+객체 구조를 건드리지 않고 연산을 Visitor로 분리해 확장하는 패턴입니다.
 
-### Visitor (방문자)
-- Element 객체에 적용될 연산을 선언하는 인터페이스 또는 추상 클래스입니다.
-- 각 ConcreteElement 타입에 대한 `Visit` 메서드를 오버로드하여 정의합니다.
+## Unity에서 쓰는 대표 상황
+- 여러 유닛 타입에 통계/보상 연산을 추가할 때
+- 구조는 고정, 연산은 자주 늘어날 때
 
-### ConcreteVisitor (구체적인 방문자)
-- Visitor 인터페이스를 구현하여 각 ConcreteElement에 대한 특정 연산을 실제로 구현합니다.
+## 구성 요소 (역할)
+- Visitor
+- Element
+- Accept
 
-### Element (요소)
-- Visitor를 받아들이는 `Accept` 메서드를 선언하는 인터페이스 또는 추상 클래스입니다.
-
-### ConcreteElement (구체적인 요소)
-- Element 인터페이스를 구현하며, `Accept` 메서드 내에서 자신을 방문하는 Visitor의 `Visit` 메서드를 호출합니다.
-
-## 예시
-
+## Unity 예시 (C#)
 ```csharp
-using System;
-using System.Collections.Generic;
-
-// Element 인터페이스
-public interface ICarPart
+public interface IUnitVisitor
 {
-    void Accept(ICarPartVisitor visitor);
+    void Visit(PlayerUnit playerUnit);
+    void Visit(EnemyUnit enemyUnit);
 }
 
-// ConcreteElement: Engine
-public class Engine : ICarPart
+public interface IVisitableUnit
 {
-    public void Accept(ICarPartVisitor visitor)
-    {
-        visitor.Visit(this);
-    }
-
-    public void CheckEngine()
-    {
-        Console.WriteLine("Checking engine.");
-    }
+    void Accept(IUnitVisitor visitor);
 }
 
-// ConcreteElement: Wheel
-public class Wheel : ICarPart
+public sealed class DamagePreviewVisitor : IUnitVisitor
 {
-    public string Name { get; private set; }
+    public int TotalPreviewDamage { get; private set; }
 
-    public Wheel(string name)
-    {
-        Name = name;
-    }
-
-    public void Accept(ICarPartVisitor visitor)
-    {
-        visitor.Visit(this);
-    }
-
-    public void InflateTire()
-    {
-        Console.WriteLine($"Inflating {Name} wheel.");
-    }
-}
-
-// ConcreteElement: Body
-public class Body : ICarPart
-{
-    public void Accept(ICarPartVisitor visitor)
-    {
-        visitor.Visit(this);
-    }
-
-    public void PolishBody()
-    {
-        Console.WriteLine("Polishing car body.");
-    }
-}
-
-// ObjectStructure: Car (여러 Element를 포함)
-public class Car
-{
-    List<ICarPart> parts = new List<ICarPart>();
-
-    public Car()
-    {
-        parts.Add(new Engine());
-        parts.Add(new Body());
-        parts.Add(new Wheel("front left"));
-        parts.Add(new Wheel("front right"));
-        parts.Add(new Wheel("back left"));
-        parts.Add(new Wheel("back right"));
-    }
-
-    public void Accept(ICarPartVisitor visitor)
-    {
-        foreach (ICarPart part in parts)
-        {
-            part.Accept(visitor);
-        }
-    }
-}
-
-// Visitor 인터페이스
-public interface ICarPartVisitor
-{
-    void Visit(Engine engine);
-    void Visit(Wheel wheel);
-    void Visit(Body body);
-}
-
-// ConcreteVisitor: CarPartMaintenanceVisitor
-public class CarPartMaintenanceVisitor : ICarPartVisitor
-{
-    public void Visit(Engine engine)
-    {
-        engine.CheckEngine();
-    }
-
-    public void Visit(Wheel wheel)
-    {
-        wheel.InflateTire();
-    }
-
-    public void Visit(Body body)
-    {
-        body.PolishBody();
-    }
-}
-
-// ConcreteVisitor: CarPartDisplayVisitor (다른 연산 추가)
-public class CarPartDisplayVisitor : ICarPartVisitor
-{
-    public void Visit(Engine engine)
-    {
-        Console.WriteLine("Displaying Engine.");
-    }
-
-    public void Visit(Wheel wheel)
-    {
-        Console.WriteLine($"Displaying {wheel.Name} Wheel.");
-    }
-
-    public void Visit(Body body)
-    {
-        Console.WriteLine("Displaying Car Body.");
-    }
-}
-
-// 사용 예시
-public class VisitorExample
-{
-    public static void Run()
-    {
-        Car car = new Car();
-
-        // 유지보수 작업을 수행하는 방문자
-        ICarPartVisitor maintenanceVisitor = new CarPartMaintenanceVisitor();
-        car.Accept(maintenanceVisitor);
-
-        Console.WriteLine("\n--- Another Operation ---");
-
-        // 부품 정보를 표시하는 방문자
-        ICarPartVisitor displayVisitor = new CarPartDisplayVisitor();
-        car.Accept(displayVisitor);
-    }
+    public void Visit(PlayerUnit playerUnit) => TotalPreviewDamage += 5;
+    public void Visit(EnemyUnit enemyUnit) => TotalPreviewDamage += 10;
 }
 ```
+
+## 장점
+- 행동 로직을 분리해 변경 영향도를 줄일 수 있습니다.
+- 규칙 추가/교체가 비교적 안전합니다.
+
+## 주의할 점
+- 객체 수와 간접 호출이 늘어 흐름 파악이 어려워질 수 있습니다.
+- 전환/실행 순서 버그를 테스트로 고정해야 합니다.
+
+## 같이 보면 좋은 패턴
+- Composite
+- Iterator
+- Interpreter

@@ -1,0 +1,98 @@
+---
+import DefaultSearch from '@astrojs/starlight/components/Search.astro';
+import blogConfig from 'virtual:starlight-blog-config';
+
+const { siteTitleHref } = Astro.locals.starlightRoute;
+
+const libraryHref = siteTitleHref;
+const blogHref = buildBlogHref(libraryHref, blogConfig.prefix);
+
+const currentPath = normalizePath(Astro.url.pathname);
+const blogPath = normalizePath(blogHref);
+const isBlogActive = currentPath.startsWith(blogPath);
+
+function buildBlogHref(baseHref, prefix) {
+	const baseUrl = new URL(baseHref || '/', Astro.url);
+	const safePrefix = trimSlashes(prefix || 'blog');
+	return new URL(`${safePrefix}/`, baseUrl).pathname;
+}
+
+function trimSlashes(value) {
+	return value.replace(/^\/+|\/+$/g, '');
+}
+
+function normalizePath(value) {
+	const withLeadingSlash = value.startsWith('/') ? value : `/${value}`;
+	return withLeadingSlash.endsWith('/') ? withLeadingSlash : `${withLeadingSlash}/`;
+}
+---
+
+<div class="search-with-switch">
+	<nav class="section-switch" aria-label="Section switch">
+		<a href={libraryHref} class:list={['section-link', !isBlogActive && 'is-active']}>Docs</a>
+		<a href={blogHref} class:list={['section-link', isBlogActive && 'is-active']}>Blog</a>
+	</nav>
+	<div class="search-box">
+		<DefaultSearch />
+	</div>
+</div>
+
+<style>
+	.search-with-switch {
+		align-items: center;
+		display: flex;
+		gap: 0.65rem;
+		width: min(100%, 38rem);
+	}
+
+	.search-box {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	.section-switch {
+		align-items: center;
+		background-color: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 999px;
+		display: flex;
+		flex: 0 0 auto;
+		gap: 0.2rem;
+		padding: 0.2rem;
+	}
+
+	.section-link {
+		border-radius: 999px;
+		color: var(--sl-color-text);
+		font-size: 0.76rem;
+		font-weight: 600;
+		line-height: 1;
+		padding: 0.42rem 0.7rem;
+		text-decoration: none;
+		transition: background-color 0.2s ease, color 0.2s ease;
+		white-space: nowrap;
+	}
+
+	.section-link:hover {
+		color: var(--sl-color-text-accent);
+	}
+
+	.section-switch .section-link.is-active,
+	.section-switch .section-link.is-active:link,
+	.section-switch .section-link.is-active:visited,
+	.section-switch .section-link.is-active:hover,
+	.section-switch .section-link.is-active:focus-visible {
+		background-color: var(--sl-color-accent);
+		color: #fff !important;
+	}
+
+	@media (max-width: 50rem) {
+		.search-with-switch {
+			width: auto;
+		}
+
+		.section-switch {
+			display: none;
+		}
+	}
+</style>

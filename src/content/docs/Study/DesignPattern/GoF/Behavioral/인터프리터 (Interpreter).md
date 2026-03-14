@@ -2,26 +2,70 @@
 title: Interpreter
 ---
 
-언어의 문법적인 표현을 정의하고, 이 문법을 해석하는 인터프리터를 제공하는 패턴입니다. 특정 언어를 해석해야 할 때, 그리고 그 언어를 추상 구문 트리(Abstract Syntax Tree)로 표현할 수 있을 때 유용합니다.
+# Interpreter
 
-## 구현부
-Interpreter 패턴은 주로 다음 요소들로 구성됩니다.
+## 패턴 한 줄 설명
+작은 도메인 언어 규칙을 문법 객체로 해석해 결과를 계산하는 패턴입니다.
 
-### AbstractExpression (추상 표현식)
-- 추상 구문 트리의 모든 노드에 공통적으로 적용될 `Interpret` 연산을 선언하는 인터페이스 또는 추상 클래스입니다.
+## Unity에서 쓰는 대표 상황
+- 퀘스트 조건 DSL을 만들 때
+- 대화 분기 조건을 데이터화할 때
 
-### TerminalExpression (말단 표현식)
-- 문법의 말단 기호(terminal symbol)에 대한 `Interpret` 연산을 구현합니다.
+## 구성 요소 (역할)
+- Expression
+- Terminal
+- Nonterminal
+- Context
 
-### NonterminalExpression (비말단 표현식)
-- 문법의 비말단 기호(nonterminal symbol)에 대한 `Interpret` 연산을 구현합니다. 일반적으로 다른 `AbstractExpression` 객체들에 대한 참조를 가집니다.
+## Unity 예시 (C#)
+```csharp
+public interface IConditionExpression
+{
+    bool Evaluate(PlayerContext context);
+}
 
-### Context (문맥)
-- 인터프리터에 전역적으로 필요한 정보를 포함합니다. (예: 변수 값)
+public sealed class LevelAtLeastExpression : IConditionExpression
+{
+    private readonly int requiredLevel;
 
-### Client (클라이언트)
-- 문법에 따라 추상 구문 트리를 구축하고, `Interpret` 연산을 호출합니다.
+    public LevelAtLeastExpression(int requiredLevel)
+    {
+        this.requiredLevel = requiredLevel;
+    }
 
-## 예시
+    public bool Evaluate(PlayerContext context)
+    {
+        return context.PlayerLevel >= requiredLevel;
+    }
+}
 
-간단한 산술 표현식(예: "5 + 3 - 2")을 해석하는 인터프리터 예시입니다.
+public sealed class AndExpression : IConditionExpression
+{
+    private readonly IConditionExpression leftExpression;
+    private readonly IConditionExpression rightExpression;
+
+    public AndExpression(IConditionExpression leftExpression, IConditionExpression rightExpression)
+    {
+        this.leftExpression = leftExpression;
+        this.rightExpression = rightExpression;
+    }
+
+    public bool Evaluate(PlayerContext context)
+    {
+        return leftExpression.Evaluate(context) && rightExpression.Evaluate(context);
+    }
+}
+```
+
+## 장점
+- 행동 로직을 분리해 변경 영향도를 줄일 수 있습니다.
+- 규칙 추가/교체가 비교적 안전합니다.
+
+## 주의할 점
+- 객체 수와 간접 호출이 늘어 흐름 파악이 어려워질 수 있습니다.
+- 전환/실행 순서 버그를 테스트로 고정해야 합니다.
+
+## 같이 보면 좋은 패턴
+- Composite
+- State
+- Visitor

@@ -1,5 +1,10 @@
 ---
-title: FacebookSDK
+title: Facebook SDK Build Issue (iOS)
+date: 2024-11-16
+tags:
+  - iOS
+  - Facebook SDK
+  - Troubleshooting
 ---
 
 # Facebook SDK Build Issue (iOS)

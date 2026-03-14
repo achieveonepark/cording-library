@@ -1,100 +1,51 @@
 ---
 title: FactoryMethod
 ---
+
 # Factory Method
 
-객체를 생성하기 위한 인터페이스를 정의하되, 어떤 클래스의 인스턴스를 생성할지에 대한 결정은 서브클래스가 내리도록 하는 패턴입니다. 즉, 객체 생성 과정을 서브클래스에 위임합니다.
+## 패턴 한 줄 설명
+생성 메서드의 실제 생성 책임을 하위 클래스가 결정하도록 위임하는 패턴입니다.
 
-## 구현부
-Factory Method 패턴은 주로 다음 요소들로 구성됩니다.
+## Unity에서 쓰는 대표 상황
+- 무기별 투사체 생성 규칙이 다를 때
+- 타입별 초기화 로직을 분리할 때
 
-### Product (제품)
-- 팩토리 메서드가 생성할 객체의 공통 인터페이스입니다.
+## 구성 요소 (역할)
+- Creator
+- Concrete Creator
+- Product
 
-### ConcreteProduct (구체적인 제품)
-- Product 인터페이스를 구현하는 구체적인 클래스입니다.
-
-### Creator (생성자)
-- Product 객체를 생성하는 팩토리 메서드(`FactoryMethod`)를 선언하는 추상 클래스입니다.
-- 팩토리 메서드는 기본 구현을 가질 수도 있습니다.
-
-### ConcreteCreator (구체적인 생성자)
-- Creator 클래스를 상속받아, 팩토리 메서드를 오버라이드하여 특정 ConcreteProduct를 생성합니다.
-
-## 예시
-
+## Unity 예시 (C#)
 ```csharp
-using System;
+using UnityEngine;
 
-// Product 인터페이스
-public interface ITransport
+public interface IProjectile
 {
-    void Deliver();
+    void Fire(Vector3 startPosition, Vector3 direction);
 }
 
-// ConcreteProduct A: 트럭
-public class Truck : ITransport
+public abstract class ProjectileSpawner : MonoBehaviour
 {
-    public void Deliver()
+    public void Shoot(Vector3 startPosition, Vector3 direction)
     {
-        Console.WriteLine("Delivering by land in a truck.");
+        IProjectile projectile = CreateProjectile();
+        projectile.Fire(startPosition, direction);
     }
-}
 
-// ConcreteProduct B: 배
-public class Ship : ITransport
-{
-    public void Deliver()
-    {
-        Console.WriteLine("Delivering by sea in a ship.");
-    }
-}
-
-// Creator 추상 클래스
-public abstract class Logistics
-{
-    // 팩토리 메서드
-    public abstract ITransport CreateTransport();
-
-    public void PlanDelivery()
-    {
-        // 팩토리 메서드를 호출하여 제품 객체를 생성
-        ITransport transport = CreateTransport();
-        Console.WriteLine("Planning delivery...");
-        transport.Deliver();
-    }
-}
-
-// ConcreteCreator A: 도로 운송
-public class RoadLogistics : Logistics
-{
-    public override ITransport CreateTransport()
-    {
-        return new Truck();
-    }
-}
-
-// ConcreteCreator B: 해상 운송
-public class SeaLogistics : Logistics
-{
-    public override ITransport CreateTransport()
-    {
-        return new Ship();
-    }
-}
-
-// 사용 예시
-public class FactoryMethodExample
-{
-    public static void Run()
-    {
-        Logistics roadLogistics = new RoadLogistics();
-        roadLogistics.PlanDelivery();
-
-        Console.WriteLine();
-
-        Logistics seaLogistics = new SeaLogistics();
-        seaLogistics.PlanDelivery();
-    }
+    protected abstract IProjectile CreateProjectile();
 }
 ```
+
+## 장점
+- 모듈 경계를 명확히 해 결합도를 낮출 수 있습니다.
+- 기존 코드 수정 없이 기능 확장/통합이 쉬워집니다.
+
+## 주의할 점
+- 래퍼/어댑터 계층이 깊어지면 디버깅이 어려워집니다.
+- 책임 경계가 흐려지지 않도록 인터페이스를 작게 유지해야 합니다.
+
+## 같이 보면 좋은 패턴
+- Abstract Factory
+- Builder
+- Strategy
