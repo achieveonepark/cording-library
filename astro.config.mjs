@@ -3,10 +3,11 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import mermaid from 'astro-mermaid';
 import starlightGiscus from 'starlight-giscus';
+import starlightBlog from 'starlight-blog';
 import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
-	site: 'https://library.a1tech.dev',
+	site: 'https://lib.somiri.dev',
 	integrations: [
 		sitemap(),
 		mermaid({
@@ -19,6 +20,9 @@ export default defineConfig({
 			customCss: [
 				'/src/styles.css',
 			],
+			components: {
+				Search: './src/components/SearchWithSectionSwitch.astro',
+			},
 			logo: {
 				src: './src/assets/logo.png',
 				alt: 'A1 TECH keyboard logo',
@@ -48,6 +52,10 @@ export default defineConfig({
 				}
 			],
 			plugins: [
+				starlightBlog({
+					title: 'Blog',
+					navigation: 'none',
+				}),
 				starlightGiscus({
 					repo: 'achieveonepark/cording-library',
 					repoId: 'R_kgDOMj5hYA',

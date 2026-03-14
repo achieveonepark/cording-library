@@ -2,109 +2,59 @@
 title: State
 ---
 
-객체의 내부 상태가 변경될 때 객체의 동작을 변경할 수 있도록 하는 패턴입니다. 객체는 마치 클래스를 변경하는 것처럼 보입니다.
+# State
 
-## 구현부
-상태 패턴은 주로 다음 요소들로 구성됩니다.
+## 패턴 한 줄 설명
+상태별 행동을 객체로 분리해 상태 전환에 따라 동작을 교체하는 패턴입니다.
 
-### Context (문맥)
-- 상태에 따라 동작이 달라지는 객체입니다.
-- 현재 상태 객체를 가지고 있으며, 상태 객체의 메서드를 호출하여 동작을 위임합니다.
+## Unity에서 쓰는 대표 상황
+- 플레이어 이동/전투 상태가 많아질 때
+- if-else 상태 분기가 비대해질 때
 
-### State (상태)
-- Context의 특정 상태에 대한 동작을 정의하는 인터페이스 또는 추상 클래스입니다.
+## 구성 요소 (역할)
+- Context
+- State Interface
+- Concrete State
 
-### ConcreteState (구체적인 상태)
-- State 인터페이스를 구현하며, Context의 특정 상태에 대한 동작을 실제로 구현합니다.
-- 다음 상태로의 전이를 처리할 수도 있습니다.
-
-## 예시
-
+## Unity 예시 (C#)
 ```csharp
-// State 인터페이스
-public interface IPlayerState
+public interface ICharacterState
 {
-    void HandleInput(Player player, Input input);
-    void EnterState(Player player);
-    void ExitState(Player player);
+    void Tick(PlayerStateMachine stateMachine);
 }
 
-// ConcreteState: Idle 상태
-public class IdleState : IPlayerState
+public sealed class IdleState : ICharacterState
 {
-    public void HandleInput(Player player, Input input)
+    public void Tick(PlayerStateMachine stateMachine)
     {
-        if (input == Input.Jump)
+        if (stateMachine.MoveInput > 0f)
         {
-            player.ChangeState(new JumpState());
-        }
-        else if (input == Input.Attack)
-        {
-            player.ChangeState(new AttackState());
+            stateMachine.ChangeState(new RunState());
         }
     }
-
-    public void EnterState(Player player)
-    {
-        Debug.Log("Entering Idle State");
-        // Idle 애니메이션 재생 등
-    }
-
-    public void ExitState(Player player)
-    {
-        Debug.Log("Exiting Idle State");
-    }
 }
 
-// ConcreteState: Jump 상태
-public class JumpState : IPlayerState
+public sealed class RunState : ICharacterState
 {
-    public void HandleInput(Player player, Input input)
+    public void Tick(PlayerStateMachine stateMachine)
     {
-        // 점프 중에는 다른 입력 무시 또는 특정 입력만 처리
+        if (stateMachine.MoveInput <= 0f)
+        {
+            stateMachine.ChangeState(new IdleState());
+        }
     }
-
-    public void EnterState(Player player)
-    {
-Log("Entering Jump State");
-        // 점프 애니메이션 재생, 물리적 점프 처리 등
-    }
-
-    public void ExitState(Player player)
-    {
-        Debug.Log("Exiting Jump State");
-    }
-}
-
-// Context: Player
-public class Player
-{
-    private IPlayerState _currentState;
-
-    public Player()
-    {
-        _currentState = new IdleState(); // 초기 상태 설정
-        _currentState.EnterState(this);
-    }
-
-    public void ChangeState(IPlayerState newState)
-    {
-        _currentState.ExitState(this);
-        _currentState = newState;
-        _currentState.EnterState(this);
-    }
-
-    public void Update(Input input)
-    {
-        _currentState.HandleInput(this, input);
-    }
-}
-
-// 입력 예시
-public enum Input
-{
-    Jump,
-    Attack,
-    Move
 }
 ```
+
+## 장점
+- 행동 로직을 분리해 변경 영향도를 줄일 수 있습니다.
+- 규칙 추가/교체가 비교적 안전합니다.
+
+## 주의할 점
+- 객체 수와 간접 호출이 늘어 흐름 파악이 어려워질 수 있습니다.
+- 전환/실행 순서 버그를 테스트로 고정해야 합니다.
+
+## 같이 보면 좋은 패턴
+- Strategy
+- Template Method
+- Command

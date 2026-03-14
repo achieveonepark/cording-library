@@ -1,125 +1,62 @@
 ---
 title: Decorator
 ---
+
 # Decorator
 
-객체에 동적으로 새로운 책임(기능)을 추가할 수 있게 하는 패턴입니다. 상속을 통해 기능을 확장하는 대신, 데코레이터(Decorator) 객체로 기존 객체를 감싸서 기능을 확장합니다.
+## 패턴 한 줄 설명
+객체를 감싸는 래퍼를 통해 런타임에 기능을 동적으로 덧붙이는 패턴입니다.
 
-## 구현부
-Decorator 패턴은 주로 다음 요소들로 구성됩니다.
+## Unity에서 쓰는 대표 상황
+- 무기에 속성 부여를 조합식으로 적용할 때
+- 기존 코드를 건드리지 않고 기능 확장할 때
 
-### Component (컴포넌트)
-- 실제 객체(ConcreteComponent)와 데코레이터(Decorator)가 공통으로 구현하는 인터페이스입니다.
+## 구성 요소 (역할)
+- Component
+- Decorator Base
+- Concrete Decorator
 
-### ConcreteComponent (구체적인 컴포넌트)
-- 동적으로 기능을 추가할 실제 객체입니다.
-
-### Decorator (데코레이터)
-- Component 인터페이스를 구현하며, 내부에 Component 객체에 대한 참조를 가집니다.
-- 클라이언트의 요청을 자신이 감싸고 있는 Component 객체에게 전달하고, 그 전후에 추가적인 작업을 수행합니다.
-
-### ConcreteDecorator (구체적인 데코레이터)
-- Decorator를 상속받아 실제로 추가할 기능을 구현합니다.
-
-## 예시
-
+## Unity 예시 (C#)
 ```csharp
-using System;
-
-// Component 인터페이스: 커피
-public interface ICoffee
+public interface IWeaponDamageCalculator
 {
-    string GetDescription();
-    double GetCost();
+    int CalculateDamage();
 }
 
-// ConcreteComponent: 기본 커피
-public class SimpleCoffee : ICoffee
+public sealed class BaseWeaponDamageCalculator : IWeaponDamageCalculator
 {
-    public string GetDescription()
-    {
-        return "Simple Coffee";
-    }
-
-    public double GetCost()
-    {
-        return 2.0;
-    }
+    public int CalculateDamage() => 10;
 }
 
-// Decorator 추상 클래스
-public abstract class CoffeeDecorator : ICoffee
+public abstract class WeaponDamageDecorator : IWeaponDamageCalculator
 {
-    protected ICoffee _decoratedCoffee;
+    protected readonly IWeaponDamageCalculator innerCalculator;
 
-    public CoffeeDecorator(ICoffee coffee)
+    protected WeaponDamageDecorator(IWeaponDamageCalculator innerCalculator)
     {
-        _decoratedCoffee = coffee;
+        this.innerCalculator = innerCalculator;
     }
 
-    public virtual string GetDescription()
-    {
-        return _decoratedCoffee.GetDescription();
-    }
-
-    public virtual double GetCost()
-    {
-        return _decoratedCoffee.GetCost();
-    }
+    public abstract int CalculateDamage();
 }
 
-// ConcreteDecorator A: 우유 추가
-public class MilkDecorator : CoffeeDecorator
+public sealed class FireDamageDecorator : WeaponDamageDecorator
 {
-    public MilkDecorator(ICoffee coffee) : base(coffee) { }
+    public FireDamageDecorator(IWeaponDamageCalculator innerCalculator) : base(innerCalculator) { }
 
-    public override string GetDescription()
-    {
-        return base.GetDescription() + ", with Milk";
-    }
-
-    public override double GetCost()
-    {
-        return base.GetCost() + 0.5;
-    }
-}
-
-// ConcreteDecorator B: 설탕 추가
-public class SugarDecorator : CoffeeDecorator
-{
-    public SugarDecorator(ICoffee coffee) : base(coffee) { }
-
-    public override string GetDescription()
-    {
-        return base.GetDescription() + ", with Sugar";
-    }
-
-    public override double GetCost()
-    {
-        return base.GetCost() + 0.2;
-    }
-}
-
-// 사용 예시
-public class DecoratorExample
-{
-    public static void Run()
-    {
-        // 기본 커피
-        ICoffee coffee = new SimpleCoffee();
-        Console.WriteLine($"Description: {coffee.GetDescription()}, Cost: ${coffee.GetCost()}");
-
-        // 우유 추가
-        coffee = new MilkDecorator(coffee);
-        Console.WriteLine($"Description: {coffee.GetDescription()}, Cost: ${coffee.GetCost()}");
-
-        // 설탕 추가
-        coffee = new SugarDecorator(coffee);
-        Console.WriteLine($"Description: {coffee.GetDescription()}, Cost: ${coffee.GetCost()}");
-
-        // 다른 조합: 우유와 설탕을 추가한 커피
-        ICoffee sweetMilkyCoffee = new SugarDecorator(new MilkDecorator(new SimpleCoffee()));
-        Console.WriteLine($"\nDescription: {sweetMilkyCoffee.GetDescription()}, Cost: ${sweetMilkyCoffee.GetCost()}");
-    }
+    public override int CalculateDamage() => innerCalculator.CalculateDamage() + 5;
 }
 ```
+
+## 장점
+- 모듈 경계를 명확히 해 결합도를 낮출 수 있습니다.
+- 기존 코드 수정 없이 기능 확장/통합이 쉬워집니다.
+
+## 주의할 점
+- 래퍼/어댑터 계층이 깊어지면 디버깅이 어려워집니다.
+- 책임 경계가 흐려지지 않도록 인터페이스를 작게 유지해야 합니다.
+
+## 같이 보면 좋은 패턴
+- Component
+- Strategy
+- Chain of Responsibility

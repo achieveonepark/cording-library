@@ -1,125 +1,62 @@
 ---
 title: Bridge
 ---
+
 # Bridge
 
-구현부에서 추상부를 분리하여, 이 둘이 독립적으로 확장될 수 있도록 하는 패턴입니다. 즉, '기능의 계층'과 '구현의 계층'을 분리하여 각각을 독립적으로 발전시킬 수 있습니다.
+## 패턴 한 줄 설명
+추상화와 구현을 분리해 양쪽을 독립적으로 확장하는 패턴입니다.
 
-## 구현부
-Bridge 패턴은 주로 다음 요소들로 구성됩니다.
+## Unity에서 쓰는 대표 상황
+- 입력 장치 구현을 조작 로직과 분리할 때
+- 플랫폼별 백엔드 구현을 교체할 때
 
-### Abstraction (추상부)
-- 기능 계층의 최상위 클래스로, 구현부(Implementor)에 대한 참조를 가집니다.
-- 클라이언트가 사용할 메서드를 정의하고, 이 메서드는 구현부의 메서드를 호출하여 실제 작업을 위임합니다.
+## 구성 요소 (역할)
+- Abstraction
+- Implementor
+- Concrete Implementor
 
-### RefinedAbstraction (정제된 추상부)
-- Abstraction을 상속받아 기능을 확장합니다.
-
-### Implementor (구현부)
-- 구현 계층의 최상위 인터페이스로, Abstraction이 사용할 메서드를 정의합니다.
-
-### ConcreteImplementor (구체적인 구현부)
-- Implementor 인터페이스를 구현하여 실제 기능을 구체적으로 구현합니다.
-
-## 예시
-
+## Unity 예시 (C#)
 ```csharp
-using System;
+using UnityEngine;
 
-// Implementor: 메시지 전송 구현부 인터페이스
-public interface IMessageSender
+public interface IInputReader
 {
-    void SendMessage(string subject, string body);
+    Vector2 ReadMovement();
 }
 
-// ConcreteImplementor A: 이메일 전송
-public class EmailSender : IMessageSender
+public sealed class KeyboardInputReader : IInputReader
 {
-    public void SendMessage(string subject, string body)
+    public Vector2 ReadMovement()
     {
-        Console.WriteLine($"Email Sent:\n  Subject: {subject}\n  Body: {body}");
-    }
-}
-
-// ConcreteImplementor B: SMS 전송
-public class SmsSender : IMessageSender
-{
-    public void SendMessage(string subject, string body)
-    {
-        Console.WriteLine($"SMS Sent:\n  Message: {subject} - {body}");
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        float vertical = Input.GetAxisRaw("Vertical");
+        return new Vector2(horizontal, vertical);
     }
 }
 
-// Abstraction: 메시지 기능 추상부
-public abstract class Message
+public sealed class CharacterMovementController
 {
-    protected IMessageSender _messageSender;
+    private readonly IInputReader inputReader;
 
-    protected Message(IMessageSender messageSender)
+    public CharacterMovementController(IInputReader inputReader)
     {
-        _messageSender = messageSender;
+        this.inputReader = inputReader;
     }
 
-    public abstract void Send();
-}
-
-// RefinedAbstraction: 간단한 메시지
-public class SimpleMessage : Message
-{
-    public string Subject { get; set; }
-    public string Body { get; set; }
-
-    public SimpleMessage(IMessageSender messageSender, string subject, string body) : base(messageSender)
-    {
-        Subject = subject;
-        Body = body;
-    }
-
-    public override void Send()
-    {
-        _messageSender.SendMessage(Subject, Body);
-    }
-}
-
-// RefinedAbstraction: 암호화된 메시지
-public class EncryptedMessage : Message
-{
-    public string Subject { get; set; }
-    public string Body { get; set; }
-
-    public EncryptedMessage(IMessageSender messageSender, string subject, string body) : base(messageSender)
-    {
-        Subject = subject;
-        Body = body;
-    }
-
-    public override void Send()
-    {
-        string encryptedBody = $"[Encrypted] {Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Body))} [Encrypted]";
-        _messageSender.SendMessage(Subject, encryptedBody);
-    }
-}
-
-// 사용 예시
-public class BridgeExample
-{
-    public static void Run()
-    {
-        // 이메일로 간단한 메시지 보내기
-        Message emailMessage = new SimpleMessage(new EmailSender(), "Hello", "This is a simple email.");
-        emailMessage.Send();
-
-        Console.WriteLine();
-
-        // SMS로 간단한 메시지 보내기
-        Message smsMessage = new SimpleMessage(new SmsSender(), "Hi", "This is a simple SMS.");
-        smsMessage.Send();
-
-        Console.WriteLine();
-
-        // 이메일로 암호화된 메시지 보내기
-        Message encryptedEmail = new EncryptedMessage(new EmailSender(), "Secret", "This is a secret message.");
-        encryptedEmail.Send();
-    }
+    public Vector2 GetMoveDirection() => inputReader.ReadMovement();
 }
 ```
+
+## 장점
+- 모듈 경계를 명확히 해 결합도를 낮출 수 있습니다.
+- 기존 코드 수정 없이 기능 확장/통합이 쉬워집니다.
+
+## 주의할 점
+- 래퍼/어댑터 계층이 깊어지면 디버깅이 어려워집니다.
+- 책임 경계가 흐려지지 않도록 인터페이스를 작게 유지해야 합니다.
+
+## 같이 보면 좋은 패턴
+- Adapter
+- Strategy
+- Abstract Factory

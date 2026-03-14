@@ -3,9 +3,14 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "sync:blog": "node sync-blog-content.mjs",
+    "predev": "npm run sync:blog",
     "dev": "astro dev",
+    "prestart": "npm run sync:blog",
     "start": "astro dev",
+    "prebuild": "npm run sync:blog",
     "build": "astro build",
+    "prepreview": "npm run sync:blog",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -16,6 +21,7 @@
     "astro-mermaid": "^1.1.0",
     "mermaid": "^11.12.1",
     "sharp": "^0.34.2",
+    "starlight-blog": "^0.25.3",
     "starlight-giscus": "^0.8.1"
   }
 }

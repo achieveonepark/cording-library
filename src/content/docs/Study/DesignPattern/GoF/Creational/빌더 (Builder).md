@@ -1,148 +1,65 @@
 ---
 title: Builder
 ---
+
 # Builder
 
-복잡한 객체를 생성하는 과정과 표현을 분리하여, 동일한 생성 절차에서 서로 다른 표현 결과를 만들 수 있게 하는 패턴입니다.
+## 패턴 한 줄 설명
+복잡한 객체 생성 과정을 단계별로 분리해 가독성과 안전성을 높이는 패턴입니다.
 
-## 구현부
-Builder 패턴은 주로 다음 요소들로 구성됩니다.
+## Unity에서 쓰는 대표 상황
+- 옵션 많은 설정 객체를 만들 때
+- 동일 절차로 다른 결과를 만들 때
 
-### Builder (빌더)
-- 최종 객체를 생성하기 위한 각 단계를 정의하는 인터페이스 또는 추상 클래스입니다.
-- 일반적으로 각 단계를 수행하는 메서드(예: `BuildPartA`, `BuildPartB`)와 최종 결과를 반환하는 메서드(예: `GetResult`)를 가집니다.
+## 구성 요소 (역할)
+- Builder
+- Director(선택)
+- Product
 
-### ConcreteBuilder (구체적인 빌더)
-- Builder 인터페이스를 구현하여 객체의 각 부분을 실제로 생성하고 조립합니다.
-- 생성된 객체의 표현을 관리합니다.
-
-### Director (감독)
-- Builder 인터페이스를 사용하여 객체를 생성합니다.
-- 클라이언트로부터 요청을 받아, Builder의 메서드를 순서대로 호출하여 복잡한 객체를 생성하는 과정을 제어합니다.
-
-### Product (제품)
-- 빌더에 의해 생성되는 복잡한 객체입니다.
-
-## 예시
-
+## Unity 예시 (C#)
 ```csharp
-using System;
-using System.Collections.Generic;
-
-// Product: 생성될 복잡한 객체 (컴퓨터)
-public class Computer
+public sealed class EnemyWaveConfig
 {
-    private List<string> _parts = new List<string>();
-
-    public void AddPart(string part)
-    {
-        _parts.Add(part);
-    }
-
-    public void Show()
-    {
-        Console.WriteLine("Computer Parts:");
-        foreach (string part in _parts)
-        {
-            Console.WriteLine($"- {part}");
-        }
-    }
+    public int EnemyCount;
+    public float SpawnIntervalSeconds;
+    public string RewardId;
 }
 
-// Builder 인터페이스
-public interface IComputerBuilder
+public sealed class EnemyWaveBuilder
 {
-    void BuildCPU();
-    void BuildRAM();
-    void BuildStorage();
-    Computer GetComputer();
-}
+    private readonly EnemyWaveConfig waveConfig = new();
 
-// ConcreteBuilder: 고사양 컴퓨터 빌더
-public class HighSpecComputerBuilder : IComputerBuilder
-{
-    private Computer _computer = new Computer();
-
-    public void BuildCPU()
+    public EnemyWaveBuilder SetEnemyCount(int enemyCount)
     {
-        _computer.AddPart("High-end CPU");
+        waveConfig.EnemyCount = enemyCount;
+        return this;
     }
 
-    public void BuildRAM()
+    public EnemyWaveBuilder SetSpawnInterval(float spawnIntervalSeconds)
     {
-        _computer.AddPart("32GB RAM");
+        waveConfig.SpawnIntervalSeconds = spawnIntervalSeconds;
+        return this;
     }
 
-    public void BuildStorage()
+    public EnemyWaveBuilder SetReward(string rewardId)
     {
-        _computer.AddPart("1TB NVMe SSD");
+        waveConfig.RewardId = rewardId;
+        return this;
     }
 
-    public Computer GetComputer()
-    {
-        return _computer;
-    }
-}
-
-// ConcreteBuilder: 저사양 컴퓨터 빌더
-public class LowSpecComputerBuilder : IComputerBuilder
-{
-    private Computer _computer = new Computer();
-
-    public void BuildCPU()
-    {
-        _computer.AddPart("Low-end CPU");
-    }
-
-    public void BuildRAM()
-    {
-        _computer.AddPart("8GB RAM");
-    }
-
-    public void BuildStorage()
-    {
-        _computer.AddPart("512GB SATA SSD");
-    }
-
-    public Computer GetComputer()
-    {
-        return _computer;
-    }
-}
-
-// Director
-public class ComputerDirector
-{
-    public void Construct(IComputerBuilder builder)
-    {
-        builder.BuildCPU();
-        builder.BuildRAM();
-        builder.BuildStorage();
-    }
-}
-
-// 사용 예시
-public class BuilderExample
-{
-    public static void Run()
-    {
-        ComputerDirector director = new ComputerDirector();
-
-        // 고사양 컴퓨터 생성
-        IComputerBuilder highSpecBuilder = new HighSpecComputerBuilder();
-        director.Construct(highSpecBuilder);
-        Computer highSpecComputer = highSpecBuilder.GetComputer();
-        Console.WriteLine("High-Spec Computer built:");
-        highSpecComputer.Show();
-
-        Console.WriteLine();
-
-        // 저사양 컴퓨터 생성
-        IComputerBuilder lowSpecBuilder = new LowSpecComputerBuilder();
-        director.Construct(lowSpecBuilder);
-        Computer lowSpecComputer = lowSpecBuilder.GetComputer();
-        Console.WriteLine("Low-Spec Computer built:");
-        lowSpecComputer.Show();
-    }
+    public EnemyWaveConfig Build() => waveConfig;
 }
 ```
+
+## 장점
+- 객체 생성 책임을 정리해 의존성 관리가 쉬워집니다.
+- 환경별/상황별 생성 정책을 유연하게 바꿀 수 있습니다.
+
+## 주의할 점
+- 간단한 문제에 과한 생성 추상화를 넣지 않아야 합니다.
+- 생성 규칙이 많아질수록 문서와 테스트 동기화가 중요합니다.
+
+## 같이 보면 좋은 패턴
+- Abstract Factory
+- Prototype
+- Factory Method
