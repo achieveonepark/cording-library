@@ -17,6 +17,8 @@ title: Iterator
 - Client
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 using System.Collections;
 using System.Collections.Generic;
@@ -50,7 +52,26 @@ public sealed class InventoryCollection : IEnumerable<InventoryItem>
 - 객체 수와 간접 호출이 늘어 흐름 파악이 어려워질 수 있습니다.
 - 전환/실행 순서 버그를 테스트로 고정해야 합니다.
 
-## 같이 보면 좋은 패턴
-- Composite
-- Visitor
-- Interpreter
+## 동작 다이어그램
+
+집합 내부 표현을 노출하지 않고 순차 접근하는 흐름입니다.
+
+```d2 title="Iterator 흐름"
+direction: right
+
+client: "Client"
+aggregate: "Inventory"
+iterator: "InventoryIterator"
+check: "HasNext?"
+next: "Next()"
+value: "Current Item"
+
+client -> aggregate: "CreateIterator()"
+aggregate -> iterator
+client -> check
+check -> next: "true"
+next -> value
+value -> client
+next -> check: "loop"
+check -> client: "false"
+```

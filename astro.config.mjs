@@ -5,11 +5,18 @@ import mermaid from 'astro-mermaid';
 import starlightGiscus from 'starlight-giscus';
 import starlightBlog from 'starlight-blog';
 import sitemap from '@astrojs/sitemap';
+import astroD2 from 'astro-d2';
 
 export default defineConfig({
 	site: 'https://lib.somiri.dev',
 	integrations: [
 		sitemap(),
+		astroD2({
+			sketch: true,
+			experimental: {
+				useD2js: true,
+			},
+		}),
 		mermaid({
 			theme: 'neutral',
 			autoTheme: true

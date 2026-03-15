@@ -17,6 +17,8 @@ title: Mediator
 - Colleague
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 public interface IUiMediator
 {
@@ -46,7 +48,26 @@ public sealed class LobbyUiMediator : IUiMediator
 - 객체 수와 간접 호출이 늘어 흐름 파악이 어려워질 수 있습니다.
 - 전환/실행 순서 버그를 테스트로 고정해야 합니다.
 
-## 같이 보면 좋은 패턴
-- Observer
-- Facade
-- Event Queue
+## 동작 다이어그램
+
+컴포넌트 간 직접 통신 대신 중재자가 라우팅하는 흐름입니다.
+
+```d2 title="Mediator 흐름"
+direction: right
+
+components: {
+  label: "Components"
+  ui: "UI"
+  audio: "Audio"
+  quest: "Quest"
+}
+
+mediator: "GameMediator"
+
+ui -> mediator: "event"
+audio -> mediator: "event"
+quest -> mediator: "event"
+mediator -> ui: "notify"
+mediator -> audio: "notify"
+mediator -> quest: "notify"
+```

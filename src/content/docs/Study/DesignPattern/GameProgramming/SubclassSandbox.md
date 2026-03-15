@@ -17,6 +17,8 @@ title: Subclass Sandbox
 - Subclass: 확장 구현
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 public abstract class SkillBase
 {
@@ -48,14 +50,33 @@ public sealed class FireballSkill : SkillBase
 ```
 
 ## 장점
-- Unity 런타임 성능/구조 개선에 바로 연결됩니다.
-- 기능 분리로 테스트와 유지보수가 쉬워집니다.
+- 부모가 허용한 API만 노출해 확장 코드를 안전하게 제한할 수 있습니다.
+- 공통 규칙(쿨다운, 자원 소모 등)을 베이스에서 강제하기 좋습니다.
 
 ## 주의할 점
-- 패턴 남용 시 추상화 비용이 실익보다 커질 수 있습니다.
-- 성능/가독성 트레이드오프를 측정으로 확인해야 합니다.
+- 베이스 클래스가 비대해지면 확장 유연성이 오히려 떨어집니다.
+- 훅 메서드 계약이 불명확하면 서브클래스마다 동작 일관성이 깨집니다.
 
-## 같이 보면 좋은 패턴
-- Template Method
-- State
-- Command
+## 동작 다이어그램
+
+부모 템플릿이 공통 규칙을 강제하고 자식이 훅만 구현하는 흐름입니다.
+
+```d2 title="Subclass Sandbox 흐름"
+direction: right
+
+caller: "SkillRunner"
+base: "SkillBase.Cast()"
+validate: "Mana / Cooldown Check"
+hook: "DoCast() Hook"
+child: "FireballSkill.DoCast"
+common: "Apply Global Rule"
+result: "Skill Executed"
+
+caller -> base
+base -> validate
+validate -> hook: "pass"
+hook -> child
+child -> common
+common -> result
+validate -> result: "fail -> cancel"
+```

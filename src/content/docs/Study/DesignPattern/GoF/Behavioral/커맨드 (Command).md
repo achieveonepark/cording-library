@@ -17,6 +17,8 @@ title: Command
 - Receiver
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 using System.Collections.Generic;
 
@@ -61,7 +63,24 @@ public sealed class CommandHistory
 - 객체 수와 간접 호출이 늘어 흐름 파악이 어려워질 수 있습니다.
 - 전환/실행 순서 버그를 테스트로 고정해야 합니다.
 
-## 같이 보면 좋은 패턴
-- Memento
-- Event Queue
-- Chain of Responsibility
+## 동작 다이어그램
+
+요청을 객체로 캡슐화해 실행/큐잉/undo를 분리하는 흐름입니다.
+
+```d2 title="Command 흐름"
+direction: right
+
+input: "Player Input"
+factory: "Command Factory"
+invoker: "Invoker"
+command: "Concrete Command"
+receiver: "Receiver"
+undo_stack: "Undo Stack"
+
+input -> factory
+factory -> command
+command -> invoker: "submit"
+invoker -> receiver: "execute"
+invoker -> undo_stack: "push"
+undo_stack -> receiver: "undo"
+```

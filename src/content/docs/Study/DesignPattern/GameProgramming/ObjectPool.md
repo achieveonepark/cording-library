@@ -17,6 +17,8 @@ title: Object Pool
 - Release: 반납
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 using UnityEngine;
 using UnityEngine.Pool;
@@ -50,14 +52,36 @@ public sealed class ProjectilePoolController : MonoBehaviour
 ```
 
 ## 장점
-- Unity 런타임 성능/구조 개선에 바로 연결됩니다.
-- 기능 분리로 테스트와 유지보수가 쉬워집니다.
+- Instantiate/Destroy 빈도를 낮춰 GC 스파이크와 히치(hitch)를 줄입니다.
+- 최대 개체 수를 통제해 성능 예산을 예측하기 쉬워집니다.
 
 ## 주의할 점
-- 패턴 남용 시 추상화 비용이 실익보다 커질 수 있습니다.
-- 성능/가독성 트레이드오프를 측정으로 확인해야 합니다.
+- 반환 누락 시 풀 고갈로 스폰 실패나 메모리 점유 증가가 발생합니다.
+- 재사용 객체 상태 초기화를 빼먹으면 이전 프레임 데이터가 섞이는 버그가 납니다.
 
-## 같이 보면 좋은 패턴
-- Flyweight
-- Factory Method
-- Data Locality
+## 동작 다이어그램
+
+객체를 재사용해 할당/해제를 줄이는 풀 관리 흐름입니다.
+
+```d2 title="Object Pool 흐름"
+direction: right
+
+spawn_request: "Spawn Request"
+check_pool: "Idle Object Exists?"
+checkout: "Get From Pool"
+create_new: "Instantiate"
+active_use: "Active Object"
+release: "Release()"
+reset: "Reset State"
+pool_store: "Return To Pool"
+
+spawn_request -> check_pool
+check_pool -> checkout: "yes"
+check_pool -> create_new: "no"
+checkout -> active_use
+create_new -> active_use
+active_use -> release
+release -> reset
+reset -> pool_store
+pool_store -> check_pool
+```

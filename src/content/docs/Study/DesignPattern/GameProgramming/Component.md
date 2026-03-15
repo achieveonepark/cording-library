@@ -17,6 +17,8 @@ title: Component
 - Composer: 초기 조합 설정
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 using System.Collections.Generic;
 using UnityEngine;
@@ -55,14 +57,37 @@ public sealed class CharacterControllerRoot : MonoBehaviour
 ```
 
 ## 장점
-- Unity 런타임 성능/구조 개선에 바로 연결됩니다.
-- 기능 분리로 테스트와 유지보수가 쉬워집니다.
+- 기능을 조립식으로 나눠 캐릭터/오브젝트 변형을 빠르게 만들 수 있습니다.
+- 특정 컴포넌트만 테스트/교체할 수 있어 회귀 범위를 줄입니다.
 
 ## 주의할 점
-- 패턴 남용 시 추상화 비용이 실익보다 커질 수 있습니다.
-- 성능/가독성 트레이드오프를 측정으로 확인해야 합니다.
+- 컴포넌트 간 의존성이 커지면 결국 또 다른 결합이 생깁니다.
+- Update 루프가 컴포넌트마다 분산되면 호출 비용과 디버깅 난도가 올라갑니다.
 
-## 같이 보면 좋은 패턴
-- Strategy
-- Decorator
-- Type Object
+## 동작 다이어그램
+
+엔티티가 여러 컴포넌트를 조합해 최종 상태를 만드는 흐름입니다.
+
+```d2 title="Component 흐름"
+direction: right
+
+game_loop: "Game Loop"
+entity: "Player Entity"
+
+components: {
+  label: "Components"
+  movement: "Movement"
+  health: "Health"
+  inventory: "Inventory"
+}
+
+result: "Transform / State 반영"
+
+game_loop -> entity: "Tick()"
+entity -> movement: "update"
+entity -> health: "update"
+entity -> inventory: "update"
+movement -> result
+health -> result
+inventory -> result
+```

@@ -17,6 +17,8 @@ title: Visitor
 - Accept
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 public interface IUnitVisitor
 {
@@ -46,7 +48,29 @@ public sealed class DamagePreviewVisitor : IUnitVisitor
 - 객체 수와 간접 호출이 늘어 흐름 파악이 어려워질 수 있습니다.
 - 전환/실행 순서 버그를 테스트로 고정해야 합니다.
 
-## 같이 보면 좋은 패턴
-- Composite
-- Iterator
-- Interpreter
+## 동작 다이어그램
+
+객체 구조를 순회하며 방문자에 연산을 위임하는 흐름입니다.
+
+```d2 title="Visitor 흐름"
+direction: right
+
+client: "Client"
+structure: "Object Structure"
+visit: "Visitor"
+
+nodes: {
+  label: "Elements"
+  enemy: "Enemy"
+  npc: "NPC"
+  item: "Item"
+}
+
+client -> structure: "iterate"
+structure -> enemy: "accept(visitor)"
+structure -> npc: "accept(visitor)"
+structure -> item: "accept(visitor)"
+enemy -> visit: "visitEnemy"
+npc -> visit: "visitNpc"
+item -> visit: "visitItem"
+```

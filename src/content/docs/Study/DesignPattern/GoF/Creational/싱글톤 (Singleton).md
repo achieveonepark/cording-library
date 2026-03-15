@@ -17,6 +17,8 @@ title: Singleton
 - Lifetime Guard
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 using UnityEngine;
 
@@ -46,7 +48,28 @@ public sealed class GameSettingsService : MonoBehaviour
 - 간단한 문제에 과한 생성 추상화를 넣지 않아야 합니다.
 - 생성 규칙이 많아질수록 문서와 테스트 동기화가 중요합니다.
 
-## 같이 보면 좋은 패턴
-- Service Locator
-- Facade
-- Abstract Factory
+## 동작 다이어그램
+
+여러 호출자가 동일 인스턴스를 공유하는 단일 접근 흐름입니다.
+
+```d2 title="Singleton 흐름"
+direction: right
+
+callers: {
+  label: "Callers"
+  ui: "UISystem"
+  gameplay: "GameplaySystem"
+  audio_user: "CutsceneSystem"
+}
+
+singleton: "AudioManager.Instance"
+instance: "Single Object"
+
+ui -> singleton
+gameplay -> singleton
+audio_user -> singleton
+singleton -> instance: "create once"
+instance -> ui: "shared"
+instance -> gameplay: "shared"
+instance -> audio_user: "shared"
+```

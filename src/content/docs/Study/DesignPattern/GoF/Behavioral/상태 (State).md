@@ -17,6 +17,8 @@ title: State
 - Concrete State
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 public interface ICharacterState
 {
@@ -54,7 +56,26 @@ public sealed class RunState : ICharacterState
 - 객체 수와 간접 호출이 늘어 흐름 파악이 어려워질 수 있습니다.
 - 전환/실행 순서 버그를 테스트로 고정해야 합니다.
 
-## 같이 보면 좋은 패턴
-- Strategy
-- Template Method
-- Command
+## 동작 다이어그램
+
+컨텍스트가 현재 상태 객체에 행동을 위임하고 상태 전이를 수행하는 흐름입니다.
+
+```d2 title="State 흐름"
+direction: right
+
+context: "PlayerContext"
+idle: "IdleState"
+run: "RunState"
+jump: "JumpState"
+input: "Input"
+output: "Animation / Logic"
+
+input -> context
+context -> idle: "delegate"
+idle -> run: "move key"
+run -> jump: "jump key"
+jump -> idle: "landing"
+idle -> output
+run -> output
+jump -> output
+```

@@ -17,6 +17,8 @@ title: Service Locator
 - Bootstrap Registration
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 public interface IAudioService
 {
@@ -43,14 +45,29 @@ public sealed class DamageFeedbackSystem
 ```
 
 ## 장점
-- Unity 런타임 성능/구조 개선에 바로 연결됩니다.
-- 기능 분리로 테스트와 유지보수가 쉬워집니다.
+- 공통 서비스를 한 지점에서 교체/주입할 수 있어 초기 개발 속도가 빠릅니다.
+- 호출부에서 생성 책임을 제거해 사용 코드가 단순해집니다.
 
 ## 주의할 점
-- 패턴 남용 시 추상화 비용이 실익보다 커질 수 있습니다.
-- 성능/가독성 트레이드오프를 측정으로 확인해야 합니다.
+- 숨은 전역 의존성이 생겨 테스트 격리와 의존성 추적이 어려워집니다.
+- 초기화 순서가 꼬이면 런타임 Null 참조가 발생하기 쉽습니다.
 
-## 같이 보면 좋은 패턴
-- Singleton
-- Facade
-- Abstract Factory
+## 동작 다이어그램
+
+클라이언트가 인터페이스 키로 서비스를 조회해 사용하는 흐름입니다.
+
+```d2 title="Service Locator 흐름"
+direction: right
+
+client: "Gameplay System"
+locator: "Service Locator"
+registry: "Service Registry"
+service: "IAudioService 구현체"
+result: "Play SFX"
+
+client -> locator: "Resolve<IAudioService>()"
+locator -> registry: "lookup key"
+registry -> service: "return instance"
+service -> result: "Play(soundId)"
+result -> client: "done"
+```

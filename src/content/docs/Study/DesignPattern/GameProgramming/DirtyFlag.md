@@ -17,6 +17,8 @@ title: Dirty Flag
 - Cache: 계산 결과
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 public sealed class PlayerAttackStat
 {
@@ -52,14 +54,34 @@ public sealed class PlayerAttackStat
 ```
 
 ## 장점
-- Unity 런타임 성능/구조 개선에 바로 연결됩니다.
-- 기능 분리로 테스트와 유지보수가 쉬워집니다.
+- 값이 바뀔 때만 계산해 프레임당 불필요한 연산을 줄입니다.
+- UI/스탯/트랜스폼처럼 변경 빈도가 낮은 계산에 특히 효과적입니다.
 
 ## 주의할 점
-- 패턴 남용 시 추상화 비용이 실익보다 커질 수 있습니다.
-- 성능/가독성 트레이드오프를 측정으로 확인해야 합니다.
+- 플래그 갱신 누락 시 오래된 값(stale data)을 쓰는 버그가 생깁니다.
+- 의존 관계가 복잡하면 어떤 변경이 플래그를 세워야 하는지 관리가 어려워집니다.
 
-## 같이 보면 좋은 패턴
-- Observer
-- State
-- Data Locality
+## 동작 다이어그램
+
+값 변경 시에만 재계산해 비용을 줄이는 지연 갱신 흐름입니다.
+
+```d2 title="Dirty Flag 흐름"
+direction: right
+
+change_event: "Stat Changed"
+mark_dirty: "dirty = true"
+render_request: "UI / Combat Query"
+check_dirty: "dirty?"
+recalc: "Recalculate Cached Value"
+reuse: "Use Cached Value"
+output: "Final Value"
+
+change_event -> mark_dirty
+mark_dirty -> render_request
+render_request -> check_dirty
+check_dirty -> recalc: "yes"
+check_dirty -> reuse: "no"
+recalc -> output
+reuse -> output
+recalc -> reuse: "dirty = false"
+```

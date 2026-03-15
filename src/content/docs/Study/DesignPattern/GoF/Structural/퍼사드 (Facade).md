@@ -17,6 +17,8 @@ title: Facade
 - Client
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 public sealed class GameStartupFacade
 {
@@ -41,7 +43,25 @@ public sealed class GameStartupFacade
 - 래퍼/어댑터 계층이 깊어지면 디버깅이 어려워집니다.
 - 책임 경계가 흐려지지 않도록 인터페이스를 작게 유지해야 합니다.
 
-## 같이 보면 좋은 패턴
-- Mediator
-- Service Locator
-- Adapter
+## 동작 다이어그램
+
+복잡한 서브시스템 호출을 단일 진입점으로 단순화하는 흐름입니다.
+
+```d2 title="Facade 흐름"
+direction: right
+
+client: "Game Bootstrap"
+facade: "StartGameFacade"
+assets: "AssetLoader"
+save: "SaveSystem"
+network: "NetworkClient"
+result: "Ready To Play"
+
+client -> facade: "StartGame()"
+facade -> assets: "load"
+facade -> save: "restore"
+facade -> network: "connect"
+assets -> result
+save -> result
+network -> result
+```

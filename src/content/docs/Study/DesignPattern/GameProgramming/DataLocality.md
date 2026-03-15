@@ -17,6 +17,8 @@ title: Data Locality
 - Loop: 단순 반복 처리
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 using UnityEngine;
 
@@ -39,14 +41,39 @@ public static class ProjectileSimulation
 ```
 
 ## 장점
-- Unity 런타임 성능/구조 개선에 바로 연결됩니다.
-- 기능 분리로 테스트와 유지보수가 쉬워집니다.
+- 연속 메모리 접근으로 캐시 미스를 줄여 대량 연산 성능을 높입니다.
+- Burst/Jobs 같은 데이터 지향 처리와 결합할 때 효과가 큽니다.
 
 ## 주의할 점
-- 패턴 남용 시 추상화 비용이 실익보다 커질 수 있습니다.
-- 성능/가독성 트레이드오프를 측정으로 확인해야 합니다.
+- 구조를 성능 중심으로 바꾸면 코드 가독성과 도메인 표현력이 떨어질 수 있습니다.
+- 배열 동기화와 인덱스 관리 실수 시 데이터 불일치 버그가 발생하기 쉽습니다.
 
-## 같이 보면 좋은 패턴
-- Object Pool
-- Flyweight
-- Component
+## 동작 다이어그램
+
+연속 메모리 블록을 순차 처리해 캐시 효율을 높이는 흐름입니다.
+
+```d2 title="Data Locality 흐름"
+direction: right
+
+frame: "Frame Start"
+
+soa: {
+  label: "SoA Buffers"
+  positions: "positions[]"
+  velocities: "velocities[]"
+  hp: "hp[]"
+}
+
+chunk_loop: "for (i = 0..N)"
+cache_hit: "Cache-friendly access"
+result: "대량 업데이트 완료"
+
+frame -> chunk_loop
+chunk_loop -> positions: "read i"
+chunk_loop -> velocities: "read i"
+chunk_loop -> hp: "read i"
+positions -> cache_hit
+velocities -> cache_hit
+hp -> cache_hit
+cache_hit -> result
+```
