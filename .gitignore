@@ -2,6 +2,7 @@
 dist/
 public/d2/
 src/content/docs/blog/
+.cache/
 # generated types
 .astro/
 

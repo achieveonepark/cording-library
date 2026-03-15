@@ -61,9 +61,9 @@ export default defineConfig({
 			],
 			sidebar: [
 				{
-					label: 'Diagnostics',
+					label: 'R&D',
 					collapsed: true,
-					autogenerate: { directory: 'Diagnostics' },
+					autogenerate: { directory: 'R&D' },
 				},
 				{
 					label: 'Packages',
