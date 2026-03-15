@@ -17,6 +17,8 @@ title: Event Queue
 - Consumer: 프레임 단위 처리
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 using System.Collections.Generic;
 using UnityEngine;
@@ -54,14 +56,40 @@ public sealed class CombatEventQueue : MonoBehaviour
 ```
 
 ## 장점
-- Unity 런타임 성능/구조 개선에 바로 연결됩니다.
-- 기능 분리로 테스트와 유지보수가 쉬워집니다.
+- 생산자/소비자 타이밍을 분리해 시스템 간 직접 의존을 줄입니다.
+- 이벤트 로깅, 재생, 배치 처리 같은 확장이 쉬워집니다.
 
 ## 주의할 점
-- 패턴 남용 시 추상화 비용이 실익보다 커질 수 있습니다.
-- 성능/가독성 트레이드오프를 측정으로 확인해야 합니다.
+- 큐가 밀리면 지연(latency)으로 반응성이 떨어질 수 있습니다.
+- 이벤트 순서/중복 처리 규칙을 명확히 하지 않으면 재현 어려운 버그가 납니다.
 
-## 같이 보면 좋은 패턴
-- Observer
-- Mediator
-- Command
+## 동작 다이어그램
+
+생산자와 소비자를 큐로 분리해 비동기 전달하는 흐름입니다.
+
+```d2 title="Event Queue 흐름"
+direction: right
+
+producers: {
+  label: "Producers"
+  combat: "CombatSystem"
+  ai: "AISystem"
+  loot: "LootSystem"
+}
+
+queue: "Event Queue"
+
+consumers: {
+  label: "Consumers"
+  ui: "UISystem"
+  audio: "AudioSystem"
+  analytics: "AnalyticsSystem"
+}
+
+combat -> queue: "enqueue"
+ai -> queue: "enqueue"
+loot -> queue: "enqueue"
+queue -> ui: "dequeue"
+queue -> audio: "dequeue"
+queue -> analytics: "dequeue"
+```

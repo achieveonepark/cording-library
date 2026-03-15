@@ -17,6 +17,8 @@ title: Type Object
 - Registry: 타입 조회
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 using UnityEngine;
 
@@ -42,14 +44,30 @@ public sealed class WeaponRuntime
 ```
 
 ## 장점
-- Unity 런타임 성능/구조 개선에 바로 연결됩니다.
-- 기능 분리로 테스트와 유지보수가 쉬워집니다.
+- 타입 추가를 코드 변경 없이 데이터(ScriptableObject) 추가로 처리할 수 있습니다.
+- 기획/밸런싱 작업을 코드 배포와 분리해 반복 속도를 높입니다.
 
 ## 주의할 점
-- 패턴 남용 시 추상화 비용이 실익보다 커질 수 있습니다.
-- 성능/가독성 트레이드오프를 측정으로 확인해야 합니다.
+- 데이터 스키마가 자주 바뀌면 마이그레이션과 호환성 관리 비용이 큽니다.
+- 런타임 참조 누락 시 에디터에서는 조용하지만 실제 빌드에서 오류가 날 수 있습니다.
 
-## 같이 보면 좋은 패턴
-- Prototype
-- Factory Method
-- Component
+## 동작 다이어그램
+
+인스턴스가 타입 데이터(ScriptableObject)를 참조해 동작을 결정하는 흐름입니다.
+
+```d2 title="Type Object 흐름"
+direction: right
+
+instance: "Weapon Instance"
+type_data: "WeaponTypeData (SO)"
+calculator: "Damage Calculator"
+context: "Runtime Context"
+result: "Final Damage"
+
+instance -> type_data: "typeId"
+instance -> context: "durability / level"
+type_data -> calculator: "base stats"
+context -> calculator: "runtime modifiers"
+calculator -> result
+result -> instance: "apply"
+```

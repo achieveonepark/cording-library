@@ -17,6 +17,8 @@ title: FactoryMethod
 - Product
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 using UnityEngine;
 
@@ -45,7 +47,25 @@ public abstract class ProjectileSpawner : MonoBehaviour
 - 래퍼/어댑터 계층이 깊어지면 디버깅이 어려워집니다.
 - 책임 경계가 흐려지지 않도록 인터페이스를 작게 유지해야 합니다.
 
-## 같이 보면 좋은 패턴
-- Abstract Factory
-- Builder
-- Strategy
+## 동작 다이어그램
+
+부모의 생성 절차는 유지하고 실제 생성 타입은 하위 클래스가 결정하는 흐름입니다.
+
+```d2 title="Factory Method 흐름"
+direction: right
+
+client: "Client"
+creator: "Creator.Spawn()"
+factory_method: "CreateProduct()"
+concrete_a: "BulletSpawner"
+concrete_b: "EffectSpawner"
+product: "IProduct"
+
+client -> creator
+creator -> factory_method
+factory_method -> concrete_a: "mode A"
+factory_method -> concrete_b: "mode B"
+concrete_a -> product
+concrete_b -> product
+product -> client
+```

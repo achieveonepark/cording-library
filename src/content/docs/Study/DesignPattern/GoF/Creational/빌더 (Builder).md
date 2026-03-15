@@ -17,6 +17,8 @@ title: Builder
 - Product
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 public sealed class EnemyWaveConfig
 {
@@ -59,7 +61,21 @@ public sealed class EnemyWaveBuilder
 - 간단한 문제에 과한 생성 추상화를 넣지 않아야 합니다.
 - 생성 규칙이 많아질수록 문서와 테스트 동기화가 중요합니다.
 
-## 같이 보면 좋은 패턴
-- Abstract Factory
-- Prototype
-- Factory Method
+## 동작 다이어그램
+
+복잡한 객체를 단계별로 조립하고 마지막에 결과물을 반환하는 흐름입니다.
+
+```d2 title="Builder 흐름"
+direction: down
+
+director: "Director"
+step1: "BuildStats()"
+step2: "BuildEquipment()"
+step3: "BuildSkills()"
+product: "CharacterData"
+
+director -> step1
+step1 -> step2
+step2 -> step3
+step3 -> product
+```

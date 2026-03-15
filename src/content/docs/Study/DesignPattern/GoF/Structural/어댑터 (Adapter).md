@@ -17,6 +17,8 @@ title: Adapter
 - Adapter
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 public interface IAdsService
 {
@@ -47,7 +49,23 @@ public sealed class LegacyAdsServiceAdapter : IAdsService
 - 래퍼/어댑터 계층이 깊어지면 디버깅이 어려워집니다.
 - 책임 경계가 흐려지지 않도록 인터페이스를 작게 유지해야 합니다.
 
-## 같이 보면 좋은 패턴
-- Bridge
-- Proxy
-- Facade
+## 동작 다이어그램
+
+기존 인터페이스를 목표 인터페이스로 변환해 재사용하는 흐름입니다.
+
+```d2 title="Adapter 흐름"
+direction: right
+
+client: "Game UI"
+target: "ILeaderboardService"
+adapter: "LeaderboardAdapter"
+adaptee: "Legacy SDK"
+result: "Rank Data"
+
+client -> target: "GetTopRanks()"
+target -> adapter
+adapter -> adaptee: "Convert Call"
+adaptee -> adapter: "legacy response"
+adapter -> result: "mapped DTO"
+result -> client
+```

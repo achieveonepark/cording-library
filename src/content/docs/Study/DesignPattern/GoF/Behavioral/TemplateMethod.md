@@ -17,6 +17,8 @@ title: TemplateMethod
 - Concrete Class
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 public abstract class SkillExecutionTemplate
 {
@@ -55,7 +57,23 @@ public sealed class HealSkillTemplate : SkillExecutionTemplate
 - 객체 수와 간접 호출이 늘어 흐름 파악이 어려워질 수 있습니다.
 - 전환/실행 순서 버그를 테스트로 고정해야 합니다.
 
-## 같이 보면 좋은 패턴
-- Subclass Sandbox
-- State
-- Strategy
+## 동작 다이어그램
+
+부모가 알고리즘 순서를 고정하고 일부 단계만 하위 클래스가 바꾸는 흐름입니다.
+
+```d2 title="Template Method 흐름"
+direction: down
+
+template: "AbilityBase.Execute()"
+step1: "Validate()"
+step2: "ConsumeResource()"
+step3: "DoAction() (override)"
+step4: "AfterAction()"
+result: "Ability Done"
+
+template -> step1
+step1 -> step2
+step2 -> step3
+step3 -> step4
+step4 -> result
+```

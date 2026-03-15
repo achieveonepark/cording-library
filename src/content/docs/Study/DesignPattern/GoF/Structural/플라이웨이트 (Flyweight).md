@@ -17,6 +17,8 @@ title: Flyweight
 - Intrinsic/Extrinsic State
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 using System.Collections.Generic;
 using UnityEngine;
@@ -56,7 +58,22 @@ public sealed class ProjectileVisualFlyweightFactory
 - 래퍼/어댑터 계층이 깊어지면 디버깅이 어려워집니다.
 - 책임 경계가 흐려지지 않도록 인터페이스를 작게 유지해야 합니다.
 
-## 같이 보면 좋은 패턴
-- Object Pool
-- Data Locality
-- Type Object
+## 동작 다이어그램
+
+공유 가능한 내부 상태를 재사용하고 외부 상태만 컨텍스트에서 주입하는 흐름입니다.
+
+```d2 title="Flyweight 흐름"
+direction: right
+
+spawn: "Spawn Bullet"
+factory: "Flyweight Factory"
+shared: "Shared BulletType"
+context: "Bullet Context (pos/speed)"
+render: "Draw / Simulate"
+
+spawn -> factory: "get(typeId)"
+factory -> shared: "reuse"
+spawn -> context: "extrinsic state"
+shared -> render: "intrinsic"
+context -> render: "extrinsic"
+```

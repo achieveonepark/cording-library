@@ -17,6 +17,8 @@ title: AbstractFactory
 - Abstract Product
 
 ## Unity 예시 (C#)
+아래 코드는 위에서 설명한 대표 상황을 Unity 프로젝트 맥락으로 단순화한 예시입니다.
+
 ```csharp
 public interface IPlatformServiceFactory
 {
@@ -45,7 +47,25 @@ public sealed class PcPlatformServiceFactory : IPlatformServiceFactory
 - 간단한 문제에 과한 생성 추상화를 넣지 않아야 합니다.
 - 생성 규칙이 많아질수록 문서와 테스트 동기화가 중요합니다.
 
-## 같이 보면 좋은 패턴
-- Factory Method
-- Builder
-- Service Locator
+## 동작 다이어그램
+
+플랫폼별 제품군을 동일 인터페이스로 생성하는 흐름입니다.
+
+```d2 title="Abstract Factory 흐름"
+direction: right
+
+client: "Game Client"
+factory_selector: "Platform Factory"
+mobile_factory: "MobileFactory"
+pc_factory: "PcFactory"
+login: "LoginService"
+store: "StoreService"
+
+client -> factory_selector: "runtime choice"
+factory_selector -> mobile_factory: "mobile"
+factory_selector -> pc_factory: "pc"
+mobile_factory -> login
+mobile_factory -> store
+pc_factory -> login
+pc_factory -> store
+```
