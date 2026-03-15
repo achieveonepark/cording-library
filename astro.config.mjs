@@ -19,14 +19,32 @@ export default defineConfig({
 		}),
 		mermaid({
 			theme: 'neutral',
-			autoTheme: true
+			autoTheme: true,
 		}),
 		starlight({
-			title: '게임 개발자의 머릿속',
-			description: 'Unity Game 개발, C#, .NET, 패턴/아키텍처 정리 라이브러리 사이트',
-			customCss: [
-				'/src/styles.css',
-			],
+			title: {
+				ko: 'SOMIRI DEV',
+				en: 'SOMIRI DEV',
+				ja: 'SOMIRI DEV',
+			},
+			description: 'Technical library for Unity, C#, .NET, architecture, and troubleshooting notes.',
+			locales: {
+				root: {
+					label: '한국어',
+					lang: 'ko',
+				},
+				en: {
+					label: 'English',
+					lang: 'en',
+				},
+				ja: {
+					label: '日本語',
+					lang: 'ja',
+				},
+			},
+			defaultLocale: 'root',
+			routeMiddleware: ['./src/starlightRouteData.ts'],
+			customCss: ['/src/styles.css'],
 			components: {
 				Search: './src/components/SearchWithSectionSwitch.astro',
 			},
@@ -56,11 +74,15 @@ export default defineConfig({
 					label: 'Study',
 					collapsed: true,
 					autogenerate: { directory: 'Study' },
-				}
+				},
 			],
 			plugins: [
 				starlightBlog({
-					title: 'Blog',
+					title: {
+						ko: '블로그',
+						en: 'Blog',
+						ja: 'ブログ',
+					},
 					navigation: 'none',
 				}),
 				starlightGiscus({
@@ -68,7 +90,6 @@ export default defineConfig({
 					repoId: 'R_kgDOMj5hYA',
 					category: 'General',
 					categoryId: 'DIC_kwDOMj5hYM4Cx16X',
-					
 					mapping: 'pathname',
 					reactions: true,
 					inputPosition: 'bottom',

@@ -2,19 +2,45 @@
 import DefaultSearch from '@astrojs/starlight/components/Search.astro';
 import blogConfig from 'virtual:starlight-blog-config';
 
-const { siteTitleHref } = Astro.locals.starlightRoute;
+const { locale, siteTitleHref } = Astro.locals.starlightRoute;
+
+const labelsByLocale = {
+	root: {
+		sectionSwitch: '문서/블로그 전환',
+		docs: '문서',
+		blog: '블로그',
+	},
+	en: {
+		sectionSwitch: 'Switch between docs and blog',
+		docs: 'Docs',
+		blog: 'Blog',
+	},
+	ja: {
+		sectionSwitch: 'ドキュメントとブログの切り替え',
+		docs: 'ドキュメント',
+		blog: 'ブログ',
+	},
+};
+
+const activeLocale = locale ?? 'root';
+const labels = labelsByLocale[activeLocale] ?? labelsByLocale.root;
 
 const libraryHref = siteTitleHref;
-const blogHref = buildBlogHref(libraryHref, blogConfig.prefix);
+const blogHref = buildSectionHref(activeLocale, blogConfig.prefix);
 
 const currentPath = normalizePath(Astro.url.pathname);
 const blogPath = normalizePath(blogHref);
 const isBlogActive = currentPath.startsWith(blogPath);
 
-function buildBlogHref(baseHref, prefix) {
-	const baseUrl = new URL(baseHref || '/', Astro.url);
-	const safePrefix = trimSlashes(prefix || 'blog');
-	return new URL(`${safePrefix}/`, baseUrl).pathname;
+function buildSectionHref(locale, section = '') {
+	const localePrefix = locale && locale !== 'root' ? `/${trimSlashes(locale)}` : '';
+	const sectionPath = trimSlashes(section);
+
+	if (!sectionPath) {
+		return localePrefix || '/';
+	}
+
+	return `${localePrefix}/${sectionPath}`;
 }
 
 function trimSlashes(value) {
@@ -28,9 +54,13 @@ function normalizePath(value) {
 ---
 
 <div class="search-with-switch">
-	<nav class="section-switch" aria-label="Section switch">
-		<a href={libraryHref} class:list={['section-link', !isBlogActive && 'is-active']}>Docs</a>
-		<a href={blogHref} class:list={['section-link', isBlogActive && 'is-active']}>Blog</a>
+	<nav class="section-switch" aria-label={labels.sectionSwitch}>
+		<a href={libraryHref} class:list={['section-link', !isBlogActive && 'is-active']}>
+			{labels.docs}
+		</a>
+		<a href={blogHref} class:list={['section-link', isBlogActive && 'is-active']}>
+			{labels.blog}
+		</a>
 	</nav>
 	<div class="search-box">
 		<DefaultSearch />

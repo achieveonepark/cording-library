@@ -1,16 +1,75 @@
 ---
 import { getCollection } from 'astro:content';
+import starlightConfig from 'virtual:starlight/user-config';
 import blogConfig from 'virtual:starlight-blog-config';
 
 const maxPosts = 5;
 const safePrefix = trimSlashes(blogConfig.prefix || 'blog');
-const blogPrefix = `${safePrefix}/`;
+const routeLocale = Astro.locals.starlightRoute.locale;
+const routeLang = Astro.locals.starlightRoute.lang || 'ko';
+const defaultLocale =
+	starlightConfig.defaultLocale.locale === 'root' ? undefined : starlightConfig.defaultLocale.locale;
+const defaultBlogPrefix = withLocale(safePrefix, defaultLocale);
 
-const posts = (await getCollection('docs'))
-	.filter((entry) => entry.id.startsWith(blogPrefix) && entry.id !== `${blogPrefix}index`)
-	.filter((entry) => entry.data.draft !== true)
+const labelsByLocale = {
+	root: {
+		heading: '최근 글',
+		viewAll: '전체 글 보기',
+		empty: '아직 게시글이 없습니다.',
+	},
+	en: {
+		heading: 'Latest Posts',
+		viewAll: 'View all posts',
+		empty: 'No blog posts yet.',
+	},
+	ja: {
+		heading: '最新記事',
+		viewAll: 'すべての記事を見る',
+		empty: 'まだ記事がありません。',
+	},
+};
+
+const activeLocale = routeLocale ?? 'root';
+const labels = labelsByLocale[activeLocale] ?? labelsByLocale.root;
+const blogHref = toPageHref(withLocale(safePrefix, routeLocale));
+
+const posts = (await getLocalizedBlogEntries(routeLocale))
 	.sort((first, second) => getEntryDate(second) - getEntryDate(first))
 	.slice(0, maxPosts);
+
+async function getLocalizedBlogEntries(locale) {
+	const entries = await getCollection('docs');
+	const defaultEntries = entries.filter(
+		(entry) => entry.id.startsWith(`${defaultBlogPrefix}/`) && entry.id !== `${defaultBlogPrefix}/index`
+	);
+
+	if (locale === defaultLocale) return defaultEntries;
+
+	return defaultEntries.map((entry) => {
+		const translatedEntryId = withLocale(entry.id, locale);
+		return entries.find((candidate) => candidate.id === translatedEntryId) ?? entry;
+	});
+}
+
+function withLocale(path, locale) {
+	const currentLocale = getLocaleFromPath(path);
+	if (currentLocale === locale) return path;
+	if (currentLocale) {
+		return path.replace(`${currentLocale}/`, locale ? `${locale}/` : '');
+	}
+	return locale ? `${locale}/${path}` : path;
+}
+
+function getLocaleFromPath(path) {
+	const baseSegment = path.split('/')[0];
+	return starlightConfig.locales && baseSegment && baseSegment in starlightConfig.locales
+		? baseSegment
+		: undefined;
+}
+
+function toPageHref(path) {
+	return `/${trimSlashes(path)}/`;
+}
 
 function trimSlashes(value) {
 	return value.replace(/^\/+|\/+$/g, '');
@@ -22,7 +81,7 @@ function getEntryDate(entry) {
 
 function formatDate(value) {
 	if (!(value instanceof Date)) return '';
-	return new Intl.DateTimeFormat('ko-KR', {
+	return new Intl.DateTimeFormat(routeLang, {
 		year: 'numeric',
 		month: '2-digit',
 		day: '2-digit',
@@ -32,16 +91,16 @@ function formatDate(value) {
 
 <section class="latest-blog" aria-labelledby="latest-blog-title">
 	<div class="latest-blog-header">
-		<h2 id="latest-blog-title">Latest Blog</h2>
-		<a href={`/${safePrefix}/`} class="view-all">View all posts</a>
+		<h2 id="latest-blog-title">{labels.heading}</h2>
+		<a href={blogHref} class="view-all">{labels.viewAll}</a>
 	</div>
 	{posts.length === 0 ? (
-		<p class="empty-message">No blog posts yet.</p>
+		<p class="empty-message">{labels.empty}</p>
 	) : (
 		<ul class="latest-blog-list">
 			{posts.map((post) => (
 				<li class="latest-blog-item">
-					<a href={`/${post.id}/`} class="post-link">{post.data.title}</a>
+					<a href={toPageHref(withLocale(post.id, routeLocale))} class="post-link">{post.data.title}</a>
 					{post.data.date instanceof Date && (
 						<time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
 					)}
