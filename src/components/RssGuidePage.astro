@@ -1,0 +1,194 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+
+const { locale = 'ko' } = Astro.props;
+
+const localized = {
+	ko: {
+		title: 'RSS 구독',
+		intro: '이 페이지는 RSS 리더에서 블로그를 구독할 때 쓰는 주소를 안내합니다.',
+		feedLabel: 'RSS 피드 주소',
+		openFeed: 'RSS 원문 열기',
+		copyFeed: '주소 복사',
+		copyDone: '복사됨',
+		helpTitle: '어떻게 쓰나요?',
+		helpItems: [
+			'아래 RSS 주소를 복사해서 Feedly 같은 RSS 리더에 붙여 넣으면 됩니다.',
+			'브라우저에서 XML이 열리는 것은 정상 동작입니다.',
+			'언어별 블로그는 각 언어 전용 RSS 주소를 따로 가집니다.',
+		],
+	},
+	en: {
+		title: 'RSS Subscription',
+		intro: 'Use this page to get the RSS feed URL for your blog reader.',
+		feedLabel: 'RSS feed URL',
+		openFeed: 'Open raw RSS feed',
+		copyFeed: 'Copy URL',
+		copyDone: 'Copied',
+		helpTitle: 'How to use it',
+		helpItems: [
+			'Copy the RSS URL below and paste it into a reader such as Feedly.',
+			'It is normal for browsers to show the raw XML document.',
+			'Each language version of the blog has its own RSS URL.',
+		],
+	},
+	ja: {
+		title: 'RSS 購読',
+		intro: 'このページでは、RSS リーダーでブログを購読するための URL を案内します。',
+		feedLabel: 'RSS フィード URL',
+		openFeed: 'RSS を開く',
+		copyFeed: 'URL をコピー',
+		copyDone: 'コピーしました',
+		helpTitle: '使い方',
+		helpItems: [
+			'下の RSS URL をコピーして Feedly などの RSS リーダーに貼り付けてください。',
+			'ブラウザで XML がそのまま表示されるのは正常です。',
+			'各言語のブログには専用の RSS URL があります。',
+		],
+	},
+};
+
+const labels = localized[locale] ?? localized.ko;
+const localePrefix = locale === 'ko' ? '' : `/${locale}`;
+const feedPath = `${localePrefix}/blog/rss.xml`;
+const feedUrl = new URL(feedPath, Astro.site ?? Astro.url).toString();
+---
+
+<StarlightPage frontmatter={{ title: labels.title }} hasSidebar={false}>
+	<section class="rss-guide">
+		<p class="rss-intro">{labels.intro}</p>
+
+		<div class="rss-card">
+			<p class="rss-label">{labels.feedLabel}</p>
+			<code class="rss-url" data-feed-url>{feedUrl}</code>
+			<div class="rss-actions">
+				<a class="sl-link-button primary" href={feedPath}>
+					{labels.openFeed}
+				</a>
+				<button class="sl-link-button secondary" type="button" data-copy-button data-copied-label={labels.copyDone}>
+					{labels.copyFeed}
+				</button>
+			</div>
+		</div>
+
+		<div class="rss-help">
+			<h2>{labels.helpTitle}</h2>
+			<ul>
+				{labels.helpItems.map((item) => (
+					<li>{item}</li>
+				))}
+			</ul>
+		</div>
+	</section>
+</StarlightPage>
+
+<script>
+	document.querySelectorAll('[data-copy-button]').forEach((button) => {
+		button.addEventListener('click', async () => {
+			const url = document.querySelector('[data-feed-url]')?.textContent?.trim();
+			if (!url) return;
+
+			try {
+				await navigator.clipboard.writeText(url);
+				const copiedLabel = button.getAttribute('data-copied-label') || 'Copied';
+				const originalLabel = button.textContent;
+				button.textContent = copiedLabel;
+				window.setTimeout(() => {
+					button.textContent = originalLabel;
+				}, 1800);
+			} catch {
+				window.prompt('Copy this URL', url);
+			}
+		});
+	});
+</script>
+
+<style>
+	.rss-guide {
+		display: grid;
+		gap: 1.25rem;
+	}
+
+	.rss-intro {
+		color: var(--sl-color-gray-2);
+		margin: 0;
+	}
+
+	.rss-card {
+		background: var(--sl-color-bg-sidebar);
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.9rem;
+		display: grid;
+		gap: 0.8rem;
+		padding: 1rem;
+	}
+
+	.rss-label {
+		font-size: 0.9rem;
+		font-weight: 700;
+		margin: 0;
+	}
+
+	.rss-url {
+		background: var(--sl-color-black);
+		border-radius: 0.65rem;
+		display: block;
+		font-size: 0.9rem;
+		line-height: 1.5;
+		overflow-wrap: anywhere;
+		padding: 0.9rem 1rem;
+	}
+
+	.rss-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+	}
+
+	.sl-link-button {
+		align-items: center;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 999px;
+		cursor: pointer;
+		display: inline-flex;
+		font: inherit;
+		font-weight: 700;
+		justify-content: center;
+		padding: 0.7rem 1rem;
+		text-decoration: none;
+	}
+
+	.sl-link-button.primary {
+		background: var(--sl-color-accent);
+		border-color: var(--sl-color-accent);
+		color: white;
+	}
+
+	.sl-link-button.secondary {
+		background: var(--sl-color-bg);
+		color: var(--sl-color-text);
+	}
+
+	.rss-help h2 {
+		margin-bottom: 0.65rem;
+	}
+
+	.rss-help ul {
+		margin: 0;
+		padding-left: 1.2rem;
+	}
+
+	.rss-help li + li {
+		margin-top: 0.45rem;
+	}
+
+	@media (max-width: 50rem) {
+		.rss-card {
+			padding: 0.9rem;
+		}
+
+		.sl-link-button {
+			width: 100%;
+		}
+	}
+</style>
