@@ -20,7 +20,7 @@ permissions:
   pages: write
   id-token: write
 
-# 동시에 한 번만 배포 (진행 중인 배포는 취소하지 않고 큐잉)
+# 동시에 한 번만 배포
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -44,12 +44,23 @@ jobs:
         run: npm ci || npm install
 
       # 1. 각 패키지 레포를 --depth=1 클론
-      # 2. 각 docs 폴더를 ./docs/패키지명/ 으로 복사
+      # 2. 각 docs 폴더를 ./패키지명/ 으로 복사 (base 가 /docs/ 이므로 루트에 둠)
+      #  - private 레포라면 DOCS_TOKEN 시크릿(PAT, repo 읽기 권한) 필요
+      #  - 클론 실패 시 해당 패키지만 건너뛰고 빌드는 계속 진행
       - name: Fetch package docs
+        env:
+          DOCS_TOKEN: ${{ secrets.DOCS_TOKEN }}
         run: |
-          set -euo pipefail
+          set -uo pipefail
+
+          # private 레포 접근용 토큰이 있으면 github.com 클론에 주입
+          if [ -n "${DOCS_TOKEN:-}" ]; then
+            git config --global \
+              url."https://x-access-token:${DOCS_TOKEN}@github.com/".insteadOf \
+              "https://github.com/"
+          fi
+
           while IFS='|' read -r name repo path; do
-            # 빈 줄 / 공백 라인 skip
             [ -z "${name// }" ] && continue
             name="$(echo "$name" | xargs)"
             repo="$(echo "$repo" | xargs)"
@@ -57,10 +68,12 @@ jobs:
 
             echo "::group::$name ($repo)"
             tmp="$(mktemp -d)"
-            git clone --depth=1 "$repo" "$tmp"
-
-            mkdir -p "./docs/$name"
-            cp -R "$tmp/$path/." "./docs/$name/"
+            if git clone --depth=1 "$repo" "$tmp"; then
+              mkdir -p "./$name"
+              cp -R "$tmp/$path/." "./$name/"
+            else
+              echo "::warning::$repo 클론 실패 — $name 건너뜀"
+            fi
             rm -rf "$tmp"
             echo "::endgroup::"
           done <<< "$PACKAGES"
@@ -69,11 +82,20 @@ jobs:
       - name: Build
         run: npm run docs:build
 
-      # 4. 빌드 결과물 업로드
+      # 4. dist 를 /docs 하위로 감싸고 도메인/리다이렉트 추가
+      #    somiri.dev/docs/... 로 서빙되도록 site/docs/ 구조로 만든다.
+      - name: Wrap site under /docs
+        run: |
+          mkdir -p site
+          mv .vitepress/dist site/docs
+          echo 'somiri.dev' > site/CNAME
+          # 루트(somiri.dev) 접속 시 /docs 로 리다이렉트
+          printf '<!doctype html><meta http-equiv="refresh" content="0; url=/docs/">\n' > site/index.html
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .vitepress/dist
+          path: site
 
   deploy:
     needs: build

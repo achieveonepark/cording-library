@@ -1,53 +1,55 @@
 import { defineConfig } from 'vitepress'
 
 // 통합 문서 사이트 설정
-// 각 패키지의 docs 는 CI(GitHub Actions)에서 클론·복사되어 ./docs/패키지명/ 에 위치한다.
+// 사이트는 somiri.dev/docs 하위에 서빙된다 (base: '/docs/').
+// 각 패키지의 docs 는 CI(GitHub Actions)에서 클론·복사되어 ./패키지명/ 에 위치한다.
 export default defineConfig({
   lang: 'ko-KR',
   title: 'somiri.dev docs',
   description: 'somiri 패키지 통합 문서',
 
-  // 커스텀 도메인(somiri.dev) 사용 시 base 는 루트.
-  // 커스텀 도메인 없이 <user>.github.io/<repo>/ 로 서빙한다면 base 를
-  // '/<repo>/' (예: '/cording-library/') 로 바꿔야 한다.
-  base: '/',
+  // 실제 URL: https://somiri.dev/docs/
+  base: '/docs/',
 
   cleanUrls: true,
   lastUpdated: true,
 
+  // 루트 README 는 페이지로 만들지 않음
+  srcExclude: ['README.md'],
+
   themeConfig: {
     nav: [
       { text: '홈', link: '/' },
-      { text: 'AchEngine', link: '/docs/AchEngine/' },
-      { text: 'AchUtils', link: '/docs/AchUtils/' },
-      { text: 'npc-mentality', link: '/docs/npc-mentality/' },
-      { text: 'lite-db', link: '/docs/lite-db/' },
+      { text: 'AchEngine', link: '/AchEngine/' },
+      { text: 'AchUtils', link: '/AchUtils/' },
+      { text: 'npc-mentality', link: '/npc-mentality/' },
+      { text: 'lite-db', link: '/lite-db/' },
     ],
 
-    // 패키지별 개별 사이드바
+    // 패키지별 개별 사이드바 (키는 base 를 제외한 경로)
     sidebar: {
-      '/docs/AchEngine/': [
+      '/AchEngine/': [
         {
           text: 'AchEngine',
-          items: [{ text: '소개', link: '/docs/AchEngine/' }],
+          items: [{ text: '소개', link: '/AchEngine/' }],
         },
       ],
-      '/docs/AchUtils/': [
+      '/AchUtils/': [
         {
           text: 'AchUtils',
-          items: [{ text: '소개', link: '/docs/AchUtils/' }],
+          items: [{ text: '소개', link: '/AchUtils/' }],
         },
       ],
-      '/docs/npc-mentality/': [
+      '/npc-mentality/': [
         {
           text: 'npc-mentality',
-          items: [{ text: '소개', link: '/docs/npc-mentality/' }],
+          items: [{ text: '소개', link: '/npc-mentality/' }],
         },
       ],
-      '/docs/lite-db/': [
+      '/lite-db/': [
         {
           text: 'lite-db',
-          items: [{ text: '소개', link: '/docs/lite-db/' }],
+          items: [{ text: '소개', link: '/lite-db/' }],
         },
       ],
     },

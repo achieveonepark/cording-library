@@ -9,18 +9,18 @@ hero:
 features:
   - title: AchEngine
     details: AchEngine 패키지 문서
-    link: /docs/AchEngine/
+    link: /AchEngine/
     linkText: 문서 보기
   - title: AchUtils
     details: AchUtils 패키지 문서
-    link: /docs/AchUtils/
+    link: /AchUtils/
     linkText: 문서 보기
   - title: npc-mentality
     details: npc-mentality 패키지 문서
-    link: /docs/npc-mentality/
+    link: /npc-mentality/
     linkText: 문서 보기
   - title: lite-db
     details: lite-db 패키지 문서
-    link: /docs/lite-db/
+    link: /lite-db/
     linkText: 문서 보기
 ---

@@ -3,4 +3,7 @@ node_modules/
 .vitepress/dist/
 
 # 각 패키지 레포에서 CI가 클론·복사해 오는 결과물 (직접 커밋하지 않음)
-docs/
+/AchEngine/
+/AchUtils/
+/npc-mentality/
+/lite-db/
