@@ -9,10 +9,10 @@ on:
 # 형식: "이름|레포URL|docs경로"
 env:
   PACKAGES: |
-    AchEngine|https://github.com/achieveonepark/AchEngine|docs
-    AchUtils|https://github.com/achieveonepark/AchUtils|docs
-    npc-mentality|https://github.com/achieveonepark/npc-mentality|docs
-    lite-db|https://github.com/achieveonepark/lite-db|docs
+    AchEngine|https://github.com/achieveonepark/AchEngine|Docs~/docs
+    AchUtils|https://github.com/achieveonepark/AchUtils|Docs~/docs
+    npc-mentality|https://github.com/achieveonepark/npc-mentality|Docs~/docs
+    lite-db|https://github.com/achieveonepark/lite-db|Docs~/docs
 
 # GitHub Pages 배포에 필요한 권한
 permissions:
@@ -68,11 +68,15 @@ jobs:
 
             echo "::group::$name ($repo)"
             tmp="$(mktemp -d)"
-            if git clone --depth=1 "$repo" "$tmp"; then
+            if ! git clone --depth=1 "$repo" "$tmp"; then
+              echo "::warning::$repo 클론 실패 — $name 건너뜀"
+            elif [ ! -d "$tmp/$path" ]; then
+              echo "::warning::$repo 에 '$path' 경로 없음 — $name 건너뜀"
+            else
               mkdir -p "./$name"
               cp -R "$tmp/$path/." "./$name/"
-            else
-              echo "::warning::$repo 클론 실패 — $name 건너뜀"
+              # Unity .meta 등 문서와 무관한 파일 제거
+              find "./$name" -name '*.meta' -delete
             fi
             rm -rf "$tmp"
             echo "::endgroup::"

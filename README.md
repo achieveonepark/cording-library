@@ -37,10 +37,10 @@ npm run docs:build   # 정적 빌드 (.vitepress/dist)
 
 | 패키지명 | 레포 URL | docs 경로 |
 |---|---|---|
-| AchEngine | https://github.com/achieveonepark/AchEngine | `docs/` |
-| AchUtils | https://github.com/achieveonepark/AchUtils | `docs/` |
-| npc-mentality | https://github.com/achieveonepark/npc-mentality | `docs/` |
-| lite-db | https://github.com/achieveonepark/lite-db | `docs/` |
+| AchEngine | https://github.com/achieveonepark/AchEngine | `Docs~/docs` |
+| AchUtils | https://github.com/achieveonepark/AchUtils | `Docs~/docs` |
+| npc-mentality | https://github.com/achieveonepark/npc-mentality | `Docs~/docs` |
+| lite-db | https://github.com/achieveonepark/lite-db | `Docs~/docs` |
 
 > 실제 레포 URL / docs 경로는 `.github/workflows/deploy.yml` 의 `PACKAGES` 와
 > `.vitepress/config.ts` 에서 수정한다.
