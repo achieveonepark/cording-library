@@ -5,14 +5,14 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# 각 패키지 레포 정보 (실제 URL / docs 경로는 추후 수정)
-# 형식: "이름|레포URL|docs경로"
+# 각 패키지 레포 정보 (실제 URL / Docusaurus 프로젝트 경로는 추후 수정)
+# 형식: "이름|레포URL|Docusaurus프로젝트경로(docusaurus.config 가 있는 폴더)"
 env:
   PACKAGES: |
-    AchEngine|https://github.com/achieveonepark/AchEngine|Docs~/docs
-    AchUtils|https://github.com/achieveonepark/AchUtils|Docs~/docs
-    npc-mentality|https://github.com/achieveonepark/npc-mentality|Docs~/docs
-    lite-db|https://github.com/achieveonepark/lite-db|Docs~/docs
+    AchEngine|https://github.com/achieveonepark/AchEngine|Docs~
+    AchUtils|https://github.com/achieveonepark/AchUtils|Docs~
+    npc-mentality|https://github.com/achieveonepark/npc-mentality|Docs~
+    lite-db|https://github.com/achieveonepark/lite-db|Docs~
 
 # GitHub Pages 배포에 필요한 권한
 permissions:
@@ -43,17 +43,29 @@ jobs:
       - name: Install dependencies
         run: npm ci || npm install
 
-      # 1. 각 패키지 레포를 --depth=1 클론
-      # 2. 각 docs 폴더를 ./패키지명/ 으로 복사 (base 가 /docs/ 이므로 루트에 둠)
-      #  - private 레포라면 DOCS_TOKEN 시크릿(PAT, repo 읽기 권한) 필요
-      #  - 클론 실패 시 해당 패키지만 건너뛰고 빌드는 계속 진행
-      - name: Fetch package docs
+      # 1. VitePress 랜딩 빌드 → site/docs/ 로 배치
+      #    (somiri.dev/docs/ 가 패키지 카드 랜딩)
+      - name: Build landing (VitePress)
+        run: npm run docs:build
+
+      - name: Assemble site
+        run: |
+          mkdir -p site
+          mv .vitepress/dist site/docs
+          echo 'somiri.dev' > site/CNAME
+          # 루트(somiri.dev) 접속 시 /docs 로 리다이렉트
+          printf '<!doctype html><meta http-equiv="refresh" content="0; url=/docs/">\n' > site/index.html
+
+      # 2. 각 패키지의 Docusaurus 를 baseUrl=/docs/패키지명/ 으로 빌드해
+      #    site/docs/패키지명/ 으로 합친다.
+      #  - private 레포면 DOCS_TOKEN 시크릿(PAT) 필요
+      #  - 클론/빌드 실패 시 해당 패키지만 건너뛰고 계속 진행
+      - name: Build package docs (Docusaurus)
         env:
           DOCS_TOKEN: ${{ secrets.DOCS_TOKEN }}
         run: |
           set -uo pipefail
 
-          # private 레포 접근용 토큰이 있으면 github.com 클론에 주입
           if [ -n "${DOCS_TOKEN:-}" ]; then
             git config --global \
               url."https://x-access-token:${DOCS_TOKEN}@github.com/".insteadOf \
@@ -68,33 +80,34 @@ jobs:
 
             echo "::group::$name ($repo)"
             tmp="$(mktemp -d)"
+            proj="$tmp/$path"
+
             if ! git clone --depth=1 "$repo" "$tmp"; then
               echo "::warning::$repo 클론 실패 — $name 건너뜀"
-            elif [ ! -d "$tmp/$path" ]; then
-              echo "::warning::$repo 에 '$path' 경로 없음 — $name 건너뜀"
             else
-              mkdir -p "./$name"
-              cp -R "$tmp/$path/." "./$name/"
-              # Unity .meta 등 문서와 무관한 파일 제거
-              find "./$name" -name '*.meta' -delete
+              cfg=""
+              [ -f "$proj/docusaurus.config.ts" ] && cfg="$proj/docusaurus.config.ts"
+              [ -z "$cfg" ] && [ -f "$proj/docusaurus.config.js" ] && cfg="$proj/docusaurus.config.js"
+
+              if [ -z "$cfg" ]; then
+                echo "::warning::$repo '$path' 에 docusaurus.config 없음 — $name 건너뜀"
+              else
+                # baseUrl / url 을 통합 도메인 기준으로 덮어쓴다
+                sed -i -E "s#^([[:space:]]*)baseUrl:[[:space:]]*'[^']*'#\1baseUrl: '/docs/${name}/'#" "$cfg"
+                sed -i -E "s#^([[:space:]]*)url:[[:space:]]*'[^']*'#\1url: 'https://somiri.dev'#" "$cfg"
+
+                if ( cd "$proj" && { npm ci || npm install; } && npm run build ) && [ -d "$proj/build" ]; then
+                  mkdir -p "$GITHUB_WORKSPACE/site/docs/$name"
+                  cp -R "$proj/build/." "$GITHUB_WORKSPACE/site/docs/$name/"
+                else
+                  echo "::warning::$name Docusaurus 빌드 실패 — 건너뜀"
+                fi
+              fi
             fi
+
             rm -rf "$tmp"
             echo "::endgroup::"
           done <<< "$PACKAGES"
-
-      # 3. VitePress 빌드
-      - name: Build
-        run: npm run docs:build
-
-      # 4. dist 를 /docs 하위로 감싸고 도메인/리다이렉트 추가
-      #    somiri.dev/docs/... 로 서빙되도록 site/docs/ 구조로 만든다.
-      - name: Wrap site under /docs
-        run: |
-          mkdir -p site
-          mv .vitepress/dist site/docs
-          echo 'somiri.dev' > site/CNAME
-          # 루트(somiri.dev) 접속 시 /docs 로 리다이렉트
-          printf '<!doctype html><meta http-equiv="refresh" content="0; url=/docs/">\n' > site/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

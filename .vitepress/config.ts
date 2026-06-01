@@ -1,8 +1,10 @@
 import { defineConfig } from 'vitepress'
 
-// 통합 문서 사이트 설정
+// 통합 문서 "랜딩" 사이트 설정 (VitePress)
 // 사이트는 somiri.dev/docs 하위에 서빙된다 (base: '/docs/').
-// 각 패키지의 docs 는 CI(GitHub Actions)에서 클론·복사되어 ./패키지명/ 에 위치한다.
+// 각 패키지 문서는 각자의 Docusaurus 를 CI(GitHub Actions)에서
+// baseUrl=/docs/패키지명/ 으로 빌드해 /docs/패키지명/ 에 합친다.
+// 즉 VitePress 는 랜딩만, 패키지 본문은 Docusaurus 가 담당하는 하이브리드.
 export default defineConfig({
   lang: 'ko-KR',
   title: 'somiri.dev docs',
@@ -26,33 +28,8 @@ export default defineConfig({
       { text: 'lite-db', link: '/lite-db/' },
     ],
 
-    // 패키지별 개별 사이드바 (키는 base 를 제외한 경로)
-    sidebar: {
-      '/AchEngine/': [
-        {
-          text: 'AchEngine',
-          items: [{ text: '소개', link: '/AchEngine/' }],
-        },
-      ],
-      '/AchUtils/': [
-        {
-          text: 'AchUtils',
-          items: [{ text: '소개', link: '/AchUtils/' }],
-        },
-      ],
-      '/npc-mentality/': [
-        {
-          text: 'npc-mentality',
-          items: [{ text: '소개', link: '/npc-mentality/' }],
-        },
-      ],
-      '/lite-db/': [
-        {
-          text: 'lite-db',
-          items: [{ text: '소개', link: '/lite-db/' }],
-        },
-      ],
-    },
+    // 패키지 본문은 각자의 Docusaurus 가 자체 사이드바를 가지므로
+    // VitePress 사이드바는 두지 않는다. (nav 링크로만 진입)
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/achieveonepark' },

@@ -2,8 +2,5 @@ node_modules/
 .vitepress/cache/
 .vitepress/dist/
 
-# 각 패키지 레포에서 CI가 클론·복사해 오는 결과물 (직접 커밋하지 않음)
-/AchEngine/
-/AchUtils/
-/npc-mentality/
-/lite-db/
+# CI 빌드 산출물 (랜딩 + 각 패키지 Docusaurus 를 합치는 폴더)
+site/
