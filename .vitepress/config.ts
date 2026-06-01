@@ -55,7 +55,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/somiri' },
+      { icon: 'github', link: 'https://github.com/achieveonepark' },
     ],
 
     search: {

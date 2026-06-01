@@ -9,10 +9,10 @@ on:
 # 형식: "이름|레포URL|docs경로"
 env:
   PACKAGES: |
-    AchEngine|https://github.com/somiri/AchEngine|docs
-    AchUtils|https://github.com/somiri/AchUtils|docs
-    npc-mentality|https://github.com/somiri/npc-mentality|docs
-    lite-db|https://github.com/somiri/lite-db|docs
+    AchEngine|https://github.com/achieveonepark/AchEngine|docs
+    AchUtils|https://github.com/achieveonepark/AchUtils|docs
+    npc-mentality|https://github.com/achieveonepark/npc-mentality|docs
+    lite-db|https://github.com/achieveonepark/lite-db|docs
 
 # GitHub Pages 배포에 필요한 권한
 permissions:
