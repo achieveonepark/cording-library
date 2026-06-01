@@ -1,16 +1,20 @@
 # somiri-docs
 
-여러 패키지 문서를 `somiri.dev/docs/패키지명` 형태로 통합 제공하는 문서 사이트.
+여러 패키지 문서를 `docs.somiri.dev/패키지명` 형태로 통합 제공하는 문서 사이트.
 
 **하이브리드 구성**:
-- **랜딩** (`/docs/`) = 이 레포의 **VitePress** (패키지 카드 목록)
-- **각 패키지** (`/docs/패키지명/`) = 해당 패키지 레포의 **Docusaurus** 를
-  CI 에서 `baseUrl=/docs/패키지명/` 로 빌드해 합침 (각자의 사이드바·i18n·문법 그대로 유지)
+- **랜딩** (`/`) = 이 레포의 **VitePress** (패키지 카드 목록)
+- **각 패키지** (`/패키지명/`) = 해당 패키지 레포의 **Docusaurus** 를
+  CI 에서 `baseUrl=/패키지명/` 로 빌드해 합침 (각자의 사이드바·i18n·문법 그대로 유지)
 
 기타:
-- **호스팅**: GitHub Pages (커스텀 도메인 `somiri.dev`, 사이트는 `/docs` 하위)
+- **호스팅**: GitHub Pages (커스텀 도메인 `docs.somiri.dev`)
 - **빌드/배포**: GitHub Actions (`.github/workflows/deploy.yml`)
-- **실제 URL**: `https://somiri.dev/docs/`, 패키지는 `https://somiri.dev/docs/패키지명`
+- **실제 URL**: `https://docs.somiri.dev/`, 패키지는 `https://docs.somiri.dev/패키지명`
+
+> `somiri.dev` 루트는 이미 메인 사이트(별도 레포)가 점유 중이라,
+> 같은 도메인 `/docs` 경로로는 GitHub Pages 만으로 못 붙인다(한 도메인=한 Pages 레포).
+> 그래서 **서브도메인 `docs.somiri.dev`** 로 분리했다.
 
 ## 구조
 
@@ -23,7 +27,7 @@ somiri-docs/
 ```
 
 > 패키지 본문은 이 레포에 두지 않는다.
-> CI 가 각 패키지 레포의 Docusaurus 를 빌드해 `site/docs/패키지명/` 으로 합친다.
+> CI 가 각 패키지 레포의 Docusaurus 를 빌드해 `site/패키지명/` 으로 합친다.
 
 ## 로컬 개발
 
@@ -48,8 +52,8 @@ npm run docs:build   # 랜딩 정적 빌드 (.vitepress/dist)
 > 실제 레포 URL / 경로는 `.github/workflows/deploy.yml` 의 `PACKAGES` 에서 수정한다.
 > `PACKAGES` 경로는 `docusaurus.config.ts` 가 있는 폴더를 가리켜야 한다.
 >
-> CI 는 각 패키지의 `docusaurus.config` 에서 `baseUrl` 을 `/docs/패키지명/` 로,
-> `url` 을 `https://somiri.dev` 로 덮어쓴 뒤 빌드한다.
+> CI 는 각 패키지의 `docusaurus.config` 에서 `baseUrl` 을 `/패키지명/` 로,
+> `url` 을 `https://docs.somiri.dev` 로 덮어쓴 뒤 빌드한다.
 
 ### i18n 참고
 
@@ -62,12 +66,13 @@ GitHub Pages 로 배포한다.
 
 1. 레포 **Settings → Pages → Build and deployment → Source** 를
    **GitHub Actions** 로 설정한다.
-2. **Settings → Pages → Custom domain** 에 `somiri.dev` 등록
-   (DNS 는 `somiri.dev` → GitHub Pages 로 연결).
-3. `main` 브랜치에 push 하면 워크플로우가 자동으로 빌드·배포한다.
+2. **DNS(Cloudflare)** 에 CNAME 레코드 추가:
+   `docs` → `achieveonepark.github.io` (TLS 인증서 발급을 위해 **DNS only/회색 구름** 권장).
+3. **Settings → Pages → Custom domain** 에 `docs.somiri.dev` 등록
+   (워크플로우가 `CNAME` 파일도 자동 생성하므로 보통 자동 인식됨).
+4. `main` 브랜치에 push 하면 워크플로우가 자동으로 빌드·배포한다.
 
-워크플로우가 빌드 결과를 `/docs` 하위로 감싸고 `CNAME`(somiri.dev)을 넣기 때문에
-`https://somiri.dev/docs/` 로 서빙되며, 루트(`somiri.dev`) 접속은 `/docs/` 로 리다이렉트된다.
+`https://docs.somiri.dev/` 가 랜딩, `https://docs.somiri.dev/패키지명/` 이 각 패키지 문서다.
 
 ### private 패키지 레포
 

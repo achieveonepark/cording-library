@@ -43,21 +43,18 @@ jobs:
       - name: Install dependencies
         run: npm ci || npm install
 
-      # 1. VitePress 랜딩 빌드 → site/docs/ 로 배치
-      #    (somiri.dev/docs/ 가 패키지 카드 랜딩)
+      # 1. VitePress 랜딩 빌드 → site/ 루트에 배치
+      #    (docs.somiri.dev/ 가 패키지 카드 랜딩)
       - name: Build landing (VitePress)
         run: npm run docs:build
 
       - name: Assemble site
         run: |
-          mkdir -p site
-          mv .vitepress/dist site/docs
-          echo 'somiri.dev' > site/CNAME
-          # 루트(somiri.dev) 접속 시 /docs 로 리다이렉트
-          printf '<!doctype html><meta http-equiv="refresh" content="0; url=/docs/">\n' > site/index.html
+          mv .vitepress/dist site
+          echo 'docs.somiri.dev' > site/CNAME
 
-      # 2. 각 패키지의 Docusaurus 를 baseUrl=/docs/패키지명/ 으로 빌드해
-      #    site/docs/패키지명/ 으로 합친다.
+      # 2. 각 패키지의 Docusaurus 를 baseUrl=/패키지명/ 으로 빌드해
+      #    site/패키지명/ 으로 합친다.
       #  - private 레포면 DOCS_TOKEN 시크릿(PAT) 필요
       #  - 클론/빌드 실패 시 해당 패키지만 건너뛰고 계속 진행
       - name: Build package docs (Docusaurus)
@@ -93,12 +90,12 @@ jobs:
                 echo "::warning::$repo '$path' 에 docusaurus.config 없음 — $name 건너뜀"
               else
                 # baseUrl / url 을 통합 도메인 기준으로 덮어쓴다
-                sed -i -E "s#^([[:space:]]*)baseUrl:[[:space:]]*'[^']*'#\1baseUrl: '/docs/${name}/'#" "$cfg"
-                sed -i -E "s#^([[:space:]]*)url:[[:space:]]*'[^']*'#\1url: 'https://somiri.dev'#" "$cfg"
+                sed -i -E "s#^([[:space:]]*)baseUrl:[[:space:]]*'[^']*'#\1baseUrl: '/${name}/'#" "$cfg"
+                sed -i -E "s#^([[:space:]]*)url:[[:space:]]*'[^']*'#\1url: 'https://docs.somiri.dev'#" "$cfg"
 
                 if ( cd "$proj" && { npm ci || npm install; } && npm run build ) && [ -d "$proj/build" ]; then
-                  mkdir -p "$GITHUB_WORKSPACE/site/docs/$name"
-                  cp -R "$proj/build/." "$GITHUB_WORKSPACE/site/docs/$name/"
+                  mkdir -p "$GITHUB_WORKSPACE/site/$name"
+                  cp -R "$proj/build/." "$GITHUB_WORKSPACE/site/$name/"
                 else
                   echo "::warning::$name Docusaurus 빌드 실패 — 건너뜀"
                 fi
