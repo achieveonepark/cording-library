@@ -16,6 +16,10 @@ export default defineConfig({
   cleanUrls: true,
   lastUpdated: true,
 
+  // 랜딩(VitePress)은 패키지 본문을 빌드하지 않지만, 혹시 마크다운이
+  // 섞여 들어와도 빌드가 죽지 않도록 dead link 검사는 끈다.
+  ignoreDeadLinks: true,
+
   // 루트 README 는 페이지로 만들지 않음
   srcExclude: ['README.md'],
 
