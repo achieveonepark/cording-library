@@ -19,8 +19,4 @@ features:
     details: npc-mentality 패키지 문서
     link: /npc-mentality/
     linkText: 문서 보기
-  - title: lite-db
-    details: lite-db 패키지 문서
-    link: /lite-db/
-    linkText: 문서 보기
 ---

@@ -29,7 +29,7 @@ export default defineConfig({
       { text: 'AchEngine', link: '/AchEngine/' },
       { text: 'AchUtils', link: '/AchUtils/' },
       { text: 'npc-mentality', link: '/npc-mentality/' },
-      { text: 'lite-db', link: '/lite-db/' },
+      // lite-db 는 아직 docs 가 없어 제외 (추가되면 PACKAGES 와 함께 복구)
     ],
 
     // 패키지 본문은 각자의 Docusaurus 가 자체 사이드바를 가지므로

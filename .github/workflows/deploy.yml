@@ -10,9 +10,8 @@ on:
 env:
   PACKAGES: |
     AchEngine|https://github.com/achieveonepark/AchEngine|Docs~
-    AchUtils|https://github.com/achieveonepark/AchUtils|Docs~
-    npc-mentality|https://github.com/achieveonepark/npc-mentality|Docs~
-    lite-db|https://github.com/achieveonepark/lite-db|Docs~
+    AchUtils|https://github.com/achieveonepark/AchUtils|Documentation~
+    npc-mentality|https://github.com/achieveonepark/npc-mentality|docs
 
 # GitHub Pages 배포에 필요한 권한
 permissions:
