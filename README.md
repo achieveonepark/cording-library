@@ -1,49 +1,52 @@
-# Starlight Starter Kit: Basics
+# somiri-docs
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+여러 패키지 문서를 `somiri.dev/docs/패키지명` 형태로 통합 제공하는 VitePress 문서 사이트.
 
-```
-npm create astro@latest -- --template starlight
-```
+- **호스팅**: Cloudflare Pages
+- **빌드/배포**: GitHub Actions (`.github/workflows/deploy.yml`)
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro + Starlight project, you'll see the following folders and files:
+## 구조
 
 ```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+somiri-docs/
+├── .github/workflows/deploy.yml  # 빌드 + Cloudflare Pages 배포
+├── .vitepress/config.ts          # VitePress 설정 (base, nav, sidebar)
+├── index.md                      # 랜딩 페이지
+├── docs/                         # 각 패키지 docs (CI가 클론·복사, 커밋 X)
+└── package.json
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+> `docs/` 하위 패키지 폴더는 직접 커밋하지 않는다.
+> GitHub Actions 가 각 패키지 레포를 클론해 `docs/패키지명/` 으로 복사한다.
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+## 로컬 개발
 
-Static assets, like favicons, can be placed in the `public/` directory.
+```bash
+npm install
+npm run docs:dev     # 개발 서버
+npm run docs:build   # 정적 빌드 (.vitepress/dist)
+```
 
-## 🧞 Commands
+> 로컬에서는 `docs/` 가 비어 있어 패키지 페이지가 표시되지 않을 수 있다.
+> 패키지 문서를 직접 확인하려면 해당 레포의 docs 를 `docs/패키지명/` 으로 복사하면 된다.
 
-All commands are run from the root of the project, from a terminal:
+## 패키지 목록
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+| 패키지명 | 레포 URL | docs 경로 |
+|---|---|---|
+| AchEngine | https://github.com/somiri/AchEngine | `docs/` |
+| AchUtils | https://github.com/somiri/AchUtils | `docs/` |
+| npc-mentality | https://github.com/somiri/npc-mentality | `docs/` |
+| lite-db | https://github.com/somiri/lite-db | `docs/` |
 
-## 👀 Want to learn more?
+> 실제 레포 URL / docs 경로는 `.github/workflows/deploy.yml` 의 `PACKAGES` 와
+> `.vitepress/config.ts` 에서 수정한다.
 
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+## 배포 설정
+
+GitHub 레포 Secrets 에 다음을 등록한다.
+
+- `CF_API_TOKEN` — Cloudflare API 토큰
+- `CF_ACCOUNT_ID` — Cloudflare 계정 ID
+
+`main` 브랜치에 push 하면 자동으로 빌드·배포된다.

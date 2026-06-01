@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://lib.somiri.dev/sitemap.xml

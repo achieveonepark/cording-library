@@ -1,30 +1,14 @@
 {
-  "name": "starlight",
+  "name": "somiri-docs",
+  "version": "0.0.0",
+  "private": true,
   "type": "module",
-  "version": "0.0.1",
   "scripts": {
-    "sync:content": "node sync-content.mjs",
-    "sync:content:watch": "node sync-content.mjs --watch",
-    "sync:blog": "node sync-blog-content.mjs",
-    "predev": "node sync-content.mjs",
-    "dev": "node dev-with-sync.mjs",
-    "prestart": "node sync-content.mjs",
-    "start": "node dev-with-sync.mjs",
-    "prebuild": "node sync-content.mjs",
-    "build": "astro build",
-    "prepreview": "node sync-content.mjs",
-    "preview": "astro preview",
-    "astro": "astro"
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview"
   },
-  "dependencies": {
-    "@astrojs/sitemap": "^3.6.0",
-    "@astrojs/starlight": "^0.36.2",
-    "astro": "^5.6.1",
-    "astro-d2": "^0.9.0",
-    "astro-mermaid": "^1.1.0",
-    "mermaid": "^11.12.1",
-    "sharp": "^0.34.2",
-    "starlight-blog": "^0.25.3",
-    "starlight-giscus": "^0.8.1"
+  "devDependencies": {
+    "vitepress": "^1.6.3"
   }
 }

@@ -1,18 +1,25 @@
-name: Deploy to GitHub Pages
+name: Deploy docs to Cloudflare Pages
 
 on:
   push:
-    branches: [ main ]  # 또는 master
+    branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+# 각 패키지 레포 정보 (실제 URL / docs 경로는 추후 수정)
+# 형식: "이름|레포URL|docs경로"
+env:
+  PACKAGES: |
+    AchEngine|https://github.com/somiri/AchEngine|docs
+    AchUtils|https://github.com/somiri/AchUtils|docs
+    npc-mentality|https://github.com/somiri/npc-mentality|docs
+    lite-db|https://github.com/somiri/lite-db|docs
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,20 +30,40 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci || npm install
 
+      # 1. 각 패키지 레포를 --depth=1 클론
+      # 2. 각 docs 폴더를 ./docs/패키지명/ 으로 복사
+      - name: Fetch package docs
+        run: |
+          set -euo pipefail
+          while IFS='|' read -r name repo path; do
+            # 빈 줄 / 공백 라인 skip
+            [ -z "${name// }" ] && continue
+            name="$(echo "$name" | xargs)"
+            repo="$(echo "$repo" | xargs)"
+            path="$(echo "$path" | xargs)"
+
+            echo "::group::$name ($repo)"
+            tmp="$(mktemp -d)"
+            git clone --depth=1 "$repo" "$tmp"
+
+            mkdir -p "./docs/$name"
+            cp -R "$tmp/$path/." "./docs/$name/"
+            rm -rf "$tmp"
+            echo "::endgroup::"
+          done <<< "$PACKAGES"
+
+      # 3. VitePress 빌드
       - name: Build
-        run: npm run build
+        run: npm run docs:build
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      # 4. Cloudflare Pages 배포
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
         with:
-          path: ./dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          projectName: somiri-docs
+          directory: .vitepress/dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
