@@ -2,7 +2,7 @@
 
 여러 패키지 문서를 `somiri.dev/docs/패키지명` 형태로 통합 제공하는 VitePress 문서 사이트.
 
-- **호스팅**: Cloudflare Pages
+- **호스팅**: GitHub Pages
 - **빌드/배포**: GitHub Actions (`.github/workflows/deploy.yml`)
 
 ## 구조
@@ -44,9 +44,15 @@ npm run docs:build   # 정적 빌드 (.vitepress/dist)
 
 ## 배포 설정
 
-GitHub 레포 Secrets 에 다음을 등록한다.
+GitHub Pages 로 배포한다. 별도 시크릿은 필요 없다.
 
-- `CF_API_TOKEN` — Cloudflare API 토큰
-- `CF_ACCOUNT_ID` — Cloudflare 계정 ID
+1. 레포 **Settings → Pages → Build and deployment → Source** 를
+   **GitHub Actions** 로 설정한다.
+2. `main` 브랜치에 push 하면 워크플로우가 자동으로 빌드·배포한다.
 
-`main` 브랜치에 push 하면 자동으로 빌드·배포된다.
+### 커스텀 도메인 / base 경로
+
+- 커스텀 도메인(`somiri.dev`)을 쓰면 `.vitepress/config.ts` 의 `base: '/'` 그대로 둔다.
+  (Settings → Pages 에서 도메인 등록 + `public/CNAME` 추가)
+- 커스텀 도메인 없이 `<user>.github.io/<repo>/` 로 서빙한다면
+  `base` 를 `'/<repo>/'` 로 바꿔야 링크가 깨지지 않는다.

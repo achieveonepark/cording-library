@@ -7,7 +7,9 @@ export default defineConfig({
   title: 'somiri.dev docs',
   description: 'somiri 패키지 통합 문서',
 
-  // Cloudflare Pages 커스텀 도메인(somiri.dev) 사용 예정이므로 base 는 루트
+  // 커스텀 도메인(somiri.dev) 사용 시 base 는 루트.
+  // 커스텀 도메인 없이 <user>.github.io/<repo>/ 로 서빙한다면 base 를
+  // '/<repo>/' (예: '/cording-library/') 로 바꿔야 한다.
   base: '/',
 
   cleanUrls: true,
