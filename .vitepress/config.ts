@@ -27,18 +27,20 @@ export default defineConfig({
     nav: [
       { text: '홈', link: '/' },
       {
+        // 패키지 본문은 각자 독립 Docusaurus(같은 도메인 다른 경로)라
+        // VitePress SPA 라우팅을 타지 않도록 절대 URL + 같은 탭 이동.
         text: '패키지',
         items: [
-          { text: 'AchEngine', link: '/AchEngine/' },
-          { text: 'AchUtils', link: '/AchUtils/' },
-          { text: 'npc-mentality', link: '/npc-mentality/' },
-          { text: 'infinity-value', link: '/infinity-value/' },
-          { text: 'cheat-terminal', link: '/cheat-terminal/' },
-          { text: 'breeze-iap', link: '/breeze-iap/' },
-          { text: 'data-protector', link: '/data-protector/' },
-          { text: 'quick-save', link: '/quick-save/' },
-          { text: 'achieve-package-manager', link: '/achieve-package-manager/' },
-          { text: 'lite-db', link: '/lite-db/' },
+          { text: 'AchEngine', link: 'https://docs.somiri.dev/AchEngine/', target: '_self' },
+          { text: 'AchUtils', link: 'https://docs.somiri.dev/AchUtils/', target: '_self' },
+          { text: 'npc-mentality', link: 'https://docs.somiri.dev/npc-mentality/', target: '_self' },
+          { text: 'infinity-value', link: 'https://docs.somiri.dev/infinity-value/', target: '_self' },
+          { text: 'cheat-terminal', link: 'https://docs.somiri.dev/cheat-terminal/', target: '_self' },
+          { text: 'breeze-iap', link: 'https://docs.somiri.dev/breeze-iap/', target: '_self' },
+          { text: 'data-protector', link: 'https://docs.somiri.dev/data-protector/', target: '_self' },
+          { text: 'quick-save', link: 'https://docs.somiri.dev/quick-save/', target: '_self' },
+          { text: 'achieve-package-manager', link: 'https://docs.somiri.dev/achieve-package-manager/', target: '_self' },
+          { text: 'lite-db', link: 'https://docs.somiri.dev/lite-db/', target: '_self' },
         ],
       },
     ],
