@@ -4,3 +4,6 @@ node_modules/
 
 # CI 빌드 산출물 (랜딩 + 각 패키지 Docusaurus 를 합치는 폴더)
 site/
+
+# 패키지 변환 작업용 임시 클론 (커밋하지 않음)
+temp/

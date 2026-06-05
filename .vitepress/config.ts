@@ -20,16 +20,27 @@ export default defineConfig({
   // 섞여 들어와도 빌드가 죽지 않도록 dead link 검사는 끈다.
   ignoreDeadLinks: true,
 
-  // 루트 README 는 페이지로 만들지 않음
-  srcExclude: ['README.md'],
+  // 루트 README, 그리고 패키지 변환 작업용 temp/ 는 스캔에서 제외
+  srcExclude: ['README.md', 'temp/**'],
 
   themeConfig: {
     nav: [
       { text: '홈', link: '/' },
-      { text: 'AchEngine', link: '/AchEngine/' },
-      { text: 'AchUtils', link: '/AchUtils/' },
-      { text: 'npc-mentality', link: '/npc-mentality/' },
-      // lite-db 는 아직 docs 가 없어 제외 (추가되면 PACKAGES 와 함께 복구)
+      {
+        text: '패키지',
+        items: [
+          { text: 'AchEngine', link: '/AchEngine/' },
+          { text: 'AchUtils', link: '/AchUtils/' },
+          { text: 'npc-mentality', link: '/npc-mentality/' },
+          { text: 'infinity-value', link: '/infinity-value/' },
+          { text: 'cheat-terminal', link: '/cheat-terminal/' },
+          { text: 'breeze-iap', link: '/breeze-iap/' },
+          { text: 'data-protector', link: '/data-protector/' },
+          { text: 'quick-save', link: '/quick-save/' },
+          { text: 'achieve-package-manager', link: '/achieve-package-manager/' },
+          { text: 'lite-db', link: '/lite-db/' },
+        ],
+      },
     ],
 
     // 패키지 본문은 각자의 Docusaurus 가 자체 사이드바를 가지므로

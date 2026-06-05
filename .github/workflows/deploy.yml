@@ -12,6 +12,13 @@ env:
     AchEngine|https://github.com/achieveonepark/AchEngine|Docs~
     AchUtils|https://github.com/achieveonepark/AchUtils|Documentation~
     npc-mentality|https://github.com/achieveonepark/npc-mentality|docs
+    infinity-value|https://github.com/achieveonepark/infinity-value|docs~
+    cheat-terminal|https://github.com/achieveonepark/cheat-terminal|docs~
+    breeze-iap|https://github.com/achieveonepark/breeze-iap|docs~
+    data-protector|https://github.com/achieveonepark/data-protector|docs~
+    quick-save|https://github.com/achieveonepark/quick-save|docs~
+    achieve-package-manager|https://github.com/achieveonepark/achieve-package-manager|docs~
+    lite-db|https://github.com/achieveonepark/lite-db|docs~
 
 # GitHub Pages 배포에 필요한 권한
 permissions:
