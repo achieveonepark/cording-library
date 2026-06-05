@@ -42,23 +42,64 @@ npm run docs:build   # 랜딩 정적 빌드 (.vitepress/dist)
 
 ## 패키지 목록
 
-| 패키지명 | 레포 URL | Docusaurus 경로 |
-|---|---|---|
-| AchEngine | https://github.com/achieveonepark/AchEngine | `Docs~` |
-| AchUtils | https://github.com/achieveonepark/AchUtils | `Docs~` |
-| npc-mentality | https://github.com/achieveonepark/npc-mentality | `Docs~` |
-| lite-db | https://github.com/achieveonepark/lite-db | `Docs~` |
+| 패키지명 | Docusaurus 경로 |
+|---|---|
+| AchEngine | `Docs~` |
+| AchUtils | `Documentation~` |
+| npc-mentality | `docs` |
+| infinity-value | `docs~` |
+| cheat-terminal | `docs~` |
+| breeze-iap | `docs~` |
+| data-protector | `docs~` |
+| quick-save | `docs~` |
+| achieve-package-manager | `docs~` |
+| lite-db | `docs~` |
 
-> 실제 레포 URL / 경로는 `.github/workflows/deploy.yml` 의 `PACKAGES` 에서 수정한다.
-> `PACKAGES` 경로는 `docusaurus.config.ts` 가 있는 폴더를 가리켜야 한다.
+> 신규 패키지는 docs 폴더를 **`docs~`** 로 통일한다(아래 "새 패키지 추가" 참고).
+> 기존 3개(AchEngine/AchUtils/npc-mentality)는 과거 폴더명을 유지 중.
 >
 > CI 는 각 패키지의 `docusaurus.config` 에서 `baseUrl` 을 `/패키지명/` 로,
 > `url` 을 `https://docs.somiri.dev` 로 덮어쓴 뒤 빌드한다.
 
+## 새 패키지 추가하는 법
+
+새 Unity 패키지 레포(`achieveonepark/<repo>`)를 docs.somiri.dev 에 붙이는 절차.
+
+### 1. 패키지 레포 쪽 (한 번)
+
+1. 레포 루트에 **`docs~/`** 폴더로 Docusaurus 프로젝트를 만든다.
+   - 가장 쉬운 방법: 기존 패키지(예: `breeze-iap`)의 `docs~/` 를 통째로 복사해
+     `docusaurus.config.ts` 의 `title` / `projectName` / `repositoryUrl` 만 바꾼다.
+   - 본문 마크다운은 `docs~/docs/` 에 둔다. 홈으로 쓸 문서엔 frontmatter `slug: /` 를 준다.
+   - 영어 등 번역은 `docs~/i18n/<locale>/docusaurus-plugin-content-docs/current/` 에.
+2. **`*~` 전역 gitignore 주의** — `docs~` 는 `~` 로 끝나 전역 `*~` 패턴에 무시될 수 있다.
+   레포 `.gitignore` 에 `!docs~/` 한 줄을 넣어 추적되게 한다.
+3. 자체 GitHub Pages 는 쓰지 않는다 — **Settings → Pages → Source = None**,
+   docs 배포 워크플로우가 있으면 비활성화(`gh workflow disable <file>`).
+   (문서는 통합 레포가 소스에서 직접 빌드하므로 자체 Pages 불필요.)
+4. commit / push (author 는 achieveonepark).
+
+### 2. 통합 레포(cording-library) 쪽
+
+`.github/workflows/deploy.yml` 의 `PACKAGES` 에 한 줄 추가:
+
+```
+<패키지명>|https://github.com/achieveonepark/<repo>|docs~
+```
+
+그리고 `.vitepress/config.ts` nav 드롭다운과 `index.md` 카드에 항목을 추가한다.
+`main` 에 push 하면 자동 빌드·배포되어 `https://docs.somiri.dev/<패키지명>/` 에 뜬다.
+
+### 3. 확인
+
+빌드 후 `https://docs.somiri.dev/<패키지명>/` 이 200 인지 확인.
+빌드 로그에 `'...' 에 docusaurus.config 없음 — 건너뜀` 이 뜨면 경로(`docs~`)나
+`docs~` 가 커밋됐는지(위 `!docs~/`)를 확인한다.
+
 ### i18n 참고
 
-각 패키지 Docusaurus 가 다국어(`ko/en/...`)면 `npm run build` 는 기본 로케일만 빌드한다.
-다른 로케일까지 배포하려면 워크플로우의 build 단계를 로케일별로 확장해야 한다.
+각 패키지 Docusaurus 는 `ko/en/ja/zh` 4개 로케일로 빌드된다(기본 `ko`).
+번역(`i18n/<locale>/...`)이 없는 문서는 기본 로케일(한국어)로 폴백된다.
 
 ## 배포 설정
 
