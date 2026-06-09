@@ -5,28 +5,17 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# 각 패키지 레포 정보 (실제 URL / Docusaurus 프로젝트 경로는 추후 수정)
-# 형식: "이름|레포URL|Docusaurus프로젝트경로(docusaurus.config 가 있는 폴더)"
+# 통합할 패키지 레포 목록 (모두 achieveonepark/<name>, 문서는 docs~/ Fumadocs)
 env:
-  PACKAGES: |
-    AchEngine|https://github.com/achieveonepark/AchEngine|Docs~
-    AchUtils|https://github.com/achieveonepark/AchUtils|Documentation~
-    npc-mentality|https://github.com/achieveonepark/npc-mentality|docs
-    infinity-value|https://github.com/achieveonepark/infinity-value|docs~
-    cheat-terminal|https://github.com/achieveonepark/cheat-terminal|docs~
-    breeze-iap|https://github.com/achieveonepark/breeze-iap|docs~
-    data-protector|https://github.com/achieveonepark/data-protector|docs~
-    quick-save|https://github.com/achieveonepark/quick-save|docs~
-    achieve-package-manager|https://github.com/achieveonepark/achieve-package-manager|docs~
-    lite-db|https://github.com/achieveonepark/lite-db|docs~
+  PACKAGES: >-
+    lite-db infinity-value cheat-terminal breeze-iap data-protector
+    achieve-package-manager npc-mentality AchUtils quick-save AchEngine
 
-# GitHub Pages 배포에 필요한 권한
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# 동시에 한 번만 배포
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -41,76 +30,48 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
-      - name: Install dependencies
+      - name: Install landing dependencies
         run: npm ci || npm install
 
-      # 1. VitePress 랜딩 빌드 → site/ 루트에 배치
-      #    (docs.somiri.dev/ 가 패키지 카드 랜딩)
+      # 1. VitePress 랜딩(패키지 목록) 빌드 → site/ 루트
       - name: Build landing (VitePress)
         run: npm run docs:build
 
-      - name: Assemble site
+      - name: Assemble site root
         run: |
           mv .vitepress/dist site
           echo 'docs.somiri.dev' > site/CNAME
+          touch site/.nojekyll
 
-      # 2. 각 패키지의 Docusaurus 를 baseUrl=/패키지명/ 으로 빌드해
-      #    site/패키지명/ 으로 합친다.
-      #  - private 레포면 DOCS_TOKEN 시크릿(PAT) 필요
-      #  - 클론/빌드 실패 시 해당 패키지만 건너뛰고 계속 진행
-      - name: Build package docs (Docusaurus)
-        env:
-          DOCS_TOKEN: ${{ secrets.DOCS_TOKEN }}
+      # 2. 각 패키지의 Fumadocs(docs~) 를 정적 빌드해 site/<name>/ 으로 합친다.
+      #    각 패키지 next.config 의 basePath 가 이미 /<name> 이라 그대로 맞는다.
+      - name: Build package docs (Fumadocs)
         run: |
           set -uo pipefail
-
-          if [ -n "${DOCS_TOKEN:-}" ]; then
-            git config --global \
-              url."https://x-access-token:${DOCS_TOKEN}@github.com/".insteadOf \
-              "https://github.com/"
-          fi
-
-          while IFS='|' read -r name repo path; do
-            [ -z "${name// }" ] && continue
-            name="$(echo "$name" | xargs)"
-            repo="$(echo "$repo" | xargs)"
-            path="$(echo "$path" | xargs)"
-
-            echo "::group::$name ($repo)"
+          for name in $PACKAGES; do
+            echo "::group::$name"
             tmp="$(mktemp -d)"
-            proj="$tmp/$path"
-
-            if ! git clone --depth=1 "$repo" "$tmp"; then
-              echo "::warning::$repo 클론 실패 — $name 건너뜀"
+            if ! git clone --depth=1 "https://github.com/achieveonepark/${name}.git" "$tmp"; then
+              echo "::warning::$name 클론 실패 — 건너뜀"
+            elif [ ! -d "$tmp/docs~" ]; then
+              echo "::warning::$name 에 docs~ 없음 — 건너뜀"
+            elif ( cd "$tmp/docs~" && { npm ci || npm install --no-audit --no-fund; } && npm run build ) && [ -d "$tmp/docs~/out" ]; then
+              mkdir -p "$GITHUB_WORKSPACE/site/$name"
+              cp -R "$tmp/docs~/out/." "$GITHUB_WORKSPACE/site/$name/"
+              echo "$name OK"
             else
-              cfg=""
-              [ -f "$proj/docusaurus.config.ts" ] && cfg="$proj/docusaurus.config.ts"
-              [ -z "$cfg" ] && [ -f "$proj/docusaurus.config.js" ] && cfg="$proj/docusaurus.config.js"
-
-              if [ -z "$cfg" ]; then
-                echo "::warning::$repo '$path' 에 docusaurus.config 없음 — $name 건너뜀"
-              else
-                # baseUrl / url 을 통합 도메인 기준으로 덮어쓴다
-                sed -i -E "s#^([[:space:]]*)baseUrl:[[:space:]]*'[^']*'#\1baseUrl: '/${name}/'#" "$cfg"
-                sed -i -E "s#^([[:space:]]*)url:[[:space:]]*'[^']*'#\1url: 'https://docs.somiri.dev'#" "$cfg"
-
-                if ( cd "$proj" && { npm ci || npm install; } && npm run build ) && [ -d "$proj/build" ]; then
-                  mkdir -p "$GITHUB_WORKSPACE/site/$name"
-                  cp -R "$proj/build/." "$GITHUB_WORKSPACE/site/$name/"
-                else
-                  echo "::warning::$name Docusaurus 빌드 실패 — 건너뜀"
-                fi
-              fi
+              echo "::warning::$name 빌드 실패 — 건너뜀"
             fi
-
             rm -rf "$tmp"
             echo "::endgroup::"
-          done <<< "$PACKAGES"
+          done
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
