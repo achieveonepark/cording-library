@@ -2,6 +2,9 @@ node_modules/
 .next/
 out/
 
+# Next.js 가 빌드 시 자동 생성하는 타입 선언 파일
+next-env.d.ts
+
 # CI 빌드 산출물 (랜딩 + 각 패키지 Fumadocs 를 합치는 폴더)
 site/
 
