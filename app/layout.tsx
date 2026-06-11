@@ -5,8 +5,8 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'somiri.dev docs',
-  description: 'somiri 패키지 통합 문서',
+  title: 'Somiri Library',
+  description: 'somiri 가 만든 Unity 패키지 통합 문서',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
