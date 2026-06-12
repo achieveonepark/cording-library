@@ -1,0 +1,57 @@
+[
+  {
+    "name": "skill-creator",
+    "title": "Skill Creator",
+    "desc": "스킬·버프·타겟팅·조건·효과를 JSON으로 정의하는 Unity 스킬 제작 시스템"
+  },
+  {
+    "name": "AchEngine",
+    "title": "AchEngine",
+    "desc": "Unity 씬·오브젝트·이벤트를 관리하는 게임 코어 프레임워크"
+  },
+  {
+    "name": "AchUtils",
+    "title": "AchUtils",
+    "desc": "Unity 개발 생산성을 높이는 확장 메서드·유틸리티 컬렉션"
+  },
+  {
+    "name": "npc-mentality",
+    "title": "NPC Mentality",
+    "desc": "상태 머신 기반 NPC AI 행동 패턴 시스템"
+  },
+  {
+    "name": "infinity-value",
+    "title": "Infinity Value",
+    "desc": "무한대 수치 연산을 지원하는 BigInteger 래퍼"
+  },
+  {
+    "name": "cheat-terminal",
+    "title": "Cheat Terminal",
+    "desc": "인게임 치트 코드·디버그 콘솔 툴킷"
+  },
+  {
+    "name": "breeze-iap",
+    "title": "Breeze IAP",
+    "desc": "Unity IAP를 async/await으로 감싼 가벼운 구매 래퍼"
+  },
+  {
+    "name": "data-protector",
+    "title": "Data Protector",
+    "desc": "Unity 데이터 암호화·압축·무결성 검증 라이브러리"
+  },
+  {
+    "name": "quick-save",
+    "title": "Quick Save",
+    "desc": "MemoryPack 기반 경량 세이브 시스템"
+  },
+  {
+    "name": "achieve-package-manager",
+    "title": "Achieve Package Manager",
+    "desc": "Unity 패키지 설치·버전 관리 도구"
+  },
+  {
+    "name": "lite-db",
+    "title": "Lite DB",
+    "desc": "읽기전용 SQLite 기반 Unity 테이블 저장소"
+  }
+]

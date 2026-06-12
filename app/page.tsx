@@ -1,62 +1,12 @@
 import { HomeLayout } from 'fumadocs-ui/layouts/home';
+import packagesData from '../packages.json';
 
-const packages = [
-  {
-    title: 'Skill Creator',
-    desc: '스킬·버프·타겟팅·조건·효과를 JSON으로 정의하는 Unity 스킬 제작 시스템',
-    href: 'https://docs.somiri.dev/skill-creator/',
-  },
-  {
-    title: 'AchEngine',
-    desc: 'Unity 씬·오브젝트·이벤트를 관리하는 게임 코어 프레임워크',
-    href: 'https://docs.somiri.dev/AchEngine/',
-  },
-  {
-    title: 'AchUtils',
-    desc: 'Unity 개발 생산성을 높이는 확장 메서드·유틸리티 컬렉션',
-    href: 'https://docs.somiri.dev/AchUtils/',
-  },
-  {
-    title: 'NPC Mentality',
-    desc: '상태 머신 기반 NPC AI 행동 패턴 시스템',
-    href: 'https://docs.somiri.dev/npc-mentality/',
-  },
-  {
-    title: 'Infinity Value',
-    desc: '무한대 수치 연산을 지원하는 BigInteger 래퍼',
-    href: 'https://docs.somiri.dev/infinity-value/',
-  },
-  {
-    title: 'Cheat Terminal',
-    desc: '인게임 치트 코드·디버그 콘솔 툴킷',
-    href: 'https://docs.somiri.dev/cheat-terminal/',
-  },
-  {
-    title: 'Breeze IAP',
-    desc: 'Unity IAP를 async/await으로 감싼 가벼운 구매 래퍼',
-    href: 'https://docs.somiri.dev/breeze-iap/',
-  },
-  {
-    title: 'Data Protector',
-    desc: 'Unity 데이터 암호화·압축·무결성 검증 라이브러리',
-    href: 'https://docs.somiri.dev/data-protector/',
-  },
-  {
-    title: 'Quick Save',
-    desc: 'MemoryPack 기반 경량 세이브 시스템',
-    href: 'https://docs.somiri.dev/quick-save/',
-  },
-  {
-    title: 'Achieve Package Manager',
-    desc: 'Unity 패키지 설치·버전 관리 도구',
-    href: 'https://docs.somiri.dev/achieve-package-manager/',
-  },
-  {
-    title: 'Lite DB',
-    desc: '읽기전용 SQLite 기반 Unity 테이블 저장소',
-    href: 'https://docs.somiri.dev/lite-db/',
-  },
-];
+// 패키지 목록은 packages.json 단일 소스에서 읽는다.
+// 새 패키지 추가 시 packages.json 한 곳만 수정하면 랜딩 카드와 배포 워크플로우에 함께 반영된다.
+const packages = packagesData.map((pkg) => ({
+  ...pkg,
+  href: `https://docs.somiri.dev/${pkg.name}/`,
+}));
 
 export default function HomePage() {
   return (
@@ -116,7 +66,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {packages.map((pkg) => (
             <a
-              key={pkg.title}
+              key={pkg.name}
               href={pkg.href}
               className="group flex flex-col rounded-xl border bg-fd-card p-6 transition-all hover:-translate-y-0.5 hover:bg-fd-accent hover:shadow-md"
             >

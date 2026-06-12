@@ -1,15 +1,20 @@
 name: Deploy docs to GitHub Pages
 
+# 트리거:
+#  - main 푸시: 랜딩/목록 변경 시 전체 재조립·배포
+#  - repository_dispatch(docs-updated): 각 패키지 레포가 docs~ 변경 시 자동 호출
+#  - workflow_dispatch: Actions UI 수동 실행(특정 패키지명 입력 시 해당 패키지만 강제 재빌드)
 on:
   push:
     branches: [main]
+  repository_dispatch:
+    types: [docs-updated]
   workflow_dispatch:
-
-# 통합할 패키지 레포 목록 (모두 achieveonepark/<name>, 문서는 docs~/ Fumadocs)
-env:
-  PACKAGES: >-
-    skill-creator lite-db infinity-value cheat-terminal breeze-iap data-protector
-    achieve-package-manager npc-mentality AchUtils quick-save AchEngine
+    inputs:
+      package:
+        description: '강제 재빌드할 패키지명 (비우면 변경된 패키지만 재빌드, 나머지는 캐시 사용)'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -21,70 +26,150 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  # 1) packages.json 을 읽어 패키지 매트릭스를 동적으로 생성한다(단일 소스).
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.gen.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate package matrix
+        id: gen
+        run: |
+          matrix=$(jq -c '[.[].name]' packages.json)
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "packages: $matrix"
+
+  # 2) 랜딩(패키지 목록) 빌드 → landing 아티팩트
+  landing:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci || npm install
+      - run: npm run build
+      - name: Prepare landing site root
+        run: |
+          echo 'docs.somiri.dev' > out/CNAME
+          touch out/.nojekyll
+      - uses: actions/upload-artifact@v4
+        with:
+          name: landing
+          path: out
+          retention-days: 1
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+  # 3) 각 패키지 문서를 매트릭스로 빌드. 커밋 SHA 로 캐싱하여
+  #    변경 없는 패키지는 빌드를 건너뛰고 캐시를 그대로 사용한다.
+  package:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.setup.outputs.matrix) }}
+    steps:
+      - name: Resolve latest commit SHA
+        id: sha
+        run: |
+          sha=$(git ls-remote "https://github.com/achieveonepark/${{ matrix.package }}.git" HEAD | cut -f1)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "${{ matrix.package }} -> ${sha:-<none>}"
+
+      # workflow_dispatch 로 특정 패키지를 지정하면 캐시를 무시하고 강제 재빌드한다.
+      - name: Decide force rebuild
+        id: force
+        run: |
+          if [ -n "${{ github.event.inputs.package }}" ] && [ "${{ github.event.inputs.package }}" = "${{ matrix.package }}" ]; then
+            echo "force=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "force=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Restore cached build
+        id: cache
+        if: steps.sha.outputs.sha != '' && steps.force.outputs.force != 'true'
+        uses: actions/cache@v4
+        with:
+          path: pkgsite
+          key: pkgdocs-${{ matrix.package }}-${{ steps.sha.outputs.sha }}
+
+      - uses: actions/setup-node@v4
+        if: steps.cache.outputs.cache-hit != 'true' && steps.sha.outputs.sha != ''
         with:
           node-version: 22
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
-      - name: Install landing dependencies
-        run: npm ci || npm install
-
-      # 1. Fumadocs 랜딩(패키지 목록) 빌드 → site/ 루트
-      - name: Build landing (Fumadocs)
-        run: npm run build
-
-      - name: Assemble site root
-        run: |
-          mv out site
-          echo 'docs.somiri.dev' > site/CNAME
-          touch site/.nojekyll
-
-      # 2. 각 패키지의 Fumadocs(docs~) 를 정적 빌드해 site/<name>/ 으로 합친다.
-      #    각 패키지 next.config 의 basePath 가 이미 /<name> 이라 그대로 맞는다.
-      - name: Build package docs (Fumadocs)
+      - name: Build package docs (cache miss)
+        if: steps.cache.outputs.cache-hit != 'true' && steps.sha.outputs.sha != ''
         run: |
           set -uo pipefail
-          for name in $PACKAGES; do
-            echo "::group::$name"
-            tmp="$(mktemp -d)"
-            if ! git clone --depth=1 "https://github.com/achieveonepark/${name}.git" "$tmp"; then
-              echo "::warning::$name 클론 실패 — 건너뜀"
-            elif [ ! -d "$tmp/docs~" ]; then
-              echo "::warning::$name 에 docs~ 없음 — 건너뜀"
-            elif ( cd "$tmp/docs~" && { npm ci || npm install --no-audit --no-fund; } && npm run build ) && [ -d "$tmp/docs~/out" ]; then
-              mkdir -p "$GITHUB_WORKSPACE/site/$name"
-              cp -R "$tmp/docs~/out/." "$GITHUB_WORKSPACE/site/$name/"
-              echo "$name OK"
-            else
-              echo "::warning::$name 빌드 실패 — 건너뜀"
-            fi
-            rm -rf "$tmp"
-            echo "::endgroup::"
-          done
+          tmp="$(mktemp -d)"
+          if ! git clone --depth=1 "https://github.com/achieveonepark/${{ matrix.package }}.git" "$tmp"; then
+            echo "::warning::${{ matrix.package }} 클론 실패 — 건너뜀"
+          elif [ ! -d "$tmp/docs~" ]; then
+            echo "::warning::${{ matrix.package }} 에 docs~ 없음 — 건너뜀"
+          elif ( cd "$tmp/docs~" && { npm ci || npm install --no-audit --no-fund; } && npm run build ) && [ -d "$tmp/docs~/out" ]; then
+            mkdir -p "$GITHUB_WORKSPACE/pkgsite"
+            cp -R "$tmp/docs~/out/." "$GITHUB_WORKSPACE/pkgsite/"
+            echo "${{ matrix.package }} 빌드 완료"
+          else
+            echo "::warning::${{ matrix.package }} 빌드 실패 — 건너뜀"
+          fi
+          rm -rf "$tmp"
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      # 빌드/캐시 결과(pkgsite)를 패키지별 아티팩트로 업로드.
+      # docs~ 가 없거나 실패해 비어 있으면 업로드를 건너뛴다.
+      - uses: actions/upload-artifact@v4
         with:
-          path: site
+          name: pkg-${{ matrix.package }}
+          path: pkgsite
+          if-no-files-found: ignore
+          retention-days: 1
 
+  # 4) 랜딩 + 모든 패키지 아티팩트를 합쳐 site/ 로 조립하고 Pages 에 배포한다.
   deploy:
-    needs: build
+    needs: [landing, package]
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Download landing
+        uses: actions/download-artifact@v4
+        with:
+          name: landing
+          path: site
+
+      - name: Download package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pkg-*
+          path: pkgs
+
+      - name: Assemble site
+        run: |
+          set -e
+          shopt -s nullglob
+          for d in pkgs/pkg-*; do
+            name="${d#pkgs/pkg-}"
+            if [ -n "$(ls -A "$d" 2>/dev/null)" ]; then
+              mkdir -p "site/$name"
+              cp -R "$d/." "site/$name/"
+              echo "merged $name"
+            else
+              echo "skip empty $name"
+            fi
+          done
+
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
