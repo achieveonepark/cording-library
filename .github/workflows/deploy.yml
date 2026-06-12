@@ -12,9 +12,24 @@ on:
   workflow_dispatch:
     inputs:
       package:
-        description: '강제 재빌드할 패키지명 (비우면 변경된 패키지만 재빌드, 나머지는 캐시 사용)'
+        description: '강제 재빌드할 패키지 (기본값 = 변경분만 캐시 기반)'
         required: false
-        default: ''
+        type: choice
+        default: '변경분만 (force 없음)'
+        # ⚠️ 새 패키지 추가 시 packages.json 과 이 목록을 함께 갱신할 것
+        options:
+          - '변경분만 (force 없음)'
+          - skill-creator
+          - AchEngine
+          - AchUtils
+          - npc-mentality
+          - infinity-value
+          - cheat-terminal
+          - breeze-iap
+          - data-protector
+          - quick-save
+          - achieve-package-manager
+          - lite-db
 
 permissions:
   contents: read
