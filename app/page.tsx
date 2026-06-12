@@ -2,6 +2,11 @@ import { HomeLayout } from 'fumadocs-ui/layouts/home';
 
 const packages = [
   {
+    title: 'Skill Creator',
+    desc: '스킬·버프·타겟팅·조건·효과를 JSON으로 정의하는 Unity 스킬 제작 시스템',
+    href: 'https://docs.somiri.dev/skill-creator/',
+  },
+  {
     title: 'AchEngine',
     desc: 'Unity 씬·오브젝트·이벤트를 관리하는 게임 코어 프레임워크',
     href: 'https://docs.somiri.dev/AchEngine/',

@@ -8,7 +8,7 @@ on:
 # 통합할 패키지 레포 목록 (모두 achieveonepark/<name>, 문서는 docs~/ Fumadocs)
 env:
   PACKAGES: >-
-    lite-db infinity-value cheat-terminal breeze-iap data-protector
+    skill-creator lite-db infinity-value cheat-terminal breeze-iap data-protector
     achieve-package-manager npc-mentality AchUtils quick-save AchEngine
 
 permissions:
