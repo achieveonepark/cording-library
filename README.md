@@ -79,16 +79,10 @@ jobs:
 3. 자체 GitHub Pages 는 쓰지 않는다 (Settings → Pages → Source = None).
 4. (선택) 위 `notify-docs.yml` 추가 → 이후 docs 변경 시 자동 배포.
 
-### B. 통합 레포(cording-library) 쪽 — 이 절차로 진행
+### B. 통합 레포(cording-library) 쪽
 
-> **운영 규칙**: 사용자가 새 패키지명을 주면 아래 순서로 처리한다.
-
-1. **`packages.json`** 배열에 항목 추가 (`name` / `title` / `desc`).
-   - `desc` 는 패키지 README/설명을 **한국어로 번역해 작성**하고, **커밋·배포 전 사용자 검증**을 받는다.
-2. **`.github/workflows/deploy.yml`** 의 `workflow_dispatch` → `inputs.package.options` 드롭다운에
-   `name` 추가 (드롭다운은 YAML 고정값이라 packages.json 과 **함께** 갱신해야 함).
-3. 로컬 `npm run build` 로 랜딩 빌드 확인.
-4. `main` 에 커밋·푸시 → 자동 빌드·배포. `https://docs.somiri.dev/<name>/` 200 확인.
+`packages.json` 항목 추가 + `deploy.yml` 드롭다운 갱신 → main 푸시면 배포된다.
+구체적인 처리 순서(에이전트 운영 규칙, `desc` 번역·검증 포함)는 **[`CLAUDE.md`](./CLAUDE.md)** 참고.
 
 ## 로컬 개발
 
