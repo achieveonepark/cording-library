@@ -1,8 +1,8 @@
 [
   {
-    "name": "skill-creator",
-    "title": "Skill Creator",
-    "desc": "스킬·버프·타겟팅·조건·효과를 JSON으로 정의하는 Unity 스킬 제작 시스템"
+    "name": "AchReactive",
+    "title": "AchReactive",
+    "desc": "스킬·몬스터·아이템 등 어떤 도메인이든 Trigger → Condition → Effect 파이프라인으로 표현하는 도메인 무관 리액션 프레임워크"
   },
   {
     "name": "AchEngine",

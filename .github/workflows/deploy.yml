@@ -19,7 +19,7 @@ on:
         # ⚠️ 새 패키지 추가 시 packages.json 과 이 목록을 함께 갱신할 것
         options:
           - '변경분만 (force 없음)'
-          - skill-creator
+          - AchReactive
           - AchEngine
           - AchUtils
           - npc-mentality
