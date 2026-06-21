@@ -30,6 +30,7 @@ on:
           - quick-save
           - achieve-package-manager
           - lite-db
+          - ach-economy
 
 permissions:
   contents: read

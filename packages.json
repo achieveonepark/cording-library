@@ -53,5 +53,10 @@
     "name": "lite-db",
     "title": "Lite DB",
     "desc": "읽기전용 SQLite 기반 Unity 테이블 저장소"
+  },
+  {
+    "name": "ach-economy",
+    "title": "Ach Economy",
+    "desc": "공급·수요 기반 동적 가격과 source/sink 인플레이션을 한 번에 관리하는 재사용 가능한 Unity 경제 시뮬레이션 패키지"
   }
 ]
