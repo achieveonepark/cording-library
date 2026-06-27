@@ -3,7 +3,15 @@ import packagesData from '../packages.json';
 
 // 패키지 목록은 packages.json 단일 소스에서 읽는다.
 // 새 패키지 추가 시 packages.json 한 곳만 수정하면 랜딩 카드와 배포 워크플로우에 함께 반영된다.
-const packages = packagesData.map((pkg) => ({
+// openupm 필드가 있으면 OpenUPM 에 등록된 패키지 → 카드에 버전 뱃지를 노출한다.
+type PackageEntry = {
+  name: string;
+  title: string;
+  desc: string;
+  openupm?: string;
+};
+
+const packages = (packagesData as PackageEntry[]).map((pkg) => ({
   ...pkg,
   href: `https://docs.somiri.dev/${pkg.name}/`,
 }));
@@ -72,6 +80,13 @@ export default function HomePage() {
             >
               <h2 className="mb-2 font-semibold text-fd-card-foreground">{pkg.title}</h2>
               <p className="mb-4 flex-1 text-sm text-fd-muted-foreground">{pkg.desc}</p>
+              {pkg.openupm && (
+                <img
+                  src={`https://img.shields.io/npm/v/${pkg.openupm}?label=openupm&registry_uri=https://package.openupm.com&color=3068b7&style=flat`}
+                  alt={`OpenUPM ${pkg.openupm}`}
+                  className="mb-3 h-5 w-auto self-start"
+                />
+              )}
               <span className="text-sm font-medium text-fd-primary group-hover:underline">
                 문서 보기 →
               </span>

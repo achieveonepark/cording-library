@@ -22,7 +22,8 @@
   {
     "name": "infinity-value",
     "title": "Infinity Value",
-    "desc": "무한대 수치 연산을 지원하는 BigInteger 래퍼"
+    "desc": "무한대 수치 연산을 지원하는 BigInteger 래퍼",
+    "openupm": "com.achieve.infinity-value"
   },
   {
     "name": "cheat-terminal",
