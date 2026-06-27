@@ -1,0 +1,19 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "기본 권한: 메인 창에서 키체인 커맨드, 브라우저 열기, 지정 호스트로의 HTTP 요청 허용",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://github.com/*" },
+        { "url": "https://api.github.com/*" },
+        { "url": "https://raw.githubusercontent.com/*" },
+        { "url": "https://package.openupm.com/*" }
+      ]
+    }
+  ]
+}
