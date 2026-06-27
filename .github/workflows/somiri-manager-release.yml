@@ -7,6 +7,11 @@ on:
   push:
     tags:
       - 'somiri-manager-v*'
+    # 워크플로 자체나 앱 버전(tauri.conf.json)이 main 에서 바뀌면 릴리스 빌드를 돈다.
+    branches: [main]
+    paths:
+      - '.github/workflows/somiri-manager-release.yml'
+      - 'tools/somiri-manager/src-tauri/tauri.conf.json'
 
 permissions:
   contents: write
