@@ -31,6 +31,7 @@ on:
           - achieve-package-manager
           - lite-db
           - ach-economy
+          - ach-tempo
 
 permissions:
   contents: read

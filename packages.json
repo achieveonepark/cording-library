@@ -58,5 +58,10 @@
     "name": "ach-economy",
     "title": "Ach Economy",
     "desc": "공급·수요 기반 동적 가격과 source/sink 인플레이션을 한 번에 관리하는 재사용 가능한 Unity 경제 시뮬레이션 패키지"
+  },
+  {
+    "name": "ach-tempo",
+    "title": "Ach Tempo",
+    "desc": "디렉터가 설정한 조건과 규칙 기반 월드 반응을 결합해 게임의 긴장 페이싱을 자동 조절하고 위기 상황을 동적으로 연출하는 Unity 시스템"
   }
 ]
