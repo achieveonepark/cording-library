@@ -1,3 +1,5 @@
+'use client';
+
 import { HomeLayout } from 'fumadocs-ui/layouts/home';
 import packagesData from '../packages.json';
 

@@ -1,3 +1,5 @@
+'use client';
+
 import { HomeLayout } from 'fumadocs-ui/layouts/home';
 
 // 커스텀 404. output: 'export' 라 빌드 시 out/404.html 로 생성되어
