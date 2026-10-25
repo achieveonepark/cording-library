@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[97367,["/data-protector/_next/static/chunks/05-c3ty_6dwfk.js","/data-protector/_next/static/chunks/2a35y8vvamogv.js"],"ViewportBoundary"]
+3:I[97367,["/data-protector/_next/static/chunks/05-c3ty_6dwfk.js","/data-protector/_next/static/chunks/2a35y8vvamogv.js"],"MetadataBoundary"]
+4:"$Sreact.suspense"
+5:I[27201,["/data-protector/_next/static/chunks/05-c3ty_6dwfk.js","/data-protector/_next/static/chunks/2a35y8vvamogv.js"],"IconMark"]
+0:{"rsc":["$","$1","h",{"children":[null,["$","$L2",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$L3",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"API"}],["$","meta","1",{"name":"description","content":"DataProtector / HashChecker API reference"}],["$","link","2",{"rel":"icon","href":"/data-protector/icon.svg?icon.06rlfpzvm4wln.svg","sizes":"any","type":"image/svg+xml"}],["$","$L5","3",{}]]}]}]}],null]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"MmStgWoH3ahoAqqIb1olC"}

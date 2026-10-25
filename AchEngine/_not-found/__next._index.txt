@@ -1,0 +1,5 @@
+1:"$Sreact.fragment"
+2:I[57121,[],""]
+3:I[74581,[],""]
+:HL["/AchEngine/_next/static/css/8624cfc55d4b6148.css","style"]
+0:{"rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/AchEngine/_next/static/css/8624cfc55d4b6148.css","precedence":"next"}]],["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"dPNIiryHJitt_WkA9YjrA"}

@@ -1,0 +1,5 @@
+1:"$Sreact.fragment"
+2:I[43519,["3519","static/chunks/3519-4a06b943d8440081.js","5160","static/chunks/app/%5Blang%5D/layout-876b5a7481843724.js"],"RootProvider"]
+3:I[57121,[],""]
+4:I[74581,[],""]
+0:{"rsc":["$","$1","c",{"children":[null,["$","html",null,{"lang":"ko","suppressHydrationWarning":true,"children":["$","body",null,{"className":"flex min-h-screen flex-col","children":["$","$L2",null,{"i18n":{"locale":"ko","translations":{"displayName":"한국어","search":"검색","searchNoResult":"결과 없음","toc":"목차","lastUpdate":"마지막 수정","chooseLanguage":"언어 선택","nextPage":"다음","previousPage":"이전","chooseTheme":"테마","editOnGithub":"GitHub에서 편집"},"locales":[{"locale":"ko","name":"한국어"},{"locale":"en","name":"English"},{"locale":"ja","name":"日本語"},{"locale":"zh","name":"中文"}]},"theme":{"defaultTheme":"dark","enableSystem":false},"search":{"options":{"type":"static"}},"children":["$","$L3",null,{"parallelRouterKey":"children","template":["$","$L4",null,{}]}]}]}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"dPNIiryHJitt_WkA9YjrA"}

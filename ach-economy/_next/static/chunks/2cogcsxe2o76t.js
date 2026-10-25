@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,31713,t=>{"use strict";var e=t.i(18050),o=t.i(71645);let c="/ach-economy/ko";t.s(["default",0,function(){return(0,o.useEffect)(()=>{window.location.replace(c)},[]),(0,e.jsx)("noscript",{children:(0,e.jsx)("meta",{httpEquiv:"refresh",content:`0; url=${c}`})})}])}]);

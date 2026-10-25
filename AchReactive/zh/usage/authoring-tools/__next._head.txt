@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[97367,["/AchReactive/_next/static/chunks/05-c3ty_6dwfk.js","/AchReactive/_next/static/chunks/2a35y8vvamogv.js"],"ViewportBoundary"]
+3:I[97367,["/AchReactive/_next/static/chunks/05-c3ty_6dwfk.js","/AchReactive/_next/static/chunks/2a35y8vvamogv.js"],"MetadataBoundary"]
+4:"$Sreact.suspense"
+5:I[27201,["/AchReactive/_next/static/chunks/05-c3ty_6dwfk.js","/AchReactive/_next/static/chunks/2a35y8vvamogv.js"],"IconMark"]
+0:{"rsc":["$","$1","h",{"children":[null,["$","$L2",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$L3",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"创作工具"}],["$","meta","1",{"name":"description","content":"基于 UIToolkit 的 Type Designer 与 Data Editor。"}],["$","link","2",{"rel":"icon","href":"/AchReactive/icon.svg?icon.06rlfpzvm4wln.svg","sizes":"any","type":"image/svg+xml"}],["$","$L5","3",{}]]}]}]}],null]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"g9uU5CD6gbVku1B_qMOJu"}
