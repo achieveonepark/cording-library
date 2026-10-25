@@ -33,7 +33,7 @@ landing   Fumadocs 랜딩 빌드 → landing 아티팩트
 package   패키지별 매트릭스 빌드. 각 레포 최신 커밋 SHA 로 캐싱 →
           변경된 패키지만 재빌드, 나머지는 캐시 복원 → pkg-<name> 아티팩트
 deploy    landing + 모든 pkg-* 아티팩트를 site/ 로 조립 → cloudflare-pages 브랜치에 저장
-          → Deploy Hook으로 Cloudflare Pages 배포 → 성공 검사까지 대기
+          → Deploy Hook으로 Cloudflare Pages 배포 → 실제 사이트의 배포 식별자 확인
 ```
 
 > Cloudflare Pages에 **사이트 전체를 하나의 결과물로** 배포한다. 그래서 한 패키지만
@@ -44,7 +44,7 @@ deploy    landing + 모든 pkg-* 아티팩트를 site/ 로 조립 → cloudflare
 `cloudflare-pages` 브랜치의 정적 파일을 그대로 제공하며 서버 빌드는 하지 않는다.
 이 브랜치는 빌드 결과만 보관하고, 소스 수정은 항상 `main`에서 한다.
 일반 Git 푸시에 의한 Pages 자동 배포는 꺼두고 Deploy Hook으로 한 번만 배포한다.
-워크플로는 Cloudflare의 GitHub 검사 결과까지 기다리므로 기존 관리 앱에서도
+워크플로는 실제 사이트가 해당 소스 커밋과 실행의 결과물을 제공할 때까지 기다리므로 기존 관리 앱에서도
 실제 배포 성공·실패를 확인할 수 있다.
 
 ### 트리거 3가지

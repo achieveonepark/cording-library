@@ -35,7 +35,6 @@ on:
 
 permissions:
   contents: write
-  checks: read
 
 concurrency:
   group: cloudflare-pages
@@ -181,7 +180,7 @@ jobs:
           for name in $(jq -r '.[].name' publisher/packages.json); do
             test -f "site/$name/index.html" || { echo "::error::Missing docs: $name"; exit 1; }
           done
-          node -e 'require("fs").writeFileSync("site/deployment.json", JSON.stringify({ source_commit: process.env.GITHUB_SHA, run_id: process.env.GITHUB_RUN_ID }))'
+          node -e 'require("fs").writeFileSync("site/deployment.json", JSON.stringify({ source_commit: process.env.GITHUB_SHA, run_id: process.env.GITHUB_RUN_ID, run_attempt: process.env.GITHUB_RUN_ATTEMPT }))'
 
       - name: Publish assembled site branch
         id: publish
@@ -210,23 +209,20 @@ jobs:
         uses: actions/github-script@v7
         env:
           CLOUDFLARE_DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}
-          DEPLOYMENT_SHA: ${{ steps.publish.outputs.sha }}
         with:
           script: |
             const hook = process.env.CLOUDFLARE_DEPLOY_HOOK;
             if (!hook) throw new Error('CLOUDFLARE_DEPLOY_HOOK secret is not configured');
-            const ref = process.env.DEPLOYMENT_SHA;
-            const list = () => github.rest.checks.listForRef({ ...context.repo, ref, per_page: 100 });
-            const previous = new Set((await list()).data.check_runs.map(run => run.id));
             const response = await fetch(hook, { method: 'POST' });
             if (!response.ok) throw new Error(`Cloudflare deploy hook returned ${response.status}`);
+            const result = await response.json();
+            if (result.success === false) throw new Error('Cloudflare rejected the deployment');
             const deadline = Date.now() + 10 * 60 * 1000;
             while (Date.now() < deadline) {
-              const runs = (await list()).data.check_runs;
-              const deployment = runs.find(run => !previous.has(run.id) && run.name === 'Cloudflare Pages' && run.app.slug === 'cloudflare-workers-and-pages');
-              if (deployment?.status === 'completed') {
-                if (deployment.conclusion !== 'success') throw new Error(`Cloudflare deployment: ${deployment.conclusion}`);
-                core.info(`Cloudflare Pages deployed ${ref}`);
+              const deployment = await fetch(`https://somiri-docs.pages.dev/deployment.json?verify=${Date.now()}`)
+                .then(response => response.ok ? response.json() : null).catch(() => null);
+              if (deployment?.source_commit === process.env.GITHUB_SHA && deployment?.run_id === process.env.GITHUB_RUN_ID && deployment?.run_attempt === process.env.GITHUB_RUN_ATTEMPT) {
+                core.info(`Cloudflare Pages serves ${deployment.source_commit} (run ${deployment.run_id})`);
                 return;
               }
               await new Promise(resolve => setTimeout(resolve, 10000));
