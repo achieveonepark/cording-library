@@ -15,7 +15,7 @@ type PackageEntry = {
 
 const packages = (packagesData as PackageEntry[]).map((pkg) => ({
   ...pkg,
-  href: `https://docs.somiri.dev/${pkg.name}/`,
+  href: `/${pkg.name}/`,
 }));
 
 export default function HomePage() {

@@ -1,4 +1,4 @@
-name: Deploy docs to GitHub Pages
+name: Deploy docs to Cloudflare Pages
 
 # 트리거:
 #  - main 푸시: 랜딩/목록 변경 시 전체 재조립·배포
@@ -34,12 +34,11 @@ on:
           - ach-tempo
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
+  checks: read
 
 concurrency:
-  group: pages
+  group: cloudflare-pages
   cancel-in-progress: false
 
 jobs:
@@ -67,10 +66,6 @@ jobs:
           node-version: 22
       - run: npm ci || npm install
       - run: npm run build
-      - name: Prepare landing site root
-        run: |
-          echo 'docs.somiri.dev' > out/CNAME
-          touch out/.nojekyll
       - uses: actions/upload-artifact@v4
         with:
           name: landing
@@ -144,14 +139,18 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
-  # 4) 랜딩 + 모든 패키지 아티팩트를 합쳐 site/ 로 조립하고 Pages 에 배포한다.
+  # 4) 전체 정적 사이트를 전용 브랜치에 저장하고 Cloudflare Pages 배포를 확인한다.
   deploy:
     needs: [landing, package]
     runs-on: ubuntu-latest
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: cloudflare-pages
+      url: https://somiri-docs.pages.dev
     steps:
+      - uses: actions/checkout@v4
+        with:
+          path: publisher
+
       - name: Download landing
         uses: actions/download-artifact@v4
         with:
@@ -178,15 +177,58 @@ jobs:
               echo "skip empty $name"
             fi
           done
+          # 패키지 문서가 빠진 사이트로 기존 정상 배포를 덮어쓰지 않는다.
+          for name in $(jq -r '.[].name' publisher/packages.json); do
+            test -f "site/$name/index.html" || { echo "::error::Missing docs: $name"; exit 1; }
+          done
+          node -e 'require("fs").writeFileSync("site/deployment.json", JSON.stringify({ source_commit: process.env.GITHUB_SHA, run_id: process.env.GITHUB_RUN_ID }))'
 
-      - uses: actions/configure-pages@v5
+      - name: Publish assembled site branch
+        id: publish
+        working-directory: publisher
+        env:
+          SOURCE_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git config --local user.name achieveonepark
+          git config --local user.email park_achieveone@naver.com
+          if git ls-remote --exit-code --heads origin cloudflare-pages; then
+            git fetch origin cloudflare-pages
+            git switch --force-create cloudflare-pages FETCH_HEAD
+          else
+            git switch --orphan cloudflare-pages
+          fi
+          rsync -a --delete --exclude=.git ../site/ ./
+          git add --all
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish docs from $SOURCE_COMMIT"
+          fi
+          git push origin HEAD:refs/heads/cloudflare-pages
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger and verify Cloudflare Pages deployment
+        uses: actions/github-script@v7
+        env:
+          CLOUDFLARE_DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}
+          DEPLOYMENT_SHA: ${{ steps.publish.outputs.sha }}
         with:
-          enablement: true
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          script: |
+            const hook = process.env.CLOUDFLARE_DEPLOY_HOOK;
+            if (!hook) throw new Error('CLOUDFLARE_DEPLOY_HOOK secret is not configured');
+            const ref = process.env.DEPLOYMENT_SHA;
+            const list = () => github.rest.checks.listForRef({ ...context.repo, ref, per_page: 100 });
+            const previous = new Set((await list()).data.check_runs.map(run => run.id));
+            const response = await fetch(hook, { method: 'POST' });
+            if (!response.ok) throw new Error(`Cloudflare deploy hook returned ${response.status}`);
+            const deadline = Date.now() + 10 * 60 * 1000;
+            while (Date.now() < deadline) {
+              const runs = (await list()).data.check_runs;
+              const deployment = runs.find(run => !previous.has(run.id) && run.name === 'Cloudflare Pages' && run.app.slug === 'cloudflare-workers-and-pages');
+              if (deployment?.status === 'completed') {
+                if (deployment.conclusion !== 'success') throw new Error(`Cloudflare deployment: ${deployment.conclusion}`);
+                core.info(`Cloudflare Pages deployed ${ref}`);
+                return;
+              }
+              await new Promise(resolve => setTimeout(resolve, 10000));
+            }
+            throw new Error('Timed out waiting for Cloudflare Pages deployment');

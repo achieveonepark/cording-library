@@ -28,7 +28,8 @@
   {
     "name": "cheat-terminal",
     "title": "Cheat Terminal",
-    "desc": "인게임 치트 코드·디버그 콘솔 툴킷"
+    "desc": "인게임 치트 코드·디버그 콘솔 툴킷",
+    "openupm": "com.achieve.cheat-terminal"
   },
   {
     "name": "breeze-iap",
