@@ -64,7 +64,8 @@
   {
     "name": "ach-tempo",
     "title": "Ach Tempo",
-    "desc": "디렉터가 설정한 조건과 규칙 기반 월드 반응을 결합해 게임의 긴장 페이싱을 자동 조절하고 위기 상황을 동적으로 연출하는 Unity 시스템"
+    "desc": "디렉터가 설정한 조건과 규칙 기반 월드 반응을 결합해 게임의 긴장 페이싱을 자동 조절하고 위기 상황을 동적으로 연출하는 Unity 시스템",
+    "docsRef": "refs/heads/main"
   },
   {
     "name": "event-tracer",

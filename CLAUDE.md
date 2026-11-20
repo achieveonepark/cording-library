@@ -5,7 +5,7 @@
 
 ## 패키지 목록 = 단일 소스 `packages.json`
 
-랜딩 카드(`app/page.tsx`)와 배포 워크플로우 매트릭스가 모두 `packages.json` 을 읽는다.
+랜딩 카드(`docs/components/PackageGrid.tsx`)와 배포 워크플로우 매트릭스가 모두 `packages.json` 을 읽는다.
 항목: `{ "name": "<레포명>", "title": "<표시명 Title Case>", "desc": "<한국어 설명>" }`
 `href` 는 `name` 으로 자동 생성(`https://docs.somiri.dev/<name>/`). 배열 순서 = 카드 노출 순서.
 
@@ -23,7 +23,7 @@
 ## 배포 동작 메모
 
 - Pages 는 사이트 전체를 한 아티팩트로 배포 → 워크플로우가 항상 전체 사이트를 조립한다.
-  단 패키지별 빌드는 **각 레포 최신 커밋 SHA 로 캐싱**되어 변경분만 재빌드된다.
+  단 패키지별 빌드는 **문서 브랜치의 커밋 SHA로 캐싱**되어 변경분만 재빌드된다.
 - 트리거: `push`(main) / `repository_dispatch`(`docs-updated`) / `workflow_dispatch`(UI 드롭다운).
 - 수동 재배포가 필요하고 workflow_dispatch 권한이 막혀 있으면 `main` 빈 커밋 푸시로 트리거한다.
 - 빌드 검증 후 커밋한다. `package-lock.json` 의 install 부산물 변경은 커밋에 포함하지 않는다.

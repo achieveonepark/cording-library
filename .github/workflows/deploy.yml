@@ -1,4 +1,4 @@
-name: Deploy docs to Cloudflare Pages
+name: Deploy docs to Pages
 
 # 트리거:
 #  - main 푸시: 랜딩/목록 변경 시 전체 재조립·배포
@@ -53,7 +53,7 @@ jobs:
       - name: Generate package matrix
         id: gen
         run: |
-          matrix=$(jq -c '[.[].name]' packages.json)
+          matrix=$(jq -c '[.[] | {name, ref: (.docsRef // "HEAD")}]' packages.json)
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           echo "packages: $matrix"
 
@@ -65,7 +65,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm ci || npm install
+      - run: npm ci
       - run: npm run build
       - uses: actions/upload-artifact@v4
         with:
@@ -82,19 +82,25 @@ jobs:
       fail-fast: false
       matrix:
         package: ${{ fromJson(needs.setup.outputs.matrix) }}
+    env:
+      PACKAGE_NAME: ${{ matrix.package.name }}
+      PACKAGE_REF: ${{ matrix.package.ref }}
+      REQUESTED_PACKAGE: ${{ github.event.inputs.package }}
     steps:
-      - name: Resolve latest commit SHA
+      - name: Resolve package commit SHA
         id: sha
         run: |
-          sha=$(git ls-remote "https://github.com/achieveonepark/${{ matrix.package }}.git" HEAD | cut -f1)
+          set -euo pipefail
+          sha=$(git ls-remote --exit-code "https://github.com/achieveonepark/$PACKAGE_NAME.git" "$PACKAGE_REF" | cut -f1)
+          [[ "$sha" =~ ^[0-9a-f]{40}$ ]]
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
-          echo "${{ matrix.package }} -> ${sha:-<none>}"
+          echo "$PACKAGE_NAME ($PACKAGE_REF) -> $sha"
 
       # workflow_dispatch 로 특정 패키지를 지정하면 캐시를 무시하고 강제 재빌드한다.
       - name: Decide force rebuild
         id: force
         run: |
-          if [ -n "${{ github.event.inputs.package }}" ] && [ "${{ github.event.inputs.package }}" = "${{ matrix.package }}" ]; then
+          if [ "$REQUESTED_PACKAGE" = "$PACKAGE_NAME" ]; then
             echo "force=true" >> "$GITHUB_OUTPUT"
           else
             echo "force=false" >> "$GITHUB_OUTPUT"
@@ -102,51 +108,51 @@ jobs:
 
       - name: Restore cached build
         id: cache
-        if: steps.sha.outputs.sha != '' && steps.force.outputs.force != 'true'
+        if: steps.force.outputs.force != 'true'
         uses: actions/cache@v4
         with:
           path: pkgsite
-          key: pkgdocs-${{ matrix.package }}-${{ steps.sha.outputs.sha }}
+          key: pkgdocs-${{ matrix.package.name }}-${{ steps.sha.outputs.sha }}
 
       - uses: actions/setup-node@v4
-        if: steps.cache.outputs.cache-hit != 'true' && steps.sha.outputs.sha != ''
+        if: steps.cache.outputs.cache-hit != 'true'
         with:
           node-version: 22
 
       - name: Build package docs (cache miss)
-        if: steps.cache.outputs.cache-hit != 'true' && steps.sha.outputs.sha != ''
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          PACKAGE_SHA: ${{ steps.sha.outputs.sha }}
         run: |
-          set -uo pipefail
+          set -euo pipefail
           tmp="$(mktemp -d)"
-          if ! git clone --depth=1 "https://github.com/achieveonepark/${{ matrix.package }}.git" "$tmp"; then
-            echo "::warning::${{ matrix.package }} 클론 실패 — 건너뜀"
-          elif [ ! -d "$tmp/docs~" ]; then
-            echo "::warning::${{ matrix.package }} 에 docs~ 없음 — 건너뜀"
-          elif ( cd "$tmp/docs~" && { npm ci || npm install --no-audit --no-fund; } && npm run build ) && [ -d "$tmp/docs~/out" ]; then
-            mkdir -p "$GITHUB_WORKSPACE/pkgsite"
-            cp -R "$tmp/docs~/out/." "$GITHUB_WORKSPACE/pkgsite/"
-            echo "${{ matrix.package }} 빌드 완료"
-          else
-            echo "::warning::${{ matrix.package }} 빌드 실패 — 건너뜀"
-          fi
-          rm -rf "$tmp"
+          trap 'rm -rf "$tmp"' EXIT
+          git -C "$tmp" init --quiet
+          git -C "$tmp" fetch --quiet --depth=1 "https://github.com/achieveonepark/$PACKAGE_NAME.git" "$PACKAGE_SHA"
+          git -C "$tmp" checkout --quiet --detach FETCH_HEAD
+          (
+            cd "$tmp/docs~"
+            npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+            npm run build
+            test -f out/index.html
+          )
+          mkdir -p pkgsite
+          cp -R "$tmp/docs~/out/." pkgsite/
 
       # 빌드/캐시 결과(pkgsite)를 패키지별 아티팩트로 업로드.
-      # docs~ 가 없거나 실패해 비어 있으면 업로드를 건너뛴다.
       - uses: actions/upload-artifact@v4
         with:
-          name: pkg-${{ matrix.package }}
+          name: pkg-${{ matrix.package.name }}
           path: pkgsite
-          if-no-files-found: ignore
+          if-no-files-found: error
           retention-days: 1
 
-  # 4) 전체 정적 사이트를 전용 브랜치에 저장하고 Cloudflare Pages 배포를 확인한다.
-  deploy:
+  # 4) 두 호스트에 올릴 정적 사이트를 한 번 조립한다.
+  assemble:
     needs: [landing, package]
     runs-on: ubuntu-latest
-    environment:
-      name: cloudflare-pages
-      url: https://somiri-docs.pages.dev
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -182,7 +188,72 @@ jobs:
           for name in $(jq -r '.[].name' publisher/packages.json); do
             test -f "site/$name/index.html" || { echo "::error::Missing docs: $name"; exit 1; }
           done
+          # 기존 Next.js 문서의 /page/ 및 /page/index.html 경로를 유지한다.
+          while IFS= read -r -d '' page; do
+            directory="${page%.html}"
+            if [ ! -f "$directory/index.html" ]; then
+              mkdir -p "$directory"
+              cp "$page" "$directory/index.html"
+            fi
+          done < <(find site -type f -name '*.html' ! -name index.html ! -name 404.html -print0)
           node -e 'require("fs").writeFileSync("site/deployment.json", JSON.stringify({ source_commit: process.env.GITHUB_SHA, run_id: process.env.GITHUB_RUN_ID, run_attempt: process.env.GITHUB_RUN_ATTEMPT }))'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: site
+          if-no-files-found: error
+          retention-days: 1
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  github-pages:
+    needs: assemble
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Verify docs.somiri.dev deployment
+        run: |
+          for attempt in {1..60}; do
+            if curl -fsS "https://docs.somiri.dev/deployment.json?verify=$(date +%s)" | jq -e \
+              --arg commit "$GITHUB_SHA" --arg run "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" \
+              '.source_commit == $commit and .run_id == $run and .run_attempt == $attempt'; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::Timed out waiting for docs.somiri.dev"
+          exit 1
+
+  # 5) 같은 사이트를 전용 브랜치에 저장하고 Cloudflare Pages 배포를 확인한다.
+  deploy:
+    needs: assemble
+    runs-on: ubuntu-latest
+    environment:
+      name: cloudflare-pages
+      url: https://somiri-docs.pages.dev
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: publisher
+
+      - name: Download assembled site
+        uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: site
 
       - name: Publish assembled site branch
         id: publish

@@ -14,6 +14,6 @@
     "jsx": "react-jsx",
     "paths": { "@/*": ["./*"] }
   },
-  "include": ["rspress.config.ts", "docs/**/*.ts", "docs/**/*.tsx"],
+  "include": ["rspress.config.ts", "docs/**/*.ts", "docs/**/*.tsx", "theme/**/*.tsx"],
   "exclude": ["node_modules", "out", "tools"]
 }
