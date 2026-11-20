@@ -1,0 +1,563 @@
+---
+url: /infinity-value/en/api/index.md
+---
+
+> For AI agents: the complete documentation index is available at /infinity-value/en/llms.txt, the full documentation bundle is available at /infinity-value/en/llms-full.txt.
+
+# API Reference
+
+## Main Types
+
+| Type                        | Purpose                                                                                                                     |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `InfinityValue`             | Large-number value type.                                                                                                    |
+| `InfinityValueUnitNames`    | Instance-owned unit suffix table for parsing and display.                                                                   |
+| `InfinityValueConverter`    | Optional Newtonsoft.Json converter.                                                                                         |
+| `SerializableInfinityValue` | Serialization wrapper for exposing `InfinityValue` in the Unity Inspector ([details](/infinity-value/en/api/inspector.md)). |
+
+## Constructors
+
+```csharp
+new InfinityValue(long number)
+new InfinityValue(long number, InfinityValueUnitNames unitNames)
+
+new InfinityValue(double number)
+new InfinityValue(double number, InfinityValueUnitNames unitNames)
+
+new InfinityValue(float number)
+new InfinityValue(float number, InfinityValueUnitNames unitNames)
+
+new InfinityValue(BigInteger number)
+new InfinityValue(BigInteger number, InfinityValueUnitNames unitNames)
+
+new InfinityValue(string input)
+new InfinityValue(string input, InfinityValueUnitNames unitNames)
+```
+
+## Static Values
+
+```csharp
+InfinityValue.Zero
+InfinityValue.One
+```
+
+Use `WithUnitNames` when a zero or one value should carry a custom unit context:
+
+```csharp
+InfinityValue zeroGold = InfinityValue.Zero.WithUnitNames(goldUnits);
+```
+
+## Parsing
+
+```csharp
+InfinityValue.TryParse(string input, out InfinityValue result)
+InfinityValue.TryParse(string input, InfinityValueUnitNames unitNames, out InfinityValue result)
+```
+
+## Instance Members
+
+```csharp
+bool IsEmpty { get; }
+InfinityValueUnitNames UnitNames { get; }
+InfinityValue WithUnitNames(InfinityValueUnitNames unitNames)
+string ToString()
+int CompareTo(InfinityValue other)
+bool Equals(InfinityValue other)
+int GetHashCode()
+```
+
+## Operators
+
+```csharp
+a + b
+a - b
+a * 10L
+a * 1.5
+a / 2L
+a / 2.0
+
+a == b
+a != b
+a < b
+a > b
+a <= b
+a >= b
+```
+
+## Conversions
+
+```csharp
+InfinityValue value = 1000;
+InfinityValue parsed = "500A";
+
+long asLong = (long)value;
+double asDouble = (double)value;
+float asFloat = (float)value;
+```
+
+## See Also
+
+- [Math Helpers](/infinity-value/en/api/math.md) — cost curves, `AffordableCount`, `ToProgress`, `Min`/`Max`/`Clamp`, increment/decrement operators
+- [Inspector & Exact Serialization](/infinity-value/en/api/inspector.md) — `SerializableInfinityValue`, `ToExactString`/`TryParseExact`
+
+
+
+---
+url: /infinity-value/en/api/inspector.md
+---
+
+> For AI agents: the complete documentation index is available at /infinity-value/en/llms.txt, the full documentation bundle is available at /infinity-value/en/llms-full.txt.
+
+# Inspector & Exact Serialization
+
+`InfinityValue` is stored internally as 8 `(int, long)` tuples, which Unity's serialization system cannot handle directly. `SerializableInfinityValue` wraps it as a single lossless string and provides a custom `PropertyDrawer` for Inspector editing.
+
+## SerializableInfinityValue
+
+Wrap `InfinityValue` in `SerializableInfinityValue` to expose it as a `MonoBehaviour` or `ScriptableObject` field.
+
+```csharp
+using Achieve.InfinityValue;
+using UnityEngine;
+
+public class PlayerStats : MonoBehaviour
+{
+    [SerializeField] private SerializableInfinityValue _gold;
+
+    public InfinityValue Gold => _gold.Value;
+}
+```
+
+In the Inspector, you can type compact notation like `5.3B`; the `PropertyDrawer` parses it and stores the exact underlying value.
+
+It implicitly converts to and from `InfinityValue`, so you rarely need to write `.Value` explicitly.
+
+```csharp
+InfinityValue current = _gold; // implicit conversion
+_gold = current + reward;      // InfinityValue -> SerializableInfinityValue
+```
+
+Unit names are not part of the serialized data — restored values always use `InfinityValueUnitNames.Default`. Apply `WithUnitNames` after loading if you need per-content unit names.
+
+## ToExactString / TryParseExact
+
+`ToString()` rounds for display, but `ToExactString` serializes a value to a string with no precision loss. It's the same format `SerializableInfinityValue` uses internally, and you can use it directly if you're building your own save system.
+
+```csharp
+InfinityValue value = new InfinityValue("5.30B");
+
+string exact = value.ToExactString();
+bool ok = InfinityValue.TryParseExact(exact, InfinityValueUnitNames.Default, out var restored);
+```
+
+`ToExactString` does not include unit names, so re-apply `WithUnitNames` after restoring a value if you need per-content unit names.
+
+
+
+---
+url: /infinity-value/en/api/json.md
+---
+
+> For AI agents: the complete documentation index is available at /infinity-value/en/llms.txt, the full documentation bundle is available at /infinity-value/en/llms-full.txt.
+
+# JSON
+
+When Unity's `com.unity.nuget.newtonsoft-json` package is installed, `InfinityValue` is decorated with `InfinityValueConverter`.
+
+The converter stores values as strings:
+
+```json
+{
+  "gold": "5.30B"
+}
+```
+
+## Example
+
+```csharp
+using Achieve.InfinityValue;
+using Newtonsoft.Json;
+
+public sealed class SaveData
+{
+    public InfinityValue Gold;
+}
+
+var units = new InfinityValueUnitNames(new[] { "", "K", "M", "B" });
+var save = new SaveData
+{
+    Gold = new InfinityValue("5B", units)
+};
+
+string json = JsonConvert.SerializeObject(save);
+SaveData loaded = JsonConvert.DeserializeObject<SaveData>(json);
+```
+
+The default converter reconstructs values with the default unit names. If a save file uses custom unit names, store enough content metadata to choose the correct `InfinityValueUnitNames` when loading gameplay data.
+
+
+
+---
+url: /infinity-value/en/api/math.md
+---
+
+> For AI agents: the complete documentation index is available at /infinity-value/en/llms.txt, the full documentation bundle is available at /infinity-value/en/llms-full.txt.
+
+# Math Helpers
+
+Helpers for cost curves, progress bars, and min/max/clamp — the calculations idle and incremental games reach for constantly. All of them work without converting through `double`, and stay overflow-free even for values beyond the 8 unit slots.
+
+## Cost-Curve Math
+
+`Log10`, `Pow`, and `Sqrt` compute in log space, so they stay precise even for very large values.
+
+```csharp
+InfinityValue cost = new InfinityValue("1.5B");
+
+double log10 = cost.Log10();       // approximate base-10 logarithm
+InfinityValue squared = cost.Pow(2);
+InfinityValue sqrt = cost.Sqrt();  // shorthand for Pow(0.5)
+```
+
+Useful for upgrade cost curves of the form `baseCost * growthRate^level`:
+
+```csharp
+InfinityValue baseCost = new InfinityValue("100");
+double growthRate = 1.07;
+int level = 42;
+
+InfinityValue costAtLevel = baseCost * Math.Pow(growthRate, level);
+```
+
+## Buy-Max Count
+
+`AffordableCount` solves the geometric-series price curve (`baseCost * growthRate^n`) for how many items a given balance can afford. Use it to implement a "buy max" button.
+
+```csharp
+InfinityValue balance = new InfinityValue("50K");
+InfinityValue baseCost = new InfinityValue("100");
+double growthRate = 1.07;
+
+long affordable = InfinityValue.AffordableCount(balance, baseCost, growthRate);
+```
+
+- `growthRate` must be greater than 1.
+- `baseCost` must be greater than 0.
+- Returns `0` if `balance` is less than `baseCost`.
+
+## Progress
+
+`ToProgress` returns the current value's progress toward `max` as an overflow-free `float` between 0 and 1. It's a pure function safe to call every frame, for health bars, experience bars, and similar UI.
+
+```csharp
+InfinityValue exp = new InfinityValue("750");
+InfinityValue expToNextLevel = new InfinityValue("1000");
+
+float progress = exp.ToProgress(expToNextLevel); // 0.75f
+```
+
+## Min / Max / Clamp
+
+```csharp
+InfinityValue lower = InfinityValue.Min(a, b);
+InfinityValue upper = InfinityValue.Max(a, b);
+InfinityValue clamped = InfinityValue.Clamp(value, min, max);
+```
+
+## Increment / Decrement Operators
+
+```csharp
+InfinityValue count = new InfinityValue("10");
+count++; // count + 1
+count--; // count - 1
+```
+
+As with subtraction, a decrement that would go negative clamps to zero.
+
+
+
+---
+url: /infinity-value/en/api/unit-names.md
+---
+
+> For AI agents: the complete documentation index is available at /infinity-value/en/llms.txt, the full documentation bundle is available at /infinity-value/en/llms-full.txt.
+
+# Unit Names
+
+`InfinityValueUnitNames` is an instance object. It replaces the old global configuration style and lets each content system own its own suffix table.
+
+## Default Units
+
+The default table starts with an empty base unit and continues with `A`, `B`, `C` through `CZ`.
+
+```csharp
+InfinityValue value = new InfinityValue(1_500_000L);
+Debug.Log(value); // 1.50B
+```
+
+## Custom Units
+
+Index 0 must be an empty string because it represents the base number tier.
+
+```csharp
+var units = new InfinityValueUnitNames(new[]
+{
+    "", "K", "M", "B", "T", "Qa", "Qi", "Sx"
+});
+
+InfinityValue value = new InfinityValue(5_300_000_000L, units);
+Debug.Log(value); // 5.30B
+```
+
+## Multiple Content Tables
+
+Different content can keep different names without touching global state.
+
+```csharp
+var currencyUnits = new InfinityValueUnitNames(new[] { "", "K", "M", "B" });
+var damageUnits = new InfinityValueUnitNames(new[] { "", "a", "b", "c" });
+
+InfinityValue gold = new InfinityValue("12K", currencyUnits);
+InfinityValue damage = new InfinityValue("12a", damageUnits);
+```
+
+## Parsing
+
+Always parse saved strings with the same unit table that created them.
+
+```csharp
+if (InfinityValue.TryParse("42M", currencyUnits, out var value))
+    Debug.Log(value);
+```
+
+## Validation
+
+`InfinityValueUnitNames` throws an exception when:
+
+- The name list is null.
+- The list is empty.
+- Index 0 is not an empty string.
+- A unit name is null.
+- A unit name appears more than once.
+
+
+
+---
+url: /infinity-value/en/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /infinity-value/en/llms.txt, the full documentation bundle is available at /infinity-value/en/llms-full.txt.
+
+# Changelog
+
+## Unreleased
+
+## 1.2.2 — 2026-07-11
+
+- Added `Pow`, `Sqrt`, and `Log10` for cost-curve math without overflowing `double`.
+- Added `AffordableCount` to solve the geometric-series "buy max" formula for a price curve `baseCost * growthRate^n`.
+- Added `Min`, `Max`, and `Clamp` static helpers.
+- Added `operator ++` and `operator --`.
+- Added `ToProgress` for safe, overflow-free 0-1 progress bar values.
+- Added `SerializableInfinityValue` for exposing `InfinityValue` fields in the Unity Inspector, with a custom `PropertyDrawer` that accepts compact notation (e.g. `5.3B`) and a lossless `ToExactString`/`TryParseExact` round-trip.
+- Added `Editor/Achieve.InfinityValue.Editor.asmdef` for editor-only inspector code.
+
+## 1.2.1 — 2026-07-07
+
+- Normalized the `author` field in `package.json` to the object schema (`{ "name": "Achieveone" }`) expected by Unity Package Manager / OpenUPM.
+
+## 1.2.0 — 2026-06-14
+
+- Added `InfinityValueUnitNames` for per-content unit name instances.
+- Added constructor and `TryParse` overloads that accept `InfinityValueUnitNames`.
+- Fixed parsing for compact decimal strings such as `5.30B`.
+- Rebuilt documentation as GitBook-friendly Markdown plus VitePress deployment.
+- Added Unity Package Manager samples under `Samples~`.
+
+## 1.1.0 — 2026-05-23
+
+- Fixed semantic equality and hashing for values with different internal slot order.
+- Fixed subtraction borrow behavior and negative-result clamping.
+- Added `TryParse`, `Zero`, `One`, double operations, and double conversion.
+
+## 1.0.1 — 2026-01-04
+
+- Reduced GC pressure through internal structural optimizations.
+
+## 1.0.0 — 2024-09-17
+
+- Initial release.
+
+
+
+---
+url: /infinity-value/en/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /infinity-value/en/llms.txt, the full documentation bundle is available at /infinity-value/en/llms-full.txt.
+
+# Getting Started
+
+## Install
+
+Add the package through Unity Package Manager:
+
+```text
+https://github.com/achieveonepark/infinity-value.git
+```
+
+Or add it to `Packages/manifest.json`:
+
+```json
+{
+  "dependencies": {
+    "com.achieve.infinity-value": "https://github.com/achieveonepark/infinity-value.git"
+  }
+}
+```
+
+## Create Values
+
+```csharp
+using Achieve.InfinityValue;
+
+InfinityValue a = 1000;
+InfinityValue b = new InfinityValue(1_500_000L);
+InfinityValue c = new InfinityValue(1.5e12);
+InfinityValue d = new InfinityValue("300B 200A");
+```
+
+## Use Per-Content Unit Names
+
+Use `InfinityValueUnitNames` when different systems need different suffixes.
+
+```csharp
+var currencyUnits = new InfinityValueUnitNames(new[]
+{
+    "", "K", "M", "B", "T", "Qa", "Qi"
+});
+
+var damageUnits = new InfinityValueUnitNames(new[]
+{
+    "", "a", "b", "c", "d", "e", "f"
+});
+
+InfinityValue gold = new InfinityValue("12K", currencyUnits);
+InfinityValue damage = new InfinityValue("12a", damageUnits);
+```
+
+Each `InfinityValue` carries the unit name instance that was passed to it. Arithmetic keeps the left-hand value's unit names:
+
+```csharp
+InfinityValue totalGold = gold + new InfinityValue(5000, currencyUnits);
+Debug.Log(totalGold); // 17.00K
+```
+
+## Parse Safely
+
+```csharp
+if (!InfinityValue.TryParse("5B", currencyUnits, out var parsed))
+    parsed = InfinityValue.Zero.WithUnitNames(currencyUnits);
+```
+
+## Save And Load
+
+The simplest persistence format is the display string plus the same unit name set on load:
+
+```csharp
+PlayerPrefs.SetString("gold", gold.ToString());
+
+string raw = PlayerPrefs.GetString("gold", "0");
+InfinityValue.TryParse(raw, currencyUnits, out gold);
+```
+
+
+
+---
+url: /infinity-value/en/index.md
+---
+
+> For AI agents: the complete documentation index is available at /infinity-value/en/llms.txt, the full documentation bundle is available at /infinity-value/en/llms-full.txt.
+
+# Introduction
+
+Infinity Value is a Unity package for idle and incremental games that need numbers far beyond `long`.
+
+Values are stored as compact `(unitIndex, value)` pairs, so common arithmetic and comparison work without allocating managed garbage. Display and parsing can use the built-in `A, B, C ... CZ` unit names, or a custom `InfinityValueUnitNames` instance per content type.
+
+```csharp
+using Achieve.InfinityValue;
+
+var goldUnits = new InfinityValueUnitNames(new[]
+{
+    "", "K", "M", "B", "T", "Qa", "Qi"
+});
+
+InfinityValue gold = new InfinityValue(5_300_000_000L, goldUnits);
+InfinityValue reward = new InfinityValue("12K", goldUnits);
+
+gold += reward;
+
+Debug.Log(gold.ToString()); // 5.30B
+```
+
+## Highlights
+
+- Struct-based large number type for Unity runtime code.
+- Arithmetic: `+`, `-`, `*`, `/`.
+- Comparison: `==`, `!=`, `<`, `>`, `<=`, `>=`.
+- Instance unit names through `InfinityValueUnitNames`.
+- String parsing with `TryParse`.
+- Optional Newtonsoft.Json converter when Unity's Newtonsoft package is installed.
+- Importable Unity samples under `Samples~`.
+
+## Next Steps
+
+- [Getting Started](/infinity-value/en/getting-started.md)
+- [API Reference](/infinity-value/en/api.md)
+- [Unit Names](/infinity-value/en/api/unit-names.md)
+- [Samples](/infinity-value/en/usage.md)
+
+
+
+---
+url: /infinity-value/en/usage.md
+---
+
+> For AI agents: the complete documentation index is available at /infinity-value/en/llms.txt, the full documentation bundle is available at /infinity-value/en/llms-full.txt.
+
+# Usage
+
+The package includes importable samples through Unity Package Manager.
+
+## Basic Usage
+
+Shows construction, arithmetic, comparison, and display.
+
+Import path:
+
+```text
+Samples~/Basic Usage
+```
+
+## Content Unit Names
+
+Shows ScriptableObject-style content instances that own their own `InfinityValueUnitNames`.
+
+Import path:
+
+```text
+Samples~/Content Unit Names
+```
+
+## Save Load
+
+Shows simple PlayerPrefs persistence using `TryParse`.
+
+Import path:
+
+```text
+Samples~/Save Load
+```
+
+

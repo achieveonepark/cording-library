@@ -1,0 +1,7 @@
+# NPC Mentality
+
+> NPC AI systems for Unity games.
+
+## Others
+
+- [404](/npc-mentality/404.md)

@@ -1,0 +1,29 @@
+> For AI agents: the complete documentation index is available at /AchReactive/ko/llms.txt, the full documentation bundle is available at /AchReactive/ko/llms-full.txt.
+
+# 변경 이력
+
+## 0.1.0
+
+첫 공개. 스킬 전용 도구(Skill Creator)에서 **도메인 무관 리액션 프레임워크 AchReactive** 로 전환.
+
+### 추가
+
+- **Data Layer** — `IData`, `IDataLoader<T>`, `DataBase<T>` (typeof 미사용)
+- **Loader** — `JsonDataLoader<T>`(Newtonsoft), `CsvDataLoader<T>` + `ICsvMapper<T>`
+- **Reaction Layer** — `Reaction`, `EntityData`, `ParamBag`, `ReactionContext`, `ReactionEngine`
+- **Registry** — `Effect/Condition/TriggerRegistry` (Attribute 자동수집 + 수동등록)
+- **기본 동작 풀** — effect 8종, condition 8종, trigger 가드 1종
+- **통합 경계** — `IEntity`, `IWorld`, `StatSheet`, `CooldownStore`
+- **UIToolkit 저작 도구** — Type Designer(코드 생성), Data Editor(데이터 생성)
+- **Basic 샘플** — 스킬 + 몬스터 두 도메인 예제
+
+### 변경
+
+- 패키지명 `com.achieve.skill-creator` → `com.achieve.reactive`
+- 네임스페이스 → `AchReactive`
+- `JsonUtility` → `Newtonsoft.Json` (래퍼 클래스 제거)
+
+### 제거
+
+- 스킬 전용 레거시(`SkillSystem`/`SkillRunner`/`EffectExecutor` 등)
+- 버프 지속/스택 시스템은 런타임 상태 재설계가 필요해 일시 보류 (후속 예정)

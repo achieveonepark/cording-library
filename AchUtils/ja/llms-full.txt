@@ -1,0 +1,2494 @@
+---
+url: /AchUtils/ja/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# 변경 내역
+
+## v1.0.0 (2026-05)
+
+**최초 릴리스**
+
+### 추가된 시스템
+
+- 튜토리얼 시스템 — ScriptableObject 기반 노드, 저장/복원
+- 조건 그래프 — AND / OR / NOT 노드 트리
+- 스탯 모디파이어 — Flat / PercentAdd / PercentMultiply 3단계 계산
+- 포뮬러 시스템 — 재귀 하강 파서, 기획자 수정 가능 수식
+- 커브 데이터 — AnimationCurve 기반 밸런스 테이블
+- 시퀀스 시스템 — 선언적 연출 스텝 체인
+- 카메라 디렉터 — Zoom / Shake / Move 액션 시퀀스
+- 버프/디버프 — Duration, Stack, Tick 자동 관리
+- 퀘스트 시스템 — Kill / Talk / Collect 이벤트 기반
+- 스폰 시스템 — 가중치 랜덤, 최대 생존 수 관리
+- 행동 기록/재생 — InputFrame 타임스탬프 기록 및 재생
+- 시간 되감기 — IRewindable 스냅샷 히스토리
+
+
+
+---
+url: /AchUtils/ja/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# はじめに
+
+## Package Manager でインストール（ローカル）
+
+Unity プロジェクトの `Packages/manifest.json` を開き、以下を追加します。
+
+```json
+{
+  "dependencies": {
+    "com.achieve.utils": "file:../Packages/AchUtils"
+  }
+}
+```
+
+または **Package Manager → Add package from disk** を選択して `Packages/AchUtils/package.json` を開きます。
+
+## Git URL でインストール
+
+```json
+{
+  "dependencies": {
+    "com.achieve.utils": "https://github.com/achieveonepark/AchUtils.git"
+  }
+}
+```
+
+## 確認
+
+インストール後、`Assembly Browser` で `AchUtils.Runtime` と `AchUtils.Extensions` が表示されれば完了です。
+
+```csharp
+using AchUtils.Tutorial;
+using AchUtils.Buff;
+using AchUtils;
+// ... 必要なシステムのみ using
+```
+
+## 対応環境
+
+| 項目       | 要件                                                  |
+| -------- | --------------------------------------------------- |
+| Unity    | 2021.3 LTS 以降                                       |
+| .NET     | Standard 2.1                                        |
+| プラットフォーム | iOS, Android, PC, WebGL, Console                    |
+| 外部パッケージ  | `com.unity.ugui`, `com.unity.nuget.newtonsoft-json` |
+
+## サンプルのインポート
+
+Package Manager で AchUtils パッケージを選択し、**Samples → Basic Usage → Import** を押すと、インスタンスベースの使用例をプロジェクトに取り込めます。
+
+
+> **TextMeshPro**
+> 
+> `DialogueStep` は既定で `UnityEngine.UI.Text` を使用します。TMP を使うには `DialogueStep.cs` の `Text` コンポーネントを `TextMeshProUGUI` に置き換えてください。
+> 
+
+
+
+
+---
+url: /AchUtils/ja/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# 概要
+
+**AchUtils** は、Unity のゲーム開発で毎回繰り返されるシステムを、独立したインスタンスとしてパッケージ化したコレクションです。
+
+チュートリアル、条件グラフ、スタットモディファイアなど 13 のシステムがそれぞれ独立して動作するため、必要なものだけを選んで使えます。
+
+## 特徴
+
+- **独立インスタンス** — ほとんどのランタイムシステムは純粋な C# インスタンスとして生成し、コルーチン・Transform・Instantiate が必要な部分のみコンポーネントを使用
+- **ScriptableObject ベース** — データとロジックを分離し、プランナーが直接編集
+- **`[SerializeReference]` ポリモーフィズム** — ノード、エフェクト、ステップをインスペクターから直接追加
+- **反復コードの削減** — ランタイムシステムに加えて、コレクション・Unity オブジェクト・UI・文字列の拡張メソッドを提供
+
+## アセンブリ情報
+
+| 項目             | 値                                                   |
+| -------------- | --------------------------------------------------- |
+| パッケージ名         | `com.achieve.utils`                                 |
+| アセンブリ          | `AchUtils.Runtime`, `AchUtils.Extensions`           |
+| ルート名前空間        | `AchUtils`                                          |
+| 最小 Unity バージョン | **2021.3 LTS**                                      |
+| パッケージ依存        | `com.unity.ugui`, `com.unity.nuget.newtonsoft-json` |
+
+## 次のステップ
+
+- [インストール →](/AchUtils/ja/getting-started.md)
+- [拡張メソッド →](/AchUtils/ja/usage/extensions.md)
+- [最初のシステム — チュートリアル →](/AchUtils/ja/usage/tutorial.md)
+
+
+
+---
+url: /AchUtils/ja/usage/ach.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# ach
+
+﻿# Ach — 공유 변수 & 이벤트
+
+값과 신호를 **ScriptableObject 에셋**으로 만들어, 컴포넌트끼리 서로를 직접 참조하지 않고도 데이터를 공유하고 신호를 주고받는 시스템입니다.
+
+> 플레이어 체력을 `PlayerHP` 라는 **에셋 파일**로 만들어 두면, 체력바 UI·피격 사운드·게임오버 매니저가 모두 같은 에셋을 바라봅니다. 누가 누구를 참조하는지 인스펙터 선을 그릴 필요 없이, 값이 바뀌면 알아서 동기화됩니다.
+
+## 왜 쓰나요?
+
+```
+일반적인 방식                         Ach 방식
+─────────────────────────            ─────────────────────────
+UI 가 Player 를 직접 참조             UI 와 Player 가 PlayerHP 에셋을 공유
+씬이 바뀌면 참조가 끊김                에셋이라 씬과 무관하게 유지
+매 프레임 player.Hp 폴링               값이 바뀔 때만 콜백
+누가 값을 바꾸는지 추적 어려움          이벤트로 흐름이 명확
+```
+
+## 5가지 구성 요소
+
+| 요소             | 한 줄 설명                       | 예시 클래스                         |
+| -------------- | ---------------------------- | ------------------------------ |
+| **Variable**   | 값 하나를 담는 에셋                  | `IntVariable`, `FloatVariable` |
+| **Event**      | 값을 실어 보내는 신호 에셋              | `IntEvent`, `VoidEvent`        |
+| **Listener**   | 이벤트 → UnityEvent 로 반응하는 컴포넌트 | `IntEventListener`             |
+| **Reference**  | 상수 ↔ 변수 에셋을 인스펙터에서 토글        | `IntReference`                 |
+| **Collection** | 런타임에 공유되는 목록 에셋              | `GameObjectCollection`         |
+
+기본 제공 타입: **Int / Float / Bool / String / Vector2 / Vector3 / Color / GameObject** (+ 신호 전용 **Void**).
+
+## 우클릭으로 에셋 만들기
+
+Project 뷰에서 **우클릭 → Create → AchUtils → Ach** 아래에서 바로 생성합니다.
+
+```
+Create ▸ AchUtils ▸ Ach ▸ Variables    ▸ Int / Float / Bool / String / Vector2 / Vector3 / Color / GameObject Variable
+                        ▸ Events       ▸ Void / Int / Float / ... Event
+                        ▸ Collections  ▸ GameObject Collection
+```
+
+리스너는 컴포넌트입니다 — **Add Component → AchUtils → Ach → Int Event Listener**.
+
+## 빠른 시작
+
+### 1. Variable — 값을 에셋으로 공유
+
+**Create → AchUtils/Ach/Variables/Int Variable** 로 `PlayerHP` 에셋을 만듭니다.
+
+```csharp
+using AchUtils.Ach;
+using UnityEngine;
+
+public class Player : MonoBehaviour
+{
+    [SerializeField] IntVariable hp;     // PlayerHP 에셋을 드래그
+
+    public void TakeDamage(int amount)
+    {
+        hp.Value -= amount;              // 값이 바뀌면 구독자에게 자동 통지
+    }
+}
+
+public class HealthBar : MonoBehaviour
+{
+    [SerializeField] IntVariable hp;     // Player 와 같은 PlayerHP 에셋
+    [SerializeField] UnityEngine.UI.Slider slider;
+
+    void OnEnable()  => hp.OnChanged += Refresh;   // 값이 바뀔 때만 호출
+    void OnDisable() => hp.OnChanged -= Refresh;
+
+    void Refresh(int value) => slider.value = value;
+}
+```
+
+`Player` 와 `HealthBar` 는 서로를 전혀 모르지만 `PlayerHP` 에셋을 통해 연결됩니다.
+
+### 2. Event — 신호 보내기
+
+값이 필요 없는 알림은 **Void Event**, 값을 함께 보내려면 타입 이벤트를 씁니다.
+
+```csharp
+[SerializeField] VoidEvent onPlayerDied;
+[SerializeField] IntEvent  onGoldChanged;
+
+void Die()            => onPlayerDied.Raise();
+void AddGold(int now) => onGoldChanged.Raise(now);
+```
+
+### 3. Listener — 코드 없이 반응 연결
+
+반응할 오브젝트에 **Add Component → AchUtils/Ach/Int Event Listener** 를 붙이고, 인스펙터에서 `Event` 칸에 `onGoldChanged`, `Response` 칸에 호출할 메서드를 드래그합니다. 디자이너가 코드 없이 사운드·이펙트를 연결할 수 있습니다.
+
+### 4. Reference — 상수와 변수 사이 전환
+
+값을 상수로 박을지, 공유 변수 에셋으로 뺄지 인스펙터에서 체크박스로 고릅니다.
+
+```csharp
+[SerializeField] FloatReference moveSpeed;   // Use Constant 켜면 상수, 끄면 변수 에셋
+
+void Update()
+{
+    transform.position += dir * moveSpeed.Value * Time.deltaTime;
+}
+```
+
+프로토타입은 상수로 빠르게, 밸런싱 단계엔 같은 변수 에셋을 여러 곳에서 공유하도록 **코드 수정 없이** 전환합니다.
+
+### 5. Collection — 런타임 목록 공유
+
+**Create → AchUtils/Ach/Collections/GameObject Collection** 로 `AliveEnemies` 를 만듭니다.
+
+```csharp
+[SerializeField] GameObjectCollection aliveEnemies;
+
+void OnEnable()  => aliveEnemies.Add(gameObject);
+void OnDisable() => aliveEnemies.Remove(gameObject);
+
+// 다른 시스템에서: 남은 적이 0이면 웨이브 클리어
+if (aliveEnemies.Count == 0) WaveCleared();
+```
+
+## API
+
+### AchVariable\<T>
+
+```csharp
+T    Value                          // 대입 시 값이 바뀌면 OnChanged 발생
+T    InitialValue                   // 플레이 시작 시 적용되는 초기값
+void SetValue(T value)              // 같으면 무시
+void SetValueAndForceRaise(T value) // 같아도 강제 통지
+void ResetToInitialValue()
+
+event Action<T>    OnChanged             // (새 값)
+event Action<T, T> OnChangedWithHistory  // (이전 값, 새 값)
+```
+
+### AchEvent\<T> / VoidEvent
+
+```csharp
+void Raise(T value)                 // VoidEvent 는 Raise()
+void Register(Action<T> handler)
+void Unregister(Action<T> handler)
+T    LastValue                      // 마지막으로 보낸 값 (디버그)
+```
+
+### AchReference\<T, TVariable>
+
+```csharp
+T          Value                    // UseConstant 면 상수, 아니면 변수 값
+bool       UseConstant
+T          ConstantValue
+TVariable  Variable
+// implicit operator T — 그냥 값처럼 바로 사용 가능
+```
+
+### AchCollection\<T>
+
+```csharp
+int  Count
+T    this[int index]
+void Add(T item)
+bool AddIfMissing(T item)
+bool Remove(T item)
+bool Contains(T item)
+void Clear()
+
+event Action<T> OnAdded
+event Action<T> OnRemoved
+event Action    OnCleared
+```
+
+## 에디터 편의 기능
+
+- **변수 인스펙터** — 플레이 중 현재 값이 실시간 표시되고, `Reset To Initial Value` 버튼으로 즉시 초기화합니다.
+- **VoidEvent 인스펙터** — 플레이 중 `Raise` 버튼으로 이벤트를 수동 발생시켜 리스너 연결을 바로 테스트합니다.
+- **자동 리셋** — 변수·컬렉션은 플레이에 들어갈 때 초기값/빈 상태로 되돌아가, 도메인 리로드를 꺼도 매 실행이 깨끗하게 시작합니다.
+
+## 새 타입 추가하기
+
+기본 타입 외의 값(예: `Quaternion`)이 필요하면 한 줄짜리 서브클래스만 만들면 됩니다.
+
+```csharp
+using UnityEngine;
+using AchUtils.Ach;
+
+[CreateAssetMenu(menuName = "AchUtils/Ach/Variables/Quaternion Variable")]
+public class QuaternionVariable : AchVariable<Quaternion> { }
+
+[CreateAssetMenu(menuName = "AchUtils/Ach/Events/Quaternion Event")]
+public class QuaternionEvent : AchEvent<Quaternion> { }
+
+[System.Serializable]
+public class QuaternionUnityEvent : UnityEngine.Events.UnityEvent<Quaternion> { }
+
+public class QuaternionEventListener
+    : AchEventListener<Quaternion, QuaternionEvent, QuaternionUnityEvent> { }
+```
+
+
+> **언제 쓰면 좋은가**
+> 
+> 씬·프리팹 경계를 넘어 값/신호를 공유해야 할 때 가장 빛납니다. 한 GameObject 안에서만 쓰는 값이라면 일반 필드가 더 간단합니다.
+> 
+
+
+
+
+---
+url: /AchUtils/ja/usage/action-replay.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# action-replay
+
+﻿# 행동 기록 / 재생 시스템
+
+플레이어의 입력을 **타임스탬프 프레임**으로 기록하고 원하는 속도로 재생합니다. 고스트 레이싱, 리플레이, AI 학습 데이터, 버그 재현에 활용합니다.
+
+## 구조
+
+```
+ActionRecorder (순수 C# 인스턴스)
+  — 입력 발생 시 InputFrame을 ReplayData에 추가
+
+ActionPlayer (순수 C# 인스턴스)
+  — Tick(deltaTime)으로 ReplayData를 재생하고 OnFrame 이벤트 발행
+
+InputFrame (struct)
+  — Timestamp, ActionKey, Axis, IsPressed
+
+ReplayData (class)
+  — TotalDuration + List<InputFrame>
+```
+
+## 빠른 시작
+
+### 1. 기록
+
+```csharp
+using AchUtils.ActionReplay;
+
+private readonly ActionRecorder recorder = new();
+
+// 기록 시작
+recorder.StartRecording();
+
+// 입력 발생 시 기록
+public void OnJumpPressed()
+{
+    recorder.RecordButton("Jump", pressed: true);
+    // 실제 점프 실행 ...
+}
+
+public void OnMove(Vector2 axis)
+{
+    recorder.RecordAxis("Move", axis);
+}
+
+// 기록 종료
+ReplayData data = recorder.StopRecording();
+SaveReplay(data);   // 직렬화해서 파일/서버에 저장
+```
+
+### 2. 재생
+
+```csharp
+private readonly ActionPlayer player = new();
+
+void Update()
+{
+    player.Tick(Time.deltaTime);
+}
+
+void PlayGhost(ReplayData data)
+{
+    player.OnFrame += HandleFrame;
+    player.Play(data, speed: 1f);
+}
+
+void HandleFrame(InputFrame frame)
+{
+    switch (frame.ActionKey)
+    {
+        case "Jump":  ghost.Jump();         break;
+        case "Move":  ghost.Move(frame.Axis); break;
+        case "Attack": ghost.Attack();      break;
+    }
+}
+
+player.OnCompleted += () =>
+{
+    Debug.Log("리플레이 완료");
+    player.OnFrame -= HandleFrame;
+};
+```
+
+## API
+
+### ActionRecorder
+
+```csharp
+bool        IsRecording
+ReplayData  LastRecording
+
+void        StartRecording()
+ReplayData  StopRecording()
+
+// 이벤트 기록
+void RecordButton(string key, bool pressed)
+void RecordAxis(string key, Vector2 axis)
+void Record(string key, Vector2 axis = default, bool pressed = true)
+```
+
+### ActionPlayer
+
+```csharp
+bool IsPlaying
+
+void Play(ReplayData data, float speed = 1f)
+void Stop()
+void Tick(float deltaTime)
+
+event Action<InputFrame> OnFrame       // 매 프레임 발행
+event Action             OnCompleted
+event Action             OnStopped
+```
+
+### InputFrame
+
+```csharp
+float   Timestamp   // 기록 시작부터의 경과 시간 (초)
+string  ActionKey   // 액션 이름
+Vector2 Axis        // 아날로그 입력 값
+bool    IsPressed   // 버튼 누름 여부
+```
+
+## 재생 속도 조절
+
+```csharp
+player.Play(data, speed: 0.5f);  // 슬로우모션 리플레이
+player.Play(data, speed: 2.0f);  // 2배속 요약
+```
+
+## 데이터 직렬화 / 저장
+
+`ReplayData`는 `[Serializable]`이므로 JSON으로 변환해 저장할 수 있습니다.
+
+```csharp
+// 저장
+string json = JsonUtility.ToJson(data);
+File.WriteAllText("replay.json", json);
+
+// 불러오기
+string json = File.ReadAllText("replay.json");
+ReplayData data = JsonUtility.FromJson<ReplayData>(json);
+```
+
+## 활용 사례
+
+| 용도        | 설명                        |
+| --------- | ------------------------- |
+| 고스트 레이싱   | 최고 기록 플레이를 반투명 오브젝트로 재생   |
+| 리플레이 시스템  | 죽음 직전 장면을 다시 보기           |
+| AI 학습 데이터 | 인간 플레이 기록을 모방 학습에 사용      |
+| 버그 재현     | QA가 발견한 버그를 입력 기록으로 완벽 재현 |
+| 유튜브 클립    | 하이라이트 장면 자동 편집            |
+
+
+> **네트워크 동기화**
+> 
+> 멀티플레이어에서 리플레이를 동기화하려면 결정론적(Deterministic) 게임 루프가 필요합니다. 물리 기반 게임의 경우 `Physics.simulationMode`를 `Script`로 설정해 프레임 단위로 직접 제어하세요.
+> 
+
+
+
+
+---
+url: /AchUtils/ja/usage/buff-debuff.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# buff-debuff
+
+﻿# 버프 / 디버프 시스템
+
+Duration, Stack, Tick, 우선순위를 설정하는 **범용 버프 관리 파이프라인**입니다. 독, 빙결, 공속 증가 등 어떤 효과든 `BuffEffect`를 상속해 추가합니다.
+
+## 구조
+
+```
+BuffSystem (순수 C# 인스턴스)
+  — 등록된 버프의 타이머·틱·만료 자동 처리
+
+BuffDefinition (ScriptableObject)
+  — 이름, 아이콘, Duration, Tick, Stack 설정
+  [SerializeReference] List<BuffEffect>
+
+BuffInstance (runtime)
+  — 타겟에 적용된 버프의 실행 상태
+
+BuffEffect (abstract, [Serializable])
+  ├── DamageOverTimeEffect   — 틱마다 피해
+  ├── StunEffect             — 이동 불가
+  └── StatModifyEffect       — 스탯 모디파이어 자동 추가/제거
+```
+
+## 빠른 시작
+
+### 1. BuffDefinition 에셋 만들기
+
+**Create → AchUtils/Buff/Buff Definition**
+
+```
+BuffId          : "Poison"
+DisplayName     : "독"
+Duration        : 8
+TickInterval    : 1          ← 1초마다 틱
+MaxStacks       : 3
+RefreshOnReapply: true
+
+Effects:
+  [0] DamageOverTimeEffect
+        DamagePerTick: 15
+```
+
+### 2. BuffSystem 인스턴스 만들기
+
+`BuffSystem`은 `MonoBehaviour`가 아니므로 필요한 소유 객체에서 직접 생성합니다. 지속 시간과 틱 처리를 위해 매 프레임 `Tick`을 호출합니다.
+
+### 3. 버프 적용 / 제거
+
+```csharp
+using AchUtils.Buff;
+
+private readonly BuffSystem buffSystem = new();
+
+[SerializeField] BuffDefinition poisonDef;
+[SerializeField] GameObject target;
+
+void Update()
+{
+    buffSystem.Tick(Time.deltaTime);
+}
+
+// 적용
+buffSystem.Apply(poisonDef, target);
+
+// 제거
+buffSystem.Remove("Poison", target);
+
+// 확인
+bool hasPoisoned = buffSystem.Has("Poison", target);
+
+// 모두 제거
+buffSystem.RemoveAll(target);
+```
+
+## API
+
+### BuffSystem
+
+```csharp
+BuffInstance Apply(BuffDefinition definition, GameObject target)
+bool         Remove(string buffId, GameObject target)
+void         RemoveAll(GameObject target)
+bool         Has(string buffId, GameObject target)
+List<BuffInstance> GetBuffs(GameObject target)
+
+void Tick(float deltaTime)
+
+event Action<BuffInstance> OnBuffApplied
+event Action<BuffInstance> OnBuffRemoved
+```
+
+### BuffDefinition (Inspector)
+
+| 필드                         | 설명                    |
+| -------------------------- | --------------------- |
+| `BuffId`                   | 유일 식별자                |
+| `Duration`                 | 지속 시간 (초). `-1` = 영구  |
+| `TickInterval`             | 틱 간격 (초). `0` = 틱 없음  |
+| `MaxStacks`                | 최대 중첩 수               |
+| `RefreshDurationOnReapply` | 재적용 시 Duration 초기화 여부 |
+
+### BuffInstance
+
+```csharp
+BuffDefinition  Definition
+GameObject      Target
+int             Stacks
+float           RemainingDuration
+bool            IsPermanent
+bool            IsExpired
+```
+
+## 내장 이펙트
+
+### DamageOverTimeEffect
+
+```csharp
+float DamagePerTick   // 틱당 피해량 (스택에 비례)
+```
+
+타겟에 `IDamageable` 인터페이스가 필요합니다:
+
+```csharp
+public class Player : MonoBehaviour, IDamageable
+{
+    public void TakeDamage(float amount)
+    {
+        hp -= amount;
+    }
+}
+```
+
+### StunEffect
+
+타겟에 `IStunnable` 인터페이스가 필요합니다:
+
+```csharp
+public class PlayerController : MonoBehaviour, IStunnable
+{
+    private int _stunCount;
+
+    public void ApplyStun()  => _stunCount++;
+    public void RemoveStun() => _stunCount--;
+
+    void Update()
+    {
+        if (_stunCount > 0) return; // 이동 불가
+        // 이동 처리 ...
+    }
+}
+```
+
+### StatModifyEffect
+
+버프 적용/제거 시 `StatSheetComponent`의 스탯을 자동으로 추가/제거합니다.
+
+```csharp
+// Inspector에서 설정
+StatKey      : "Attack"
+ModifierType : PercentAdd
+Value        : 0.3          // 공격력 +30%
+```
+
+## 커스텀 이펙트 만들기
+
+```csharp
+[Serializable]
+public class FreezeEffect : BuffEffect
+{
+    public float SlowRatio = 0.5f;
+
+    public override void OnApply(BuffInstance buff, GameObject target)
+    {
+        var rb = target.GetComponent<Rigidbody>();
+        if (rb) rb.velocity *= (1f - SlowRatio);
+    }
+
+    public override void OnTick(BuffInstance buff, GameObject target)
+    {
+        // 매 틱 속도 억제
+    }
+}
+```
+
+## 활용 예시
+
+```
+독 (Poison)
+  Duration: 8s, TickInterval: 1s, MaxStacks: 3
+  DamageOverTimeEffect: 15 × 스택
+
+빙결 (Freeze)
+  Duration: 2s, MaxStacks: 1
+  StunEffect
+
+광전사 (Berserk)
+  Duration: 10s, IsPermanent: false
+  StatModifyEffect: Attack PercentAdd +0.5
+
+저주 (Curse)
+  Duration: -1 (영구), MaxStacks: 1
+  StatModifyEffect: Defense Flat -20
+```
+
+
+> **스탯 모디파이어 연동**
+> 
+> `StatModifyEffect`는 [스탯 모디파이어](/AchUtils/ja/usage/stat-modifier.md) 시스템과 자동으로 연동됩니다. 타겟에 `StatSheetComponent`가 있어야 합니다.
+> 
+
+
+
+
+---
+url: /AchUtils/ja/usage/camera-director.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# camera-director
+
+﻿# 카메라 디렉터
+
+게임 이벤트 흐름에 맞춰 **카메라 연출을 체인으로 조합**합니다. Cinemachine보다 단순하고 게임 이벤트 흐름 중심으로 설계됐습니다.
+
+## 구조
+
+```
+CameraDirector (MonoBehaviour, 코루틴 실행용)
+  — Camera 참조, 액션 시퀀스 실행
+
+CameraAction (abstract, [Serializable])
+  ├── ZoomCameraAction    — FOV 변경
+  ├── ShakeCameraAction   — 진동
+  ├── MoveCameraAction    — 위치 이동
+  └── WaitCameraAction    — 대기
+```
+
+## 빠른 시작
+
+### 1. 씬에 CameraDirector 추가
+
+`CameraDirector` 컴포넌트를 씬 오브젝트에 추가합니다. `Camera` 필드를 비워두면 `Camera.main`을 자동 사용합니다.
+
+### 2. 단일 액션 재생
+
+```csharp
+using AchUtils.Camera;
+
+[SerializeField] CameraDirector cameraDirector;
+
+cameraDirector.Play(new ShakeCameraAction
+{
+    Duration  = 0.5f,
+    Intensity = 0.3f,
+    Frequency = 30f
+});
+```
+
+### 3. 시퀀스 재생
+
+```csharp
+[SerializeField] CameraDirector cameraDirector;
+
+cameraDirector.PlaySequence(new CameraAction[]
+{
+    new MoveCameraAction
+    {
+        FollowTarget = boss.transform,
+        Duration     = 1.5f,
+        Ease         = AnimationCurve.EaseInOut(0,0,1,1)
+    },
+    new ZoomCameraAction  { TargetFOV = 35f,   Duration = 0.8f },
+    new WaitCameraAction  { Duration  = 2.0f },
+    new ShakeCameraAction { Duration  = 0.5f,  Intensity = 0.4f },
+    new ZoomCameraAction  { TargetFOV = 60f,   Duration = 1.0f },
+});
+```
+
+## API
+
+### CameraDirector
+
+```csharp
+// 접근
+CameraDirector cameraDirector
+
+// 참조 카메라 (없으면 Camera.main)
+Camera Camera
+
+// 재생
+void Play(CameraAction action)
+void PlaySequence(IEnumerable<CameraAction> actions)
+void Stop()
+
+bool IsPlaying
+
+event Action OnSequenceCompleted
+```
+
+### ZoomCameraAction
+
+```csharp
+float          TargetFOV   // 목표 시야각
+float          Duration
+AnimationCurve Ease
+```
+
+### ShakeCameraAction
+
+```csharp
+float          Duration
+float          Intensity           // 진폭 크기
+float          Frequency           // 진동 주파수 (Hz)
+AnimationCurve AttenuationCurve   // 강도 감쇠 곡선 (기본: 시작 강하게 → 약해짐)
+```
+
+### MoveCameraAction
+
+```csharp
+Vector3        Destination     // 목표 위치 (FollowTarget이 없을 때)
+Transform      FollowTarget    // 지정 시 해당 위치로 추적
+float          Duration
+AnimationCurve Ease
+```
+
+### WaitCameraAction
+
+```csharp
+float Duration
+```
+
+## 완료 콜백
+
+```csharp
+cameraDirector.OnSequenceCompleted += () =>
+{
+    // 카메라 연출 완료 후 게임플레이 재개
+    player.EnableControl();
+    UI.ShowBossHealthBar();
+};
+
+cameraDirector.PlaySequence(bossIntroActions);
+```
+
+## 커스텀 액션 만들기
+
+```csharp
+[Serializable]
+public class RotateCameraAction : CameraAction
+{
+    public Vector3 TargetAngle;
+    public float   Duration;
+
+    public override IEnumerator Execute(CameraDirector director)
+    {
+        var cam = director.Camera.transform;
+        Quaternion startRot = cam.rotation;
+        Quaternion endRot   = Quaternion.Euler(TargetAngle);
+        float elapsed = 0f;
+
+        while (elapsed < Duration)
+        {
+            elapsed += Time.deltaTime;
+            cam.rotation = Quaternion.Lerp(startRot, endRot, elapsed / Duration);
+            yield return null;
+        }
+
+        cam.rotation = endRot;
+    }
+}
+```
+
+## 연출 예시 — 보스 등장
+
+```
+보스 감지 트리거
+  ↓
+MoveCameraAction   보스 방향으로 1.5초 이동
+  ↓
+ZoomCameraAction   FOV 60→35  0.8초
+  ↓
+WaitCameraAction   2초 대기 (보스 포효)
+  ↓
+ShakeCameraAction  0.5초 진동
+  ↓
+ZoomCameraAction   FOV 35→60  1초 (원위치)
+  ↓
+OnSequenceCompleted → UI 표시
+```
+
+
+> **SequenceRunner와 함께**
+> 
+> `SequenceRunner`의 `CallbackStep`으로 카메라 연출 시작 타이밍을 시퀀스에 끼워 넣을 수 있습니다.
+> 
+
+
+
+
+---
+url: /AchUtils/ja/usage/condition-graph.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# condition-graph
+
+﻿# 조건 그래프
+
+복잡한 게임 조건을 **AND / OR / NOT 노드 트리**로 데이터화합니다. `if` 지옥을 없애고 기획자가 인스펙터에서 직접 조건을 구성할 수 있습니다.
+
+## 구조
+
+```
+ConditionGraph (ScriptableObject)
+  └── Root: ConditionNode  [SerializeReference]
+              ├── AndConditionNode
+              │     ├── CompareConditionNode  Level >= 10
+              │     ├── CompareConditionNode  VIP >= 3
+              │     └── CompareConditionNode  Tutorial == 1
+              └── OrConditionNode
+                    ├── CompareConditionNode  HasItem == 1
+                    └── ...
+```
+
+## 빠른 시작
+
+### 1. ConditionGraph 에셋 만들기
+
+**Create → AchUtils/Condition/Condition Graph**
+
+인스펙터에서 `Root`에 `[+]` 버튼으로 노드를 추가합니다.
+
+### 2. 조건 평가
+
+```csharp
+using AchUtils.Condition;
+
+// 컨텍스트에 현재 게임 상태 주입
+var ctx = new ConditionContext();
+ctx.Set("Level", player.Level);
+ctx.Set("VIP", player.VipGrade);
+ctx.Set("Tutorial", tutorialDone ? 1f : 0f);
+
+// 그래프 평가
+bool canOpen = shopConditionGraph.Evaluate(ctx);
+shopPanel.SetActive(canOpen);
+```
+
+## 노드 종류
+
+### CompareConditionNode
+
+숫자 값을 비교합니다.
+
+| 필드      | 타입        | 설명      |
+| ------- | --------- | ------- |
+| `Key`   | string    | 컨텍스트 키  |
+| `Op`    | CompareOp | 비교 연산자  |
+| `Value` | float     | 비교 대상 값 |
+
+```csharp
+public enum CompareOp
+{
+    Equal, NotEqual,
+    Greater, GreaterOrEqual,
+    Less, LessOrEqual
+}
+```
+
+### AndConditionNode
+
+자식 노드 **모두** true일 때 true.
+
+```
+AND
+├ Level >= 10   ✓
+├ VIP >= 3      ✓
+└ Tutorial == 1 ✓
+→ true
+```
+
+### OrConditionNode
+
+자식 노드 **하나라도** true이면 true.
+
+```
+OR
+├ HasFreeItem == 1   ✓
+└ HasDiscount == 1   ✗
+→ true
+```
+
+### NotConditionNode
+
+자식 노드의 결과를 반전합니다.
+
+```
+NOT
+└ IsBanned == 1   ✗
+→ true
+```
+
+## ConditionContext API
+
+```csharp
+var ctx = new ConditionContext();
+
+ctx.Set("Level", 15f);
+ctx.Get("Level");       // 15f
+ctx.Has("Level");       // true
+ctx.Remove("Level");
+ctx.Clear();
+```
+
+
+> **컨텍스트 재사용**
+> 
+> `ConditionContext`는 매 프레임 생성하지 말고 필드로 보유한 뒤 `Set`으로 값만 갱신하세요.
+> 
+
+
+## 활용 사례
+
+```csharp
+// 상점 노출 조건
+shopGraph.Evaluate(ctx)
+
+// 이벤트 오픈
+eventGraph.Evaluate(ctx)
+
+// 업적 달성 조건
+achievementGraph.Evaluate(ctx)
+
+// 광고 등장 조건
+adGraph.Evaluate(ctx)
+```
+
+## 커스텀 노드 추가
+
+```csharp
+[Serializable]
+public class DateRangeConditionNode : ConditionNode
+{
+    public string StartDate;  // "2024-12-25"
+    public string EndDate;
+
+    public override bool Evaluate(ConditionContext context)
+    {
+        var now = DateTime.Now;
+        return now >= DateTime.Parse(StartDate)
+            && now <= DateTime.Parse(EndDate);
+    }
+}
+```
+
+`[SerializeReference]`와 `[Serializable]` 어트리뷰트만 붙이면 인스펙터에서 바로 사용 가능합니다.
+
+
+
+---
+url: /AchUtils/ja/usage/curve-data.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# curve-data
+
+﻿# 커브 데이터 시스템
+
+`AnimationCurve`로 레벨별 수치, 경험치 테이블, 스탯 성장 곡선을 정의합니다. 코드를 건드리지 않고 인스펙터에서 곡선을 드래그해 밸런스를 조정할 수 있습니다.
+
+## 구조
+
+```
+CurveDataAsset (ScriptableObject)
+  Curve       : AnimationCurve   — 0~1 → 0~1 정규화 곡선
+  MinInput    : float            — 입력 범위 시작
+  MaxInput    : float            — 입력 범위 끝
+  MinOutput   : float            — 출력 범위 시작
+  MaxOutput   : float            — 출력 범위 끝
+
+CurveDataTable (ScriptableObject)
+  List<Entry { Key, CurveDataAsset }>
+```
+
+## 빠른 시작
+
+### 1. CurveDataAsset 만들기
+
+**Create → AchUtils/Curve/Curve Data Asset**
+
+```
+Curve    : [그래프 에디터에서 곡선 편집]
+MinInput : 1      MaxInput : 100   (레벨 1~100)
+MinOutput: 100    MaxOutput: 50000 (HP 100~50000)
+```
+
+### 2. 코드에서 사용
+
+```csharp
+using AchUtils.Curve;
+
+[SerializeField] CurveDataAsset hpCurve;
+[SerializeField] CurveDataAsset expCurve;
+
+// 레벨에 따른 HP 계산
+float hp = hpCurve.Evaluate(player.Level);     // Level → HP
+
+// 레벨 10의 필요 경험치
+float exp = expCurve.Evaluate(10f);
+```
+
+### 3. CurveDataTable로 여러 커브 묶기
+
+**Create → AchUtils/Curve/Curve Data Table**
+
+```csharp
+[SerializeField] CurveDataTable statTable;
+
+float hp     = statTable.Evaluate("HP",     level);
+float attack = statTable.Evaluate("Attack", level);
+float def    = statTable.Evaluate("Defense", level);
+```
+
+## API
+
+### CurveDataAsset
+
+```csharp
+// 입력 범위(MinInput~MaxInput)로 보간 후 출력 범위(MinOutput~MaxOutput)로 변환
+float Evaluate(float input)
+
+// 이미 0~1 범위의 t값으로 직접 평가
+float EvaluateNormalized(float t)
+```
+
+### CurveDataTable
+
+```csharp
+float Evaluate(string key, float input)
+bool  TryGetCurve(string key, out CurveDataAsset curve)
+```
+
+## 곡선 형태별 활용
+
+```
+선형 성장    HP = level * 500
+             → AnimationCurve.Linear(0,0,1,1)
+
+지수 성장    경험치 요구량
+             → 우측으로 급격히 상승하는 S 커브
+
+로그 성장    공격력 (초반 빠름, 후반 둔화)
+             → 좌측으로 급격한 오목 커브
+
+계단식       등급별 보상
+             → 수평-수직 반복 스텝 커브
+```
+
+## 기존 코드와 비교
+
+```csharp
+// 변경 전 — 하드코딩, 수정할 때마다 빌드
+float hp = level * 100 + level * level * 5;
+
+// 변경 후 — 인스펙터에서 실시간 조정
+float hp = hpCurve.Evaluate(level);
+```
+
+
+> **에디터 미리보기**
+> 
+> 인스펙터에서 커브를 편집하면 `CurveDataAsset`의 `Preview` 창에서 결과값을 확인할 수 있습니다 (에디터 스크립트 별도 구현 시).
+> 
+
+
+
+
+---
+url: /AchUtils/ja/usage/extensions.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# 확장 메서드
+
+`AchUtils.Extensions` 어셈블리는 AchEngine에서 분리해 온 Unity 런타임 확장 메서드와 작은 유틸리티 클래스 모음입니다.
+네임스페이스는 모두 `AchUtils`로 정리되어 있으므로 사용 파일에서 `using AchUtils;`만 추가하면 됩니다.
+
+## 설치 정보
+
+| 항목           | 값                                                   |
+| ------------ | --------------------------------------------------- |
+| 어셈블리         | `AchUtils.Extensions`                               |
+| 루트 네임스페이스    | `AchUtils`                                          |
+| 폴더           | `Runtime/Extensions`                                |
+| 추가 Unity 패키지 | `com.unity.ugui`, `com.unity.nuget.newtonsoft-json` |
+
+## 포함 범위
+
+### 컬렉션
+
+| 클래스                                             | 주요 용도                         |
+| ----------------------------------------------- | ----------------------------- |
+| `ArrayExt`, `ListExt`                           | 배열과 리스트 조작                    |
+| `DictionaryExt`, `MultiDictionary<TKey,TValue>` | 딕셔너리 편의 기능과 한 키에 여러 값을 담는 컬렉션 |
+| `IEnumerableExt`, `IListExt`, `LinqE`           | LINQ 보조 메서드와 셔플, 필터링, 변환      |
+
+### Unity 타입
+
+| 클래스                                   | 주요 용도                  |
+| ------------------------------------- | ---------------------- |
+| `GameObjectExt`, `ComponentExt`       | 컴포넌트 검색, 추가, 제거, 계층 탐색 |
+| `Vector2Ext`, `Vector3Ext`, `RectExt` | 좌표, 크기, 범위 계산          |
+| `ColorExt`, `ColorUtils`              | 색상 변환과 Hex 처리          |
+| `SpriteRendererExt`, `SpriteAtlasExt` | 스프라이트 렌더러와 아틀라스 편의 기능  |
+
+### UI
+
+| 클래스                                                | 주요 용도             |
+| -------------------------------------------------- | ----------------- |
+| `RectTransformExt`                                 | UI 레이아웃 좌표와 앵커 조작 |
+| `ImageExt`, `RawImageExt`, `GraphicExt`, `TextExt` | uGUI 컴포넌트 편의 기능   |
+| `ButtonClickedEventExt`                            | 버튼 클릭 이벤트 래핑      |
+
+### 기본 타입과 공통 유틸리티
+
+| 클래스                                                              | 주요 용도               |
+| ---------------------------------------------------------------- | ------------------- |
+| `StringExt`, `StringParseExt`, `StringBuilderExt`                | 문자열 검사, 파싱, 조합      |
+| `IntExt`, `UintExt`, `FloatExt`, `BoolExt`, `ByteExt`, `EnumExt` | 기본 타입 변환과 검사        |
+| `ActionExt`, `FuncExt`, `DelegateExt`, `UnityEventExt`           | 콜백과 이벤트 호출 보조       |
+| `Selectable<T>`, `SelectableList<T>`, `SelectableBool`           | 값 변경 콜백을 가진 래퍼      |
+| `SingleTask`, `MultiTask`, `StringAppender`                      | 반복 작업과 문자열 조립 보조    |
+| `PlayerPrefsExt`, `IJsonExt`, `IncomingWebhooks`                 | JSON 저장, 직렬화, 웹훅 전송 |
+
+## 사용 예시
+
+```csharp
+using AchUtils;
+using UnityEngine;
+
+public class ExtensionSample : MonoBehaviour
+{
+    private void Awake()
+    {
+        var rb = gameObject.GetOrAddComponent<Rigidbody>();
+        gameObject.SetActiveIfNotNull(true);
+
+        var hp = new Selectable<int>(100);
+        hp.mChanged += () => Debug.Log($"HP changed: {hp.Value}");
+        hp.Value = 80;
+
+        var skills = new MultiDictionary<string, string>();
+        skills.Add("warrior", "Slash");
+        skills.Add("warrior", "Block");
+    }
+}
+```
+
+## 마이그레이션
+
+AchEngine에서 사용하던 코드는 네임스페이스만 바꾸면 됩니다.
+
+```csharp
+- using AchEngine;
++ using AchUtils;
+```
+
+`AchEngine.Extensions.ReflectionE`와 `AchEngine.Extensions.ZciencE` 하위 네임스페이스도 각각 `AchUtils.Extensions.ReflectionE`, `AchUtils.Extensions.ZciencE`로 이동했습니다.
+
+
+
+---
+url: /AchUtils/ja/usage/formula.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# formula
+
+﻿# 포뮬러 시스템
+
+수식을 **ScriptableObject 문자열**로 정의해 기획자가 코드 없이 스킬 데미지, 경험치, 밸런스 수치를 직접 수정합니다.
+
+## 개요
+
+```
+FormulaAsset (ScriptableObject)
+  Expression: "Attack * SkillMultiplier - Defense + Random(0, 10)"
+
+FormulaContext  — 변수 컨테이너 (key → float)
+FormulaEvaluator — 재귀 하강 파서, 런타임 계산
+```
+
+## 빠른 시작
+
+### 1. FormulaAsset 만들기
+
+**Create → AchUtils/Formula/Formula Asset**
+
+인스펙터 `Expression` 필드에 수식을 입력합니다.
+
+```
+Attack * SkillMultiplier - Defense + Random(0, 10)
+```
+
+### 2. 런타임에서 계산
+
+```csharp
+using AchUtils.Formula;
+
+// 컨텍스트에 변수 설정
+var ctx = new FormulaContext();
+ctx.Set("Attack",          sheet.GetFinal("Attack"));
+ctx.Set("SkillMultiplier", skill.Multiplier);
+ctx.Set("Defense",         target.GetFinal("Defense"));
+
+// 평가
+float damage = damageFormula.Evaluate(ctx);
+target.TakeDamage(damage);
+```
+
+## 지원 문법
+
+### 연산자
+
+| 연산자      | 설명      | 예시                         |
+| -------- | ------- | -------------------------- |
+| `+` `-`  | 덧셈/뺄셈   | `Attack + 50`              |
+| `*` `/`  | 곱셈/나눗셈  | `Attack * 1.5`             |
+| `( )`    | 우선순위 그룹 | `(Attack + Defense) * 0.5` |
+| `-` (단항) | 부호 반전   | `-Defense`                 |
+
+### 내장 함수
+
+| 함수                   | 설명            |
+| -------------------- | ------------- |
+| `Random(min, max)`   | 랜덤 float      |
+| `Min(a, b)`          | 최솟값           |
+| `Max(a, b)`          | 최댓값           |
+| `Abs(x)`             | 절댓값           |
+| `Clamp(x, min, max)` | 범위 제한         |
+| `Floor(x)`           | 내림            |
+| `Ceil(x)`            | 올림            |
+| `Round(x)`           | 반올림           |
+| `Sqrt(x)`            | 제곱근           |
+| `Pow(x, exp)`        | 거듭제곱          |
+| `Sign(x)`            | 부호 (-1, 0, 1) |
+
+## 수식 예시
+
+```
+# 스킬 데미지
+Attack * SkillMultiplier - Max(Defense - Penetration, 0)
+
+# 힐 량
+HealPower * 0.3 + Max(0, TargetMissingHP * 0.1)
+
+# 방치형 골드 계산
+BaseGold * Pow(1.15, Floor(Level / 10)) + Random(0, 50)
+
+# 크리티컬 데미지
+Attack * Clamp(CritMultiplier, 1.5, 3.0)
+```
+
+## API
+
+### FormulaContext
+
+```csharp
+void  Set(string key, float value)
+float Get(string key)         // 없으면 Exception
+bool  Has(string key)
+void  Clear()
+```
+
+### FormulaAsset
+
+```csharp
+// ScriptableObject 필드
+[TextArea] string Expression
+
+// 계산
+float Evaluate(FormulaContext context)
+```
+
+### FormulaEvaluator (직접 사용 시)
+
+```csharp
+var evaluator = new FormulaEvaluator();
+float result = evaluator.Evaluate("Attack * 2 + 10", ctx);
+```
+
+## 에러 처리
+
+변수가 없거나 구문 오류가 있으면 `System.Exception`이 발생합니다.
+
+```csharp
+try
+{
+    float damage = formula.Evaluate(ctx);
+}
+catch (Exception e)
+{
+    Debug.LogError($"[Formula] {formula.name}: {e.Message}");
+    damage = 0f;
+}
+```
+
+
+> **스레드 안전성**
+> 
+> `FormulaEvaluator`는 파서 상태를 인스턴스 필드로 보유하므로 동시에 여러 스레드에서 같은 인스턴스를 사용하지 마세요. `FormulaAsset`은 내부에 단일 evaluator를 캐싱합니다.
+> 
+
+
+
+
+---
+url: /AchUtils/ja/usage/quest.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# quest
+
+﻿# 퀘스트 시스템
+
+**Kill → Talk → Collect** 스텝을 조합하는 범용 퀘스트 파이프라인입니다. RPG부터 캐주얼까지 이벤트 기반으로 진행 상황을 추적합니다.
+
+## 구조
+
+```
+QuestSystem (순수 C# 인스턴스)
+  — 활성 퀘스트 관리, 이벤트 라우팅
+
+QuestDefinition (ScriptableObject)
+  — 제목, 설명, 보상 목록
+  [SerializeReference] List<QuestStep>
+
+QuestInstance (runtime)
+  — 현재 스텝 인덱스, 완료 상태
+
+QuestStep (abstract, [Serializable])
+  ├── KillQuestStep     — 특정 적 N마리 처치
+  ├── TalkQuestStep     — 특정 NPC와 대화
+  └── CollectQuestStep  — 특정 아이템 N개 수집
+```
+
+## 빠른 시작
+
+### 1. QuestDefinition 에셋 만들기
+
+**Create → AchUtils/Quest/Quest Definition**
+
+```
+QuestId : "MainQuest_01"
+Title   : "슬라임 토벌"
+
+Steps:
+  [0] KillQuestStep
+        EnemyType     : "Slime"
+        RequiredCount : 5
+  [1] TalkQuestStep
+        NpcId         : "GuardNPC"
+  [2] CollectQuestStep
+        ItemId        : "SlimeGel"
+        RequiredCount : 3
+
+Rewards:
+  [0] QuestReward { RewardId: "Gold", Amount: 500 }
+  [1] QuestReward { RewardId: "Exp",  Amount: 200 }
+```
+
+### 2. QuestSystem 인스턴스 만들기
+
+`QuestSystem`은 상태만 관리하는 순수 C# 클래스입니다. 퀘스트를 소유할 객체에서 직접 생성합니다.
+
+### 3. 퀘스트 시작
+
+```csharp
+using AchUtils.Quest;
+
+private readonly QuestSystem questSystem = new();
+
+[SerializeField] QuestDefinition mainQuest01;
+
+var instance = questSystem.StartQuest(mainQuest01);
+
+instance.OnStepCompleted += step =>
+    Debug.Log($"스텝 {step} 완료");
+
+instance.OnQuestCompleted += () =>
+    GiveRewards(mainQuest01.Rewards);
+```
+
+### 4. 이벤트 발행
+
+게임 내 어디서든 Progress를 호출합니다. 현재 활성인 모든 퀘스트가 이벤트를 수신합니다.
+
+```csharp
+// 몬스터 사망 시
+questSystem.Progress("Kill", "Slime");
+
+// NPC 대화 시
+questSystem.Progress("Talk", "GuardNPC");
+
+// 아이템 획득 시
+questSystem.Progress("Collect", "SlimeGel");
+```
+
+## 이벤트 키 규칙
+
+| 키           | 두 번째 인자 (`data`) | 스텝                 |
+| ----------- | ---------------- | ------------------ |
+| `"Kill"`    | 적 타입 string      | `KillQuestStep`    |
+| `"Talk"`    | NPC ID string    | `TalkQuestStep`    |
+| `"Collect"` | 아이템 ID string    | `CollectQuestStep` |
+
+## API
+
+### QuestSystem
+
+```csharp
+QuestInstance StartQuest(QuestDefinition definition)
+
+void Progress(string eventKey, object data = null)
+
+bool          IsCompleted(string questId)
+bool          IsActive(string questId)
+QuestInstance GetActive(string questId)
+List<QuestInstance> GetAllActive()
+
+event Action<QuestInstance>      OnQuestStarted
+event Action<QuestInstance>      OnQuestCompleted
+event Action<QuestInstance, int> OnQuestStepCompleted
+```
+
+### QuestInstance
+
+```csharp
+QuestDefinition Definition
+int             CurrentStepIndex
+bool            IsCompleted
+QuestStep       CurrentStep     // 현재 진행 중인 스텝
+
+event Action<int> OnStepCompleted
+event Action      OnQuestCompleted
+```
+
+## 커스텀 스텝 만들기
+
+```csharp
+[Serializable]
+public class ReachLocationStep : QuestStep
+{
+    public string LocationId;
+    private bool _reached;
+
+    public override bool IsComplete => _reached;
+
+    public override void OnProgress(string eventKey, object data)
+    {
+        if (eventKey == "ReachLocation" && data is string loc && loc == LocationId)
+            _reached = true;
+    }
+
+    public override void OnStart() => _reached = false;
+}
+```
+
+```csharp
+// 특정 위치 도달 시
+questSystem.Progress("ReachLocation", "DungeonEntrance");
+```
+
+## 중복 시작 방지
+
+같은 `QuestId`의 퀘스트는 중복 시작되지 않습니다. 이미 완료된 퀘스트도 다시 시작되지 않습니다.
+
+```csharp
+// 두 번 호출해도 인스턴스는 하나
+questSystem.StartQuest(mainQuest01);
+questSystem.StartQuest(mainQuest01); // 무시됨
+```
+
+
+
+---
+url: /AchUtils/ja/usage/sequence.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# sequence
+
+﻿# 시퀀스 시스템
+
+`await/Coroutine` 지옥 없이 게임 연출 흐름을 **선언적 스텝 목록**으로 구성합니다.
+
+## 구조
+
+```
+SequenceAsset (ScriptableObject)
+  [SerializeReference] List<SequenceStep>
+
+SequenceRunner (MonoBehaviour)
+  — 스텝을 순서대로 코루틴 실행
+
+SequenceStep (abstract, [Serializable])
+  — 커스텀 스텝을 상속해서 구현
+```
+
+## 기본 제공 스텝
+
+| 스텝             | 설명                         |
+| -------------- | -------------------------- |
+| `WaitStep`     | N초 대기                      |
+| `MoveStep`     | Transform을 목적지로 이동 (이징 지원) |
+| `FadeStep`     | CanvasGroup 알파 애니메이션       |
+| `ScaleStep`    | Transform 스케일 애니메이션        |
+| `SoundStep`    | AudioClip 재생               |
+| `CallbackStep` | UnityEvent 호출              |
+
+## 빠른 시작
+
+### 방법 A — SequenceAsset (에디터 설정)
+
+**Create → AchUtils/Sequence/Sequence Asset**
+
+인스펙터에서 스텝 추가 후 실행:
+
+```csharp
+using AchUtils.Sequence;
+
+[SerializeField] SequenceAsset introSequence;
+[SerializeField] SequenceRunner runner;
+
+void PlayIntro()
+{
+    runner.Run(introSequence);
+}
+```
+
+### 방법 B — 코드로 구성
+
+```csharp
+var steps = new List<SequenceStep>
+{
+    new FadeStep  { Target = overlay,    TargetAlpha = 1f, Duration = 0.3f },
+    new WaitStep  { Duration = 0.5f },
+    new MoveStep  { Target = boss,       Destination = centerPos, Duration = 1f },
+    new ScaleStep { Target = boss,       TargetScale = Vector3.one * 1.5f, Duration = 0.3f },
+    new SoundStep { Clip = bossRoar },
+    new FadeStep  { Target = overlay,    TargetAlpha = 0f, Duration = 0.5f },
+};
+
+runner.Run(steps);
+```
+
+## API
+
+### SequenceRunner
+
+```csharp
+// 실행
+void Run(SequenceAsset asset)
+void Run(IEnumerable<SequenceStep> steps)
+void Stop()
+
+bool IsRunning
+
+event Action OnCompleted
+event Action OnStopped
+```
+
+### MoveStep
+
+```csharp
+Transform       Target
+Vector3         Destination
+float           Duration        // 초
+AnimationCurve  Ease            // 기본: EaseInOut
+bool            UseLocalSpace   // true면 localPosition 사용
+```
+
+### FadeStep
+
+```csharp
+CanvasGroup     Target
+float           TargetAlpha     // 0~1
+float           Duration
+AnimationCurve  Ease
+```
+
+### ScaleStep
+
+```csharp
+Transform       Target
+Vector3         TargetScale
+float           Duration
+AnimationCurve  Ease
+```
+
+### SoundStep
+
+```csharp
+AudioClip       Clip
+float           Volume              // 0~1
+bool            WaitUntilFinished   // true면 클립 재생 완료 대기
+```
+
+`SoundStep`은 `Camera.main`에 의존하지 않고 `SequenceRunner` 위치에서 클립을 재생합니다.
+
+### CallbackStep
+
+```csharp
+UnityEvent      OnExecute           // 인스펙터에서 연결
+```
+
+## 커스텀 스텝 만들기
+
+```csharp
+[Serializable]
+public class ShowPanelStep : SequenceStep
+{
+    public GameObject Panel;
+    public float HoldDuration = 2f;
+
+    public override IEnumerator Execute(SequenceRunner runner)
+    {
+        Panel.SetActive(true);
+        yield return new WaitForSeconds(HoldDuration);
+        Panel.SetActive(false);
+    }
+}
+```
+
+`[Serializable]`만 붙이면 `[SerializeReference]` 필드에서 인스펙터 선택이 가능합니다.
+
+## 완료 이벤트
+
+```csharp
+runner.OnCompleted += () =>
+{
+    Debug.Log("인트로 연출 완료");
+    StartGameplay();
+};
+
+runner.Run(introSequence);
+```
+
+## 연출 예시 — 보스 등장
+
+```
+FadeStep     오버레이 Fade In  (0.3s)
+WaitStep     0.5s 대기
+MoveCameraAction  보스 방향 이동  ← CameraDirector와 병행 가능
+MoveStep     보스 등장 이동  (1.5s, EaseOut)
+ScaleStep    보스 스케일 업  (0.5s, Bounce)
+SoundStep    보스 포효
+FadeStep     오버레이 Fade Out (0.5s)
+CallbackStep UI 표시 이벤트
+```
+
+
+
+---
+url: /AchUtils/ja/usage/spawn.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# spawn
+
+﻿# 스폰 시스템
+
+**가중치 기반 랜덤 스폰**, 최대 생존 수, 인터벌, 반경을 `SpawnGroup` ScriptableObject로 설정합니다. `Spawner`를 여러 개 배치해 각각 독립적으로 운용합니다.
+
+## 구조
+
+```
+SpawnSystem (순수 C# 인스턴스)
+  — 씬 내 모든 Spawner 등록 관리
+
+SpawnGroup (ScriptableObject)
+  — Entry 목록 (Prefab + Weight + Min/MaxCount)
+  — SpawnInterval, MaxAlive, SpawnRadius
+
+Spawner (MonoBehaviour)
+  — SpawnGroup을 사용해 실제 생성/파괴 처리
+```
+
+## 빠른 시작
+
+### 1. SpawnGroup 에셋 만들기
+
+**Create → AchUtils/Spawn/Spawn Group**
+
+```
+SpawnInterval : 5       ← 5초마다 스폰 시도
+MaxAlive      : 10      ← 최대 10마리 동시 존재
+SpawnRadius   : 8       ← 스포너 중심 반경 8m
+
+Entries:
+  [0] Prefab: SlimeBlue    Weight: 70   Min: 1  Max: 2
+  [1] Prefab: SlimeRed     Weight: 25   Min: 1  Max: 1
+  [2] Prefab: SlimeBoss    Weight:  5   Min: 1  Max: 1
+```
+
+### 2. Spawner 배치
+
+씬에 빈 오브젝트를 만들고 `Spawner` 컴포넌트를 추가합니다.
+
+| 필드           | 설명                |
+| ------------ | ----------------- |
+| `Group`      | SpawnGroup 에셋     |
+| `Auto Start` | 씬 시작 시 자동으로 스폰 시작 |
+
+### 3. 스폰 제어
+
+```csharp
+using AchUtils.Spawn;
+
+[SerializeField] Spawner spawner;
+
+// 시작 / 중지
+spawner.StartSpawning();
+spawner.StopSpawning();
+
+// 전체 제거
+spawner.DespawnAll();
+
+// 이벤트
+spawner.OnSpawned   += obj => Debug.Log($"{obj.name} 스폰");
+spawner.OnDespawned += obj => Debug.Log($"{obj.name} 제거");
+```
+
+### 4. SpawnSystem으로 전체 제어
+
+```csharp
+[SerializeField] Spawner[] spawners;
+
+private SpawnSystem spawnSystem;
+
+void Awake()
+{
+    spawnSystem = new SpawnSystem(spawners);
+}
+
+// 모든 스포너 시작 / 중지
+spawnSystem.StartAll();
+spawnSystem.StopAll();
+spawnSystem.DespawnAll();
+```
+
+## API
+
+### Spawner
+
+```csharp
+bool IsSpawning
+IReadOnlyList<GameObject> AliveObjects
+
+void StartSpawning()
+void StopSpawning()
+void DespawnAll()
+
+event Action<GameObject> OnSpawned
+event Action<GameObject> OnDespawned
+```
+
+### SpawnSystem
+
+```csharp
+SpawnSystem()
+SpawnSystem(IEnumerable<Spawner> spawners)
+
+void RegisterSpawner(Spawner spawner)
+void UnregisterSpawner(Spawner spawner)
+
+void StartAll()
+void StopAll()
+void DespawnAll()
+
+IReadOnlyList<Spawner> Spawners
+```
+
+### SpawnGroup.Entry
+
+```csharp
+GameObject Prefab
+float      Weight      // 가중치 (높을수록 자주 선택)
+int        MinCount    // 1회 스폰 시 최소 수
+int        MaxCount    // 1회 스폰 시 최대 수
+```
+
+## 스폰 로직
+
+1. `SpawnInterval`마다 실행
+2. 현재 생존 수 \< `MaxAlive`인 경우 `PickRandom()`으로 Entry 선택
+3. `Random.Range(Min, Max+1)`개 생성
+4. `SpawnRadius` 내 `Random.insideUnitCircle` 위치에 배치
+
+```csharp
+// 직접 가중치 선택 로직 사용
+SpawnGroup.Entry entry = spawnGroup.PickRandom();
+var obj = Instantiate(entry.Prefab, spawnPos, Quaternion.identity);
+```
+
+## 다중 스포너 예시
+
+```
+DungeonSpawner    → SlimeGroup     (5마리, 3초)
+BossRoomSpawner   → EliteGroup     (2마리, 10초)
+TreasureSpawner   → ChestGroup     (1마리, 30초)
+```
+
+각 Spawner는 독립 인스턴스이므로 서로 다른 SpawnGroup과 설정을 가질 수 있습니다.
+
+
+> **풀링**
+> 
+> 스폰 빈도가 높다면 Object Pooling과 연계하세요. `Spawner.OnSpawned` / `OnDespawned` 이벤트에서 풀 반납 로직을 추가할 수 있습니다.
+> 
+
+
+
+
+---
+url: /AchUtils/ja/usage/stat-modifier.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# stat-modifier
+
+﻿# 스탯 모디파이어
+
+RPG, 방치형, 전략 장르에 필수인 **스탯 계산 파이프라인**입니다. Flat → PercentAdd → PercentMultiply 3단계 순서로 최종값을 계산하며, 소스별로 모디파이어를 추가/제거합니다.
+
+## 계산 공식
+
+```
+최종값 = (기본값 + Flat 합산) × (1 + PercentAdd 합산) × ΠPercentMultiply
+```
+
+**예시:**
+
+```
+기본 공격력 : 100
+무기        : +20  (Flat)
+버프        : +30% (PercentAdd)
+패시브       : ×1.15 (PercentMultiply)
+
+최종 = (100 + 20) × (1 + 0.30) × 1.15
+     = 120 × 1.30 × 1.15
+     = 179.4
+```
+
+## 구조
+
+```
+StatSheet               — 스탯 컨테이너 (순수 C#)
+  └── Dictionary<string, StatValue>
+
+StatValue               — 단일 스탯 + 모디파이어 목록
+  └── List<StatModifier>
+
+StatSheetComponent      — MonoBehaviour 래퍼 (GameObject에 부착)
+```
+
+## 빠른 시작
+
+```csharp
+using AchUtils.StatModifier;
+
+// 1. StatSheet 생성 (또는 StatSheetComponent 컴포넌트 사용)
+var sheet = new StatSheet();
+
+// 2. 기본값 설정
+sheet.SetBase("Attack", 100f);
+sheet.SetBase("Defense", 50f);
+
+// 3. 모디파이어 추가
+sheet.AddModifier("Attack", new StatModifier("weapon_sword",  ModifierType.Flat,            20f));
+sheet.AddModifier("Attack", new StatModifier("buff_rage",     ModifierType.PercentAdd,       0.3f));
+sheet.AddModifier("Attack", new StatModifier("passive_might", ModifierType.PercentMultiply,  0.15f));
+
+// 4. 최종값 조회
+float finalAtk = sheet.GetFinal("Attack");   // 179.4
+```
+
+## StatModifier 생성자
+
+```csharp
+new StatModifier(
+    source:   "weapon_sword",       // 식별자 (제거 시 사용)
+    type:     ModifierType.Flat,    // Flat | PercentAdd | PercentMultiply
+    value:    20f,
+    priority: 0                     // 선택적. 현재는 정렬에 미사용
+)
+```
+
+## API
+
+### StatSheet
+
+```csharp
+// 기본값 설정
+void SetBase(string key, float value)
+
+// 최종값 조회
+float GetFinal(string key)
+
+// StatValue 직접 접근 (이벤트 구독 등)
+StatValue GetStat(string key)
+
+// 모디파이어 관리
+void AddModifier(string key, StatModifier modifier)
+void RemoveModifier(string key, string source)
+void RemoveAllModifiers(string key)
+
+bool HasStat(string key)
+event Action<string> OnStatChanged   // 변경된 스탯 키 전달
+```
+
+### StatValue
+
+```csharp
+float BaseValue      { get; set; }   // 기본값
+float FinalValue     { get; }        // 계산된 최종값 (읽기 전용)
+
+void AddModifier(StatModifier modifier)
+bool RemoveModifier(string source)
+void RemoveAllModifiers()
+
+event Action OnChanged
+```
+
+## MonoBehaviour와 함께 사용
+
+```csharp
+// 캐릭터 컴포넌트에서
+var sheetComp = GetComponent<StatSheetComponent>();
+sheetComp.Sheet.SetBase("HP", 500f);
+sheetComp.Sheet.SetBase("Attack", 100f);
+
+// 장비 장착 시
+sheetComp.Sheet.AddModifier("Attack",
+    new StatModifier("equip_sword", ModifierType.Flat, 35f));
+
+// 장비 해제 시
+sheetComp.Sheet.RemoveModifier("Attack", "equip_sword");
+```
+
+## 스탯 변경 감지
+
+```csharp
+sheet.OnStatChanged += statKey =>
+{
+    if (statKey == "HP") UpdateHPBar(sheet.GetFinal("HP"));
+};
+```
+
+## 자주 사용하는 소스 명명 규칙
+
+```
+"base"          — 기본값 (SetBase로 관리)
+"equip_{id}"    — 장비 (equip_sword, equip_helm)
+"buff_{id}"     — 버프 (버프 시스템과 연동)
+"passive_{id}"  — 패시브 스킬
+"set_{id}"      — 세트 효과
+```
+
+
+> **버프 시스템 연동**
+> 
+> `StatModifyEffect`를 사용하면 버프 적용/제거 시 `StatSheet`가 자동으로 업데이트됩니다.\
+> → [버프/디버프 시스템 보기](/AchUtils/ja/usage/buff-debuff.md)
+> 
+
+
+
+
+---
+url: /AchUtils/ja/usage/time-rewind.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# time-rewind
+
+﻿# 시간 되감기 시스템
+
+`IRewindable` 인터페이스를 구현한 **모든 오브젝트의 상태를 스냅샷으로 기록**하고 N초 전 상태로 복원합니다.
+
+## 구조
+
+```
+TimeRewindSystem (순수 C# 인스턴스)
+  — 등록된 IRewindable 오브젝트의 스냅샷을 주기적으로 기록
+  — RewindTo(float secondsAgo)로 특정 시점 복원
+
+IRewindable (interface)
+  — CaptureState()  : 현재 상태를 object로 반환
+  — RestoreState()  : 캡처된 상태로 복원
+
+RewindableObject (MonoBehaviour)
+  — 기본 구현: Transform(position, rotation, scale)을 기록
+```
+
+## 빠른 시작
+
+### 1. TimeRewindSystem 인스턴스 만들기
+
+`TimeRewindSystem`은 순수 C# 클래스입니다. 소유 컴포넌트에서 생성하고 `Update`에서 `Tick`을 호출합니다.
+
+| 생성자 인자               | 기본값 | 설명           |
+| -------------------- | --- | ------------ |
+| `maxHistorySeconds`  | 5   | 최대 기록 시간 (초) |
+| `snapshotsPerSecond` | 10  | 초당 스냅샷 수     |
+
+### 2. RewindableObject 부착
+
+복원할 오브젝트에 `RewindableObject` 컴포넌트를 추가합니다. Transform이 자동으로 기록됩니다.
+
+```csharp
+// 플레이어, 적, 발사체 등 되감기할 오브젝트에 부착
+gameObject.AddComponent<RewindableObject>();
+```
+
+### 3. 되감기 실행
+
+```csharp
+using AchUtils.TimeRewind;
+
+[SerializeField] RewindableObject[] rewindables;
+
+private TimeRewindSystem timeRewindSystem;
+
+void Awake()
+{
+    timeRewindSystem = new TimeRewindSystem(maxHistorySeconds: 5f, snapshotsPerSecond: 10);
+    foreach (var rewindable in rewindables)
+        rewindable.Bind(timeRewindSystem);
+}
+
+void Update()
+{
+    timeRewindSystem.Tick(Time.deltaTime);
+}
+
+// 되감기 시작 (Update에서 계속 호출 가능)
+timeRewindSystem.StartRewind();
+
+// 특정 시점으로 복원
+timeRewindSystem.RewindTo(secondsAgo: 3f);
+
+// 되감기 종료 (이후 다시 기록 시작)
+timeRewindSystem.StopRewind();
+```
+
+### 4. 스킬로 사용하는 예시
+
+```csharp
+public class TimeRewindSkill : MonoBehaviour
+{
+    [SerializeField] float rewindSeconds = 3f;
+    private readonly TimeRewindSystem timeRewindSystem = new();
+
+    IEnumerator UseSkill()
+    {
+        var system = timeRewindSystem;
+        system.StartRewind();
+
+        float t = 0f;
+        while (t < rewindSeconds)
+        {
+            t += Time.deltaTime;
+            system.RewindTo(rewindSeconds - t);  // 점진적 되감기
+            yield return null;
+        }
+
+        system.StopRewind();
+    }
+}
+```
+
+## API
+
+### TimeRewindSystem
+
+```csharp
+TimeRewindSystem(float maxHistorySeconds = 5f, int snapshotsPerSecond = 10)
+
+void Register(IRewindable target)
+void Unregister(IRewindable target)
+
+void Tick(float deltaTime)
+
+void StartRewind()
+void StopRewind()
+
+// N초 전 상태로 모든 등록 오브젝트를 복원
+void RewindTo(float secondsAgo)
+
+// 단계별 되감기 (delta만큼 과거로)
+void StepRewind(float deltaSeconds)
+
+bool  IsRewinding
+float HistoryDuration    // 현재 기록된 히스토리 길이 (초)
+
+event Action OnRewindStart
+event Action OnRewindStop
+```
+
+## IRewindable 직접 구현
+
+`RewindableObject` 대신 커스텀 상태를 캡처하려면 인터페이스를 직접 구현합니다.
+
+```csharp
+public class EnemyAI : MonoBehaviour, IRewindable
+{
+    private TimeRewindSystem timeRewindSystem;
+
+    private float hp;
+    private Vector3 position;
+    private AIState state;
+
+    private void OnEnable()  => timeRewindSystem?.Register(this);
+    private void OnDisable() => timeRewindSystem?.Unregister(this);
+
+    public object CaptureState()
+    {
+        return (hp, transform.position, state);
+    }
+
+    public void RestoreState(object snapshot)
+    {
+        (hp, position, state) = ((float, Vector3, AIState))snapshot;
+        transform.position = position;
+    }
+}
+```
+
+## 리소스 최적화
+
+```
+스냅샷 개수 = MaxHistorySeconds × SnapshotsPerSecond × 등록 오브젝트 수
+
+예: 5초 × 10fps × 20오브젝트 = 1000 스냅샷
+```
+
+오브젝트가 많거나 히스토리가 길면 `SnapshotsPerSecond`를 낮추거나 `MaxHistorySeconds`를 줄이세요.
+
+## 활용 사례
+
+| 용도        | 설명                          |
+| --------- | --------------------------- |
+| 퍼즐 되돌리기   | 잘못 놓은 블록을 이전 상태로 복원         |
+| 시간 역행 스킬  | Braid, Titanfall 스타일 시간 되감기 |
+| 디버깅       | 버그 발생 직전 상태로 되돌아가 재현        |
+| 리플레이 미리보기 | 죽기 전 몇 초를 슬로우로 다시 보기        |
+
+
+> **물리 엔진**
+> 
+> Rigidbody를 가진 오브젝트를 되감으면 물리 상태(velocity, angular velocity)도 함께 캡처해야 올바르게 복원됩니다. `RewindableObject`를 상속해 `CaptureState`를 오버라이드하세요.
+> ```csharp
+> public override object CaptureState()
+> {
+>     var rb = GetComponent<Rigidbody>();
+>     return (base.CaptureState(), rb.velocity, rb.angularVelocity);
+> }
+> ```
+> 
+
+
+
+
+---
+url: /AchUtils/ja/usage/tutorial.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/ja/llms.txt, the full documentation bundle is available at /AchUtils/ja/llms-full.txt.
+
+# 튜토리얼 시스템
+
+게임 내 튜토리얼을 **노드(ScriptableObject) 기반**으로 설계합니다. 하드코딩 없이 기획자가 수정 가능하고, 스킵·재진입·저장·복구를 기본 지원합니다.
+
+## 구조
+
+```
+TutorialSystem          — 순수 C# 인스턴스. 완료 상태 저장/복원 관리
+  └── TutorialRunner    — 실제 스텝 실행 코루틴 담당 (MonoBehaviour)
+
+TutorialSequence        — ScriptableObject. 스텝 목록 + 스킵 허용 여부
+  └── TutorialStep[]    — ScriptableObject 베이스. 구체 스텝을 상속해서 제작
+```
+
+### 기본 제공 스텝
+
+| 스텝                    | 설명                         |
+| --------------------- | -------------------------- |
+| `HighlightButtonStep` | UI 요소를 색상으로 강조하고 특정 액션 대기  |
+| `WaitForActionStep`   | 키 이름으로 등록된 플레이어 액션 대기      |
+| `DialogueStep`        | 메시지 패널 표시 + 자동 진행 또는 클릭 대기 |
+| `DelayStep`           | N초 대기                      |
+
+## 빠른 시작
+
+### 1. 씬에 TutorialRunner 추가
+
+```csharp
+// 코루틴 실행이 필요하므로 TutorialRunner만 GameObject에 붙입니다.
+// TutorialSystem은 코드에서 생성합니다.
+```
+
+### 2. TutorialSequence 에셋 만들기
+
+**Project 창 → 우클릭 → Create → AchUtils/Tutorial/Tutorial Sequence**
+
+인스펙터에서 스텝을 추가합니다.
+
+```
+SequenceId : "FirstGacha"
+CanSkip    : true
+Steps:
+  [0] HighlightButtonStep  — GachaButton 강조, WaitForAction: "GachaClick"
+  [1] DialogueStep         — "캐릭터를 획득했습니다!"
+  [2] HighlightButtonStep  — EquipButton 강조
+```
+
+### 3. 튜토리얼 시작
+
+```csharp
+[SerializeField] TutorialRunner tutorialRunner;
+[SerializeField] TutorialSequence gachaSequence;
+
+private TutorialSystem tutorialSystem;
+
+void Awake()
+{
+    tutorialSystem = new TutorialSystem(tutorialRunner);
+}
+
+void OnDestroy()
+{
+    tutorialSystem.Dispose();
+}
+
+// 이미 완료한 튜토리얼은 자동으로 건너뜁니다.
+tutorialSystem.StartTutorial(gachaSequence);
+
+// 강제 재시작 (완료 여부 무시)
+tutorialSystem.StartTutorialForce(gachaSequence);
+```
+
+### 4. 플레이어 액션 알리기
+
+버튼 OnClick 또는 게임 이벤트 발생 시 호출합니다.
+
+```csharp
+// 버튼 클릭 핸들러
+public void OnGachaButtonClicked()
+{
+    tutorialSystem.TriggerAction("GachaClick");
+    // 이후 게임 로직 ...
+}
+```
+
+## API
+
+### TutorialSystem
+
+```csharp
+TutorialSystem(TutorialRunner runner, bool loadOnCreate = true)
+
+// 튜토리얼 시작 (완료된 경우 무시)
+void StartTutorial(TutorialSequence sequence)
+
+// 강제 시작
+void StartTutorialForce(TutorialSequence sequence)
+
+// 현재 튜토리얼 스킵
+void Skip()
+
+// 플레이어 액션 발행 (WaitForActionStep이 수신)
+void TriggerAction(string key)
+
+// 완료 여부 확인
+bool IsCompleted(string sequenceId)
+
+// PlayerPrefs 저장/복원
+void Save()
+void Load()
+void ResetAll()
+void Dispose()
+```
+
+### TutorialRunner
+
+```csharp
+bool IsRunning            // 실행 중 여부
+int  CurrentStepIndex     // 현재 스텝 인덱스
+
+event Action         OnCompleted
+event Action         OnSkipped
+event Action<int>    OnStepChanged
+```
+
+## 커스텀 스텝 만들기
+
+`TutorialStep`을 상속하고 `Execute`를 구현합니다.
+
+```csharp
+[CreateAssetMenu(menuName = "AchUtils/Tutorial/Steps/My Step")]
+public class MyCustomStep : TutorialStep
+{
+    public GameObject TargetPanel;
+
+    public override IEnumerator Execute(TutorialRunner runner)
+    {
+        TargetPanel.SetActive(true);
+
+        // 특정 액션 대기
+        while (!runner.HasTriggeredAction("PanelClosed"))
+            yield return null;
+
+        runner.ConsumeAction("PanelClosed");
+        TargetPanel.SetActive(false);
+    }
+}
+```
+
+## 저장 방식
+
+`PlayerPrefs`에 완료된 `SequenceId` 목록을 콤마 구분 문자열로 저장합니다.
+
+```
+AchUtils_Tutorial_Completed = "FirstGacha,FirstEquip,FirstDungeon"
+```
+
+
+> **Info**
+> 
+> `SequenceId`를 비워두면 저장되지 않습니다. `SaveProgress = false`로도 비활성화할 수 있습니다.
+> 
+
+
+## 플로우 예시
+
+```
+Start
+ ↓
+HighlightButtonStep  "가챠 버튼 클릭"
+ ↓
+WaitForActionStep    "GachaClick"
+ ↓
+DialogueStep         "캐릭터를 획득했습니다!"
+ ↓
+HighlightButtonStep  "장비창 열기"
+ ↓
+End → MarkCompleted("FirstGacha")
+```
+
+

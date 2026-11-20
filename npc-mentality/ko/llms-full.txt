@@ -1,0 +1,1021 @@
+---
+url: /npc-mentality/ko/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ko/llms.txt, the full documentation bundle is available at /npc-mentality/ko/llms-full.txt.
+
+# 설치 및 시작
+
+## Package Manager (Git URL)
+
+Unity 에디터에서 **Window → Package Manager → + → Add package from git URL**:
+
+```
+https://github.com/achieveonepark/npc-mentality.git
+```
+
+## manifest.json 직접 추가
+
+`Packages/manifest.json`을 열고 `dependencies`에 추가:
+
+```json
+{
+  "dependencies": {
+    "com.achieveonepark.npc-mentality": "https://github.com/achieveonepark/npc-mentality.git"
+  }
+}
+```
+
+***
+
+## 빠른 시작
+
+### 1. NPC에 컴포넌트 추가
+
+Inspector에서 NPC GameObject에 필요한 컴포넌트를 추가합니다.
+
+```
+Add Component → NPC Mentality → NPC Memory
+Add Component → NPC Mentality → Emotion Controller
+Add Component → NPC Mentality → Crowd NPC
+```
+
+### 2. 플레이어 행동 기록
+
+```csharp
+using NpcMentality;
+
+public class PlayerInteraction : MonoBehaviour
+{
+    public NPCMemory targetNpc;
+
+    void StealItem()
+    {
+        targetNpc.Remember(EventType.Steal, weight: -3f);
+    }
+
+    void HelpVillager()
+    {
+        targetNpc.Remember(EventType.Help, weight: 5f);
+    }
+}
+```
+
+### 3. NPC 반응 읽기
+
+```csharp
+float attitude = targetNpc.GetAttitude();
+
+if (attitude < -5f)
+    dialogue.Say("또 왔네... 내 물건은 건들지 마.");
+else if (attitude > 5f)
+    dialogue.Say("지난번엔 고마웠어.");
+else
+    dialogue.Say("어서오세요.");
+```
+
+### 4. 시간 시스템 등록
+
+씬에 빈 GameObject를 만들고 `WorldTimeSystem` 컴포넌트를 추가합니다.
+
+```csharp
+void Start()
+{
+    WorldTimeSystem.Instance.Register("Shop",
+        openHour: 8,
+        closeHour: 22,
+        onOpen:  () => Debug.Log("상점 열림"),
+        onClose: () => Debug.Log("상점 닫힘")
+    );
+}
+```
+
+***
+
+## 에디터 창
+
+**Tools → NPC Mentality** 메뉴에서 7개 시스템의 API 레퍼런스를 확인할 수 있습니다.
+
+## 샘플
+
+Package Manager에서 **Samples → Basic Demo**를 임포트하면 `DemoUsage.cs`가 추가됩니다.\
+7개 시스템을 한 씬에서 연결한 예시 코드입니다.
+
+
+
+---
+url: /npc-mentality/ko/index.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ko/llms.txt, the full documentation bundle is available at /npc-mentality/ko/llms-full.txt.
+
+# 소개
+
+**NPC Mentality**는 Unity 게임의 NPC를 살아있는 존재처럼 만드는 7개 AI 시스템 패키지입니다.
+
+## 왜 만들었나
+
+기존 NPC는 세 가지 패턴 중 하나입니다.
+
+- 목표 지점으로 이동
+- 미리 짜인 대사 출력
+- 플레이어를 향해 돌진
+
+NPC Mentality는 여기에 **기억·관계·감정·시간** 레이어를 얹습니다. 플레이어가 상인의 물건을 훔치면 그 상인이 기억하고, 친한 이웃에게 소문이 퍼지고, 마을 분위기가 달라집니다. 코드 한 줄로요.
+
+## 시스템 구성
+
+| # | 시스템                                                  | 핵심 역할               |
+| - | ---------------------------------------------------- | ------------------- |
+| 1 | [NPC 기억](/npc-mentality/ko/usage/memory.md)          | 플레이어 행동 누적, 태도 계산   |
+| 2 | [관계 전염](/npc-mentality/ko/usage/relationship.md)     | 친구 네트워크 통한 감정 전파    |
+| 3 | [군중 AI](/npc-mentality/ko/usage/crowd-ai.md)         | NavMesh 기반 자율 군중 행동 |
+| 4 | [감정 애니메이션](/npc-mentality/ko/usage/emotion.md)       | 감정 → 속도·애니메이터 자동 연동 |
+| 5 | [퀘스트 생성](/npc-mentality/ko/usage/quest-generator.md) | 행동 기반 퀘스트 자동 생성     |
+| 6 | [시간 세계](/npc-mentality/ko/usage/world-time.md)       | 게임 시간 스케줄 관리        |
+| 7 | [루머](/npc-mentality/ko/usage/rumor.md)               | NPC 간 정보 전파 및 변형    |
+
+## 요구사항
+
+- **Unity** 2021.3 LTS 이상
+- **NavMesh** — 군중 AI, 감정 애니메이션 사용 시
+- **.NET Standard 2.1**
+
+
+
+---
+url: /npc-mentality/ko/usage/crowd-ai.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ko/llms.txt, the full documentation bundle is available at /npc-mentality/ko/llms-full.txt.
+
+# 자연스러운 군중 AI
+
+NavMeshAgent 기반으로 NPC가 자율적이고 자연스러운 군중 행동을 수행합니다.
+
+## 개요
+
+```
+보통 NPC:
+  목표지점 이동
+
+NPC Mentality:
+  - 서로 피해감
+  - 가게 구경
+  - 주변 사람 쳐다봄
+  - 갑자기 멈춤
+  - 길 막히면 우회
+```
+
+## 컴포넌트
+
+`CrowdNPC` — MonoBehaviour. **NavMeshAgent**가 함께 있어야 합니다.
+
+| 필드                       | 타입                  | 기본값   | 설명            |
+| ------------------------ | ------------------- | ----- | ------------- |
+| `WanderRadius`           | `float`             | `10f` | 배회 반경 (미터)    |
+| `BehaviorChangeCooldown` | `float`             | `3f`  | 행동 전환 주기 (초)  |
+| `CurrentBehavior`        | `CrowdBehaviorType` | —     | 현재 행동 (읽기 전용) |
+
+***
+
+## CrowdBehaviorType 열거형
+
+```csharp
+public enum CrowdBehaviorType
+{
+    Wander,          // 반경 내 무작위 이동
+    BrowseShop,      // 주변 상점으로 천천히 이동
+    LookAround,      // 멈추고 주변 둘러보기 (1-3초)
+    StopAndObserve,  // 완전 정지 (1-2초)
+    AvoidObstacle,   // 장애물 우회
+    Hurt,            // 부딪힌 척 살짝 비틀거림
+    Idle             // 제자리
+}
+```
+
+## 행동 상세
+
+| 행동               | 이동 속도      | 설명                    |
+| ---------------- | ---------- | --------------------- |
+| `Wander`         | 기본         | 반경 내 무작위 목적지로 이동      |
+| `BrowseShop`     | ×0.5 (천천히) | "Shop" 태그 오브젝트 근처로 이동 |
+| `LookAround`     | 0 (정지)     | 1\~3초간 천천히 회전         |
+| `StopAndObserve` | 0 (정지)     | 1\~2초간 완전 정지          |
+| `AvoidObstacle`  | 기본         | 약간 오프셋된 새 목적지로 이동     |
+| `Idle`           | 0 (정지)     | 아무것도 하지 않음            |
+
+***
+
+## 예제
+
+### 기본 사용
+
+```csharp
+// 1. GameObject에 NavMeshAgent 추가
+// 2. CrowdNPC 컴포넌트 추가
+// 3. Inspector에서 설정 후 Play — 자동 동작
+```
+
+### 상점 배치
+
+`BrowseShop` 행동이 작동하려면 상점 오브젝트에 `Shop` 태그를 추가합니다.
+
+```csharp
+// 에디터에서: 상점 GameObject → Tag → "Shop"
+```
+
+***
+
+## 팁
+
+- `BehaviorChangeCooldown`을 낮추면 더 산만하게, 높이면 더 목적있게 보입니다.
+- [WorldTimeSystem](/npc-mentality/ko/usage/world-time.md)과 연동해 밤에는 Idle 비중을 높일 수 있습니다.
+- [EmotionController](/npc-mentality/ko/usage/emotion.md)와 함께 쓰면 감정에 따라 이동 속도도 변합니다.
+
+
+
+---
+url: /npc-mentality/ko/usage/emotion.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ko/llms.txt, the full documentation bundle is available at /npc-mentality/ko/llms-full.txt.
+
+# 감정 기반 애니메이션 시스템
+
+감정 설정 한 줄로 이동속도·애니메이터·눈 깜빡임이 자동으로 변경됩니다.
+
+## 개요
+
+```
+기존:
+  anim.Play("Idle");
+
+NPC Mentality:
+  emotion.Set(Emotion.Angry);
+  → 자동: 걷기 속도 증가 / 머리 흔들림 / 표정 변화 / 눈 깜빡임 감소
+```
+
+## 컴포넌트
+
+`EmotionController` — MonoBehaviour.
+
+| 필드               | 타입             | 설명            |
+| ---------------- | -------------- | ------------- |
+| `Animator`       | `Animator`     | NPC 애니메이터     |
+| `Agent`          | `NavMeshAgent` | 이동 속도 제어 (선택) |
+| `CurrentEmotion` | `EmotionType`  | 현재 감정 (읽기 전용) |
+
+***
+
+## EmotionType 열거형
+
+```csharp
+public enum EmotionType
+{
+    Neutral,    // 기본 상태
+    Happy,      // 행복
+    Angry,      // 분노
+    Sad,        // 슬픔
+    Afraid,     // 두려움
+    Surprised,  // 놀람
+    Disgusted   // 혐오
+}
+```
+
+***
+
+## API
+
+### Set
+
+```csharp
+void Set(EmotionType emotion)
+```
+
+감정을 설정하고 효과를 즉시 적용합니다.
+
+```csharp
+emotion.Set(EmotionType.Angry);
+emotion.Set(EmotionType.Happy);
+emotion.Set(EmotionType.Neutral); // 초기화
+```
+
+***
+
+## 감정별 효과
+
+| 감정        | NavMesh 속도 | Animator 트리거 | BlinkRate  |
+| --------- | ---------- | ------------ | ---------- |
+| `Neutral` | ×1.0 (기본)  | `"Idle"`     | `1.0`      |
+| `Happy`   | ×1.0       | `"Happy"`    | `1.0`      |
+| `Angry`   | ×1.5       | `"Angry"`    | `0.3` (감소) |
+| `Sad`     | ×0.7       | `"Sad"`      | `0.8`      |
+| `Afraid`  | ×1.3       | `"Afraid"`   | `1.5` (증가) |
+
+> **Animator 파라미터**: `BlinkRate` (Float), 각 감정별 Trigger 파라미터가 필요합니다.
+
+***
+
+## Animator 설정
+
+```
+Parameters:
+  BlinkRate   [Float]    — 눈 깜빡임 속도 Blend Tree에 연결
+  Idle        [Trigger]
+  Happy       [Trigger]
+  Angry       [Trigger]
+  Sad         [Trigger]
+  Afraid      [Trigger]
+```
+
+***
+
+## 예제
+
+```csharp
+using NpcMentality;
+
+public class NPCReaction : MonoBehaviour
+{
+    private NPCMemory _memory;
+    private EmotionController _emotion;
+
+    private void Awake()
+    {
+        _memory  = GetComponent<NPCMemory>();
+        _emotion = GetComponent<EmotionController>();
+    }
+
+    public void OnTalkWithPlayer()
+    {
+        float attitude = _memory.GetAttitude();
+
+        if (attitude < -8f)
+            _emotion.Set(EmotionType.Angry);
+        else if (attitude < -2f)
+            _emotion.Set(EmotionType.Disgusted);
+        else if (attitude > 8f)
+            _emotion.Set(EmotionType.Happy);
+        else
+            _emotion.Set(EmotionType.Neutral);
+    }
+
+    public void OnCombatStart() => _emotion.Set(EmotionType.Afraid);
+    public void OnCombatEnd()   => _emotion.Set(EmotionType.Neutral);
+}
+```
+
+
+
+---
+url: /npc-mentality/ko/usage/memory.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ko/llms.txt, the full documentation bundle is available at /npc-mentality/ko/llms-full.txt.
+
+# NPC 기억 시스템
+
+NPC가 플레이어의 행동을 기억하고 누적 태도(Attitude)를 계산합니다.
+
+## 개요
+
+```
+플레이어:
+- 상인 물건 3번 훔침
+- 마을 주민 구해줌
+
+NPC:
+  상인: "또 왔네... 내 물건은 건들지 마."
+  주민: "지난번엔 고마웠어."
+```
+
+## 컴포넌트
+
+`NPCMemory` — MonoBehaviour. NPC GameObject에 추가합니다.
+
+| 필드            | 타입                  | 기본값  | 설명                            |
+| ------------- | ------------------- | ---- | ----------------------------- |
+| `MaxMemories` | `int`               | `20` | 최대 기억 수. 초과 시 가장 오래된 것 삭제     |
+| `memories`    | `List<MemoryEvent>` | —    | 저장된 기억 목록 (Inspector에서 확인 가능) |
+
+## API
+
+### Remember
+
+```csharp
+void Remember(EventType type, float weight = 1f, string context = "")
+```
+
+플레이어 행동을 기억합니다.
+
+| 매개변수      | 설명                        |
+| --------- | ------------------------- |
+| `type`    | 행동 유형 (`EventType` 열거형)   |
+| `weight`  | 태도 영향. 양수 = 우호적, 음수 = 적대적 |
+| `context` | 선택적 설명 문자열                |
+
+```csharp
+npc.Remember(EventType.Steal,  weight: -3f);  // 훔침
+npc.Remember(EventType.Help,   weight:  5f);  // 도움
+npc.Remember(EventType.Attack, weight: -10f); // 공격
+npc.Remember(EventType.Gift,   weight:  3f);  // 선물
+```
+
+### GetAttitude
+
+```csharp
+float GetAttitude()
+```
+
+모든 기억의 weight 합계를 반환합니다.
+
+```csharp
+float attitude = npc.GetAttitude();
+
+// attitude > 0  → 우호적
+// attitude == 0 → 중립
+// attitude < 0  → 적대적
+```
+
+### HasMemory
+
+```csharp
+bool HasMemory(EventType type)
+```
+
+특정 유형의 기억이 있는지 확인합니다.
+
+```csharp
+if (npc.HasMemory(EventType.Steal))
+    dialogue.Say("또 왔네...");
+```
+
+### ForgetOldest
+
+```csharp
+void ForgetOldest()
+```
+
+가장 오래된 기억을 수동으로 삭제합니다. `MaxMemories` 초과 시 자동 호출됩니다.
+
+***
+
+## EventType 열거형
+
+```csharp
+public enum EventType
+{
+    None,
+    Steal,    // 훔침
+    Help,     // 도움
+    Attack,   // 공격
+    Trade,    // 거래
+    Talk,     // 대화
+    Threaten, // 협박
+    Gift,     // 선물
+    Kill,     // 처치
+    Rescue    // 구조
+}
+```
+
+## MemoryEvent 구조
+
+```csharp
+public class MemoryEvent
+{
+    public EventType Type;
+    public float Timestamp;  // Time.time 기준
+    public float Weight;
+    public string Context;
+}
+```
+
+***
+
+## 예제
+
+```csharp
+using NpcMentality;
+
+public class ShopKeeper : MonoBehaviour
+{
+    private NPCMemory _memory;
+
+    private void Awake() => _memory = GetComponent<NPCMemory>();
+
+    public void OnPlayerSteals()
+    {
+        _memory.Remember(EventType.Steal, weight: -3f, context: "귀한 약초");
+
+        float attitude = _memory.GetAttitude();
+        if (attitude < -6f)
+        {
+            GuardSystem.Alert(transform.position);
+        }
+    }
+
+    public string GetGreeting()
+    {
+        float attitude = _memory.GetAttitude();
+        return attitude switch
+        {
+            < -5f => "꺼져.",
+            < 0f  => "뭐가 필요해?",
+            < 5f  => "어서오세요.",
+            _     => "당신 같은 손님이 더 왔으면 해요!"
+        };
+    }
+}
+```
+
+
+
+---
+url: /npc-mentality/ko/usage/quest-generator.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ko/llms.txt, the full documentation bundle is available at /npc-mentality/ko/llms-full.txt.
+
+# AI 퀘스트 생성기
+
+플레이어 행동 패턴을 분석해 맥락에 맞는 퀘스트를 자동 생성합니다.
+
+## 개요
+
+```
+플레이어:
+  - 숲 자주 감
+  - 늑대 많이 잡음
+
+생성:
+  "숲 근처에 이상한 늑대가 나타났다."
+```
+
+## 컴포넌트
+
+`AIQuestGenerator` — MonoBehaviour.
+
+***
+
+## API
+
+### GenerateQuest
+
+```csharp
+QuestData GenerateQuest(EventType trigger, string subject = "creature")
+```
+
+| 매개변수      | 설명                                 |
+| --------- | ---------------------------------- |
+| `trigger` | 퀘스트 트리거 행동 유형                      |
+| `subject` | 퀘스트 주제 (예: `"wolf"`, `"merchant"`) |
+
+```csharp
+QuestData q = generator.GenerateQuest(EventType.Kill, "wolf");
+// → "숲 근처에 이상한 wolf가 나타났다."
+```
+
+### OnQuestGenerated 이벤트
+
+```csharp
+event Action<QuestData> OnQuestGenerated
+```
+
+```csharp
+generator.OnQuestGenerated += quest =>
+{
+    QuestUI.Show(quest.Title, quest.Description);
+    QuestLog.Add(quest);
+};
+```
+
+***
+
+## QuestData
+
+```csharp
+public class QuestData
+{
+    public string Title;
+    public string Description;
+    public EventType TriggerEvent;
+    public float GeneratedAt;
+}
+```
+
+***
+
+## 기본 템플릿
+
+| EventType | 생성 예시                         |
+| --------- | ----------------------------- |
+| `Kill`    | "숲 근처에 이상한 \{subject}가 나타났다." |
+| `Steal`   | "상인 구역에서 물건이 사라졌다."           |
+| `Help`    | "도움의 손길이 다시 필요하다."            |
+| `Rescue`  | "위험에 처한 사람들이 있다."             |
+
+***
+
+## 예제
+
+```csharp
+using NpcMentality;
+
+public class PlayerBehaviorTracker : MonoBehaviour
+{
+    public AIQuestGenerator questGenerator;
+    private int _wolfKillCount = 0;
+
+    public void OnWolfKilled()
+    {
+        _wolfKillCount++;
+
+        if (_wolfKillCount >= 5)
+        {
+            questGenerator.GenerateQuest(EventType.Kill, "wolf");
+            _wolfKillCount = 0;
+        }
+    }
+
+    private void Start()
+    {
+        questGenerator.OnQuestGenerated += quest =>
+            Debug.Log($"[New Quest] {quest.Title}");
+    }
+}
+```
+
+
+
+---
+url: /npc-mentality/ko/usage/relationship.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ko/llms.txt, the full documentation bundle is available at /npc-mentality/ko/llms-full.txt.
+
+# 관계 전염 시스템
+
+NPC 간 친구 관계를 통해 감정이 전파됩니다.
+
+## 개요
+
+```
+A가 플레이어 싫어함
+    ↓
+A와 친한 B도 영향 (×0.5)
+    ↓
+B와 친한 C도 약간 영향 (×0.25)
+
+결과: 상인 마을 전체가 날 싫어함
+```
+
+## RelationshipGraph
+
+ScriptableObject로 NPC 간 친구 관계를 저장합니다.
+
+**생성:** Project 창에서 우클릭 → Create → NPC Mentality → Relationship Graph
+
+### API
+
+```csharp
+// 친구 관계 등록
+graph.AddFriendship("merchant_a", "villager_b");
+graph.AddFriendship("villager_b", "blacksmith_c");
+
+// 특정 NPC의 친구 목록 조회
+List<string> friends = graph.GetFriends("merchant_a");
+```
+
+***
+
+## RelationshipContagion
+
+정적 헬퍼 클래스. 태도 변화를 친구 네트워크로 전파합니다.
+
+### Propagate
+
+```csharp
+static void Propagate(
+    string sourceNpcId,
+    float attitudeChange,
+    RelationshipGraph graph,
+    Dictionary<string, NPCMemory> allNpcs,
+    int depth = 2,
+    float decay = 0.5f
+)
+```
+
+| 매개변수             | 설명                       |
+| ---------------- | ------------------------ |
+| `sourceNpcId`    | 감정 변화의 출처 NPC ID         |
+| `attitudeChange` | 전파할 태도 변화량               |
+| `graph`          | 친구 관계 그래프                |
+| `allNpcs`        | 전체 NPC의 `NPCMemory` 딕셔너리 |
+| `depth`          | 전파 깊이 (기본 2단계)           |
+| `decay`          | 단계별 감쇠율 (기본 0.5 = 50%)   |
+
+### 전파 계산
+
+```
+depth 1 (직접 친구): attitudeChange × decay
+depth 2 (친구의 친구): attitudeChange × decay²
+```
+
+예시: `attitudeChange = -10, decay = 0.5`
+
+- 직접 친구: `-5`
+- 친구의 친구: `-2.5`
+
+***
+
+## 예제
+
+```csharp
+using NpcMentality;
+using System.Collections.Generic;
+
+public class VillageManager : MonoBehaviour
+{
+    public RelationshipGraph graph;
+    private Dictionary<string, NPCMemory> _npcs = new();
+
+    private void Start()
+    {
+        graph.AddFriendship("merchant", "innkeeper");
+        graph.AddFriendship("innkeeper", "blacksmith");
+
+        foreach (var npc in FindObjectsOfType<NPCMemory>())
+            _npcs[npc.gameObject.name] = npc;
+    }
+
+    public void OnPlayerAttacksMerchant()
+    {
+        _npcs["merchant"].Remember(EventType.Attack, weight: -10f);
+
+        RelationshipContagion.Propagate(
+            sourceNpcId: "merchant",
+            attitudeChange: -10f,
+            graph: graph,
+            allNpcs: _npcs,
+            depth: 2,
+            decay: 0.5f
+        );
+        // merchant: -10, innkeeper: -5, blacksmith: -2.5
+    }
+}
+```
+
+***
+
+## 팁
+
+- `decay`를 `0.3` 이하로 줄이면 소문이 빨리 희미해집니다.
+- `depth`를 `3` 이상으로 늘리면 마을 전체가 영향받습니다.
+- [루머 시스템](/npc-mentality/ko/usage/rumor.md)과 함께 쓰면 소문 내용과 감정이 동시에 퍼집니다.
+
+
+
+---
+url: /npc-mentality/ko/usage/rumor.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ko/llms.txt, the full documentation bundle is available at /npc-mentality/ko/llms-full.txt.
+
+# 루머 시스템
+
+정보가 NPC 사이를 돌면서 내용이 점점 변형됩니다.
+
+## 개요
+
+```
+플레이어가 보스 잡음
+    ↓
+NPC1: "누가 용을 잡았다던데?"
+    ↓
+NPC2: "아니던데? 마법사래"
+    ↓
+NPC3: "마왕 죽었대"
+```
+
+## 컴포넌트
+
+`RumorSystem` — MonoBehaviour.
+
+| 필드                 | 타입                | 기본값    | 설명                |
+| ------------------ | ----------------- | ------ | ----------------- |
+| `MutationChance`   | `float`           | `0.3f` | 루머가 변형될 확률 (0\~1) |
+| `MutationSuffixes` | `List<string>`    | 기본 4개  | 변형 시 추가될 문장 목록    |
+| `ActiveRumors`     | `List<RumorData>` | —      | 현재 진행 중인 루머 목록    |
+
+***
+
+## API
+
+### SpreadRumor
+
+```csharp
+void SpreadRumor(string fact, string sourceNpcId)
+```
+
+```csharp
+rumorSystem.SpreadRumor("플레이어가 용을 잡았다", sourceNpcId: "player");
+```
+
+### PassRumor
+
+```csharp
+RumorData PassRumor(RumorData rumor, string receivingNpcId)
+```
+
+`MutationChance` 확률로 내용이 변형됩니다.
+
+### 이벤트
+
+```csharp
+event Action<RumorData> OnRumorSpread          // 루머 최초 생성 시
+event Action<RumorData, string> OnRumorPassed  // 다음 NPC에게 전달될 때마다
+```
+
+***
+
+## RumorData
+
+```csharp
+public class RumorData
+{
+    public string OriginalFact;
+    public string CurrentVersion;
+    public int HopCount;
+    public float SpreadAt;
+    public string SourceNpcId;
+}
+```
+
+***
+
+## 예제
+
+```csharp
+using NpcMentality;
+
+public class RumorDemo : MonoBehaviour
+{
+    public RumorSystem rumorSystem;
+    public string[] npcIds = { "blacksmith", "innkeeper", "farmer", "guard" };
+
+    private void Start()
+    {
+        rumorSystem.OnRumorPassed += (r, npcId) =>
+            Debug.Log($"[{npcId}] hop {r.HopCount}: \"{r.CurrentVersion}\"");
+    }
+
+    public void OnPlayerKillsDragon()
+    {
+        rumorSystem.SpreadRumor("누군가 용을 잡았다", "player");
+        StartCoroutine(SpreadToVillage());
+    }
+
+    private System.Collections.IEnumerator SpreadToVillage()
+    {
+        var rumor = rumorSystem.ActiveRumors[^1];
+        foreach (string npcId in npcIds)
+        {
+            yield return new WaitForSeconds(2f);
+            rumorSystem.PassRumor(rumor, npcId);
+        }
+    }
+}
+```
+
+***
+
+## 팁
+
+- `MutationChance = 0f` — 변형 없이 사실만 전파됩니다.
+- `MutationChance = 1f` — 매 전달마다 반드시 변형됩니다.
+- [RelationshipContagion](/npc-mentality/ko/usage/relationship.md)과 함께 쓰면 루머 내용과 감정이 동시에 퍼집니다.
+
+
+
+---
+url: /npc-mentality/ko/usage/world-time.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ko/llms.txt, the full documentation bundle is available at /npc-mentality/ko/llms-full.txt.
+
+# 시간 흐름 세계 시스템
+
+게임 내 시간 흐름에 따라 상점 오픈/닫힘, NPC 스케줄을 자동으로 관리합니다.
+
+## 개요
+
+```
+08:00 → 상점 오픈
+12:00 → NPC 식사
+22:00 → 상점 닫힘
+02:00 → 도둑 등장
+```
+
+## 컴포넌트
+
+`WorldTimeSystem` — MonoBehaviour 싱글턴. 씬에 하나만 배치합니다.
+
+| 필드            | 타입      | 기본값  | 설명                   |
+| ------------- | ------- | ---- | -------------------- |
+| `TimeScale`   | `float` | `1f` | 시간 배속                |
+| `CurrentHour` | `float` | `0f` | 현재 시간 (0\~24, 읽기 전용) |
+
+### 시간 계산
+
+```
+TimeScale = 1  → 1초당 1분 경과  → 하루 = 24분
+TimeScale = 60 → 1초당 1시간 경과 → 하루 = 24초
+```
+
+***
+
+## API
+
+### Register
+
+```csharp
+void Register(
+    string id,
+    int openHour,
+    int closeHour,
+    Action onOpen = null,
+    Action onClose = null
+)
+```
+
+```csharp
+WorldTimeSystem.Instance.Register(
+    "Shop",
+    openHour: 8,
+    closeHour: 22,
+    onOpen:  () => shopkeeper.Open(),
+    onClose: () => shopkeeper.Close()
+);
+```
+
+### IsOpen
+
+```csharp
+bool IsOpen(string id)
+```
+
+```csharp
+if (WorldTimeSystem.Instance.IsOpen("Shop"))
+    ShowShopUI();
+```
+
+### OnHourChanged 이벤트
+
+```csharp
+event Action<float> OnHourChanged
+```
+
+```csharp
+WorldTimeSystem.Instance.OnHourChanged += hour =>
+    Debug.Log($"현재 시간: {Mathf.FloorToInt(hour):D2}:00");
+```
+
+***
+
+## 예제
+
+```csharp
+using NpcMentality;
+
+public class VillageScheduler : MonoBehaviour
+{
+    public CrowdNPC[] villagers;
+    public GameObject thiefPrefab;
+
+    private void Start()
+    {
+        var wt = WorldTimeSystem.Instance;
+
+        wt.Register("Day", openHour: 6, closeHour: 22,
+            onOpen:  StartDayRoutine,
+            onClose: StartNightRoutine);
+
+        wt.Register("Thief", openHour: 2, closeHour: 4,
+            onOpen:  () => Instantiate(thiefPrefab, GetAlleyPosition(), Quaternion.identity),
+            onClose: () => DespawnThieves());
+    }
+
+    private void StartDayRoutine()
+    {
+        foreach (var v in villagers) v.enabled = true;
+    }
+
+    private void StartNightRoutine()
+    {
+        foreach (var v in villagers) v.enabled = false;
+    }
+}
+```
+
+

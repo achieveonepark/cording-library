@@ -1,0 +1,19 @@
+# Cheat Terminal
+
+> Unity runtime developer terminal documentation.
+
+## 开始使用
+
+- [开始使用](/cheat-terminal/zh/getting-started.md)
+
+## 使用方法
+
+- [添加命令](/cheat-terminal/zh/usage/adding-commands.md)
+
+## Others
+
+- [更新日志](/cheat-terminal/zh/changelog.md)
+- [开发历程](/cheat-terminal/zh/history.md)
+- [作弊 HUD](/cheat-terminal/zh/usage/cheat-hud.md)
+- [命令参考](/cheat-terminal/zh/usage/commands.md)
+- [Unity 组件命令](/cheat-terminal/zh/usage/unity-components.md)

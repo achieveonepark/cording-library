@@ -1,0 +1,24 @@
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Skill List
+
+| Skill                 | Focus                                 |
+| --------------------- | ------------------------------------- |
+| `ach-mover-movement`  | AchMover movement and collision       |
+| `ach-task-async`      | AchTask async operations              |
+| `ach-timer`           | AchTimer and UIAchTimer               |
+| `addressables`        | AddressableManager and editor tooling |
+| `ecs-ingame-logic`    | ECS gameplay logic                    |
+| `httplink-webrequest` | HttpLink HTTP requests                |
+| `imanager-managers`   | AchEngine managers                    |
+| `localization`        | LocalizationManager and locale data   |
+| `pathfinding-astar`   | A\* grids and pathfinding             |
+| `singleton`           | Singleton base classes                |
+| `ui-catalog`          | UIView catalog and UI workspace       |
+| `vcontainer-di`       | AchEngine DI and VContainer           |
+
+## Shared rules
+
+- Prefer an existing AchEngine feature instead of recreating it.
+- `ecs-ingame-logic` and `vcontainer-di` ask the user before applying architectural changes.
+- The authoritative instructions are the `SKILL.md` files under `AIAssistantSkills/<skill-name>`.

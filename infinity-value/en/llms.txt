@@ -1,0 +1,14 @@
+# Infinity Value
+
+> Large-number values for Unity idle and incremental games.
+
+## Others
+
+- [API Reference](/infinity-value/en/api/index.md)
+- [Inspector & Exact Serialization](/infinity-value/en/api/inspector.md)
+- [JSON](/infinity-value/en/api/json.md)
+- [Math Helpers](/infinity-value/en/api/math.md)
+- [Unit Names](/infinity-value/en/api/unit-names.md)
+- [Changelog](/infinity-value/en/changelog.md)
+- [Getting Started](/infinity-value/en/getting-started.md)
+- [Usage](/infinity-value/en/usage.md)

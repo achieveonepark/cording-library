@@ -1,0 +1,79 @@
+> For AI agents: the complete documentation index is available at /cheat-terminal/en/llms.txt, the full documentation bundle is available at /cheat-terminal/en/llms-full.txt.
+
+# Command Reference
+
+## Built-in commands
+
+| Command                    | Description                                                |
+| -------------------------- | ---------------------------------------------------------- |
+| `help [command\|category]` | Command list / details                                     |
+| `clear`                    | Clear output                                               |
+| `history`                  | Input history                                              |
+| `echo <text>`              | Print text                                                 |
+| `alias <name> <expansion>` | Register an alias (`alias remove <name>`, `alias` to list) |
+
+## Modules
+
+The default bootstrap automatically installs these modules.
+
+### Scene
+
+```bash
+scene list                 # Loaded scenes + build setting scenes
+scene load Lobby           # Single load
+scene load InGame additive # Additive load
+scene unload InGame
+```
+
+### Data
+
+Browse registered data table IDs and row names.
+
+```bash
+data                 # Table IDs / names / row counts
+data items           # Row IDs / names in the items table
+data items sword     # Search IDs, names, summaries and print fields
+```
+
+### Performance
+
+```bash
+perf   # FPS / frame ms / memory / Mono / GC / draw calls, batches, triangles when available
+```
+
+### Logs
+
+Captures `Debug.Log` output into a capped ring buffer.
+
+```bash
+logs                 # Latest 30
+logs 100             # Latest 100
+logs error           # Level filter (error / warning / info)
+logs network         # Text contains filter
+logs find <text>     # Explicit search
+logs clear           # Clear
+logs export          # Save to file (persistentDataPath, retrievable from device)
+```
+
+### Unity Components
+
+Control Unity's built-in components directly from the terminal. See [Unity Component Commands](/cheat-terminal/en/usage/unity-components.md) for the full reference.
+
+| Command     | Description                                    |
+| ----------- | ---------------------------------------------- |
+| `transform` | Read or write position, rotation, and scale    |
+| `rb`        | Rigidbody property control                     |
+| `cam`       | Camera settings (FOV, background colour, etc.) |
+| `light`     | Light property control                         |
+| `audio`     | AudioListener volume, mute, and pause          |
+| `time`      | Time.timeScale and fixedDeltaTime control      |
+| `go`        | GameObject activation, tag, and listing        |
+
+## Aliases and macros
+
+Create aliases for frequent command combinations:
+
+```bash
+alias rich gold 999999
+rich            # -> gold 999999
+```

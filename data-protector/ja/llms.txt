@@ -1,0 +1,9 @@
+# Data Protector
+
+> Data Protector package documentation
+
+## Others
+
+- [API](/data-protector/ja/api.md): DataProtector / HashChecker API リファレンス
+- [変更履歴](/data-protector/ja/changelog.md): Data Protector のバージョンごとの変更履歴
+- [はじめに](/data-protector/ja/getting-started.md): Data Protector のインストールと基本的な使い方

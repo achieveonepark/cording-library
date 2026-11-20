@@ -1,0 +1,39 @@
+> For AI agents: the complete documentation index is available at /infinity-value/llms.txt, the full documentation bundle is available at /infinity-value/llms-full.txt.
+
+# 소개
+
+Infinity Value는 `long`을 훨씬 넘어서는 큰 수가 필요한 방치형·증분형(idle/incremental) 게임을 위한 Unity 패키지입니다.
+
+값은 `(unitIndex, value)` 쌍으로 컴팩트하게 저장되어, 일반적인 사칙연산과 비교가 관리되는 가비지를 만들지 않고 동작합니다. 표시와 파싱에는 기본 제공되는 `A, B, C ... CZ` 단위 이름을 쓰거나, 콘텐츠 타입별로 `InfinityValueUnitNames` 인스턴스를 만들어 사용할 수 있습니다.
+
+```csharp
+using Achieve.InfinityValue;
+
+var goldUnits = new InfinityValueUnitNames(new[]
+{
+    "", "K", "M", "B", "T", "Qa", "Qi"
+});
+
+InfinityValue gold = new InfinityValue(5_300_000_000L, goldUnits);
+InfinityValue reward = new InfinityValue("12K", goldUnits);
+
+gold += reward;
+
+Debug.Log(gold.ToString()); // 5.30B
+```
+
+## 특징
+
+- Unity 런타임 코드를 위한 구조체 기반 큰 수 타입
+- 산술 연산: `+`, `-`, `*`, `/`
+- 비교 연산: `==`, `!=`, `<`, `>`, `<=`, `>=`
+- `InfinityValueUnitNames`를 통한 인스턴스 단위 이름
+- `TryParse`를 통한 문자열 파싱
+- Unity의 Newtonsoft 패키지가 설치된 경우 선택적 Newtonsoft.Json 컨버터
+- `Samples~`에서 임포트 가능한 Unity 샘플
+
+## 다음 단계
+
+- [시작하기](/infinity-value/getting-started.md)
+- [API](/infinity-value/api.md)
+- [사용법](/infinity-value/usage.md)

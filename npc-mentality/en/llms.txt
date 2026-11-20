@@ -1,0 +1,14 @@
+# NPC Mentality
+
+> NPC AI systems for Unity games.
+
+## Others
+
+- [Installation & Quick Start](/npc-mentality/en/getting-started.md)
+- [Natural Crowd AI](/npc-mentality/en/usage/crowd-ai.md)
+- [Emotion-Based Animation System](/npc-mentality/en/usage/emotion.md)
+- [NPC Memory System](/npc-mentality/en/usage/memory.md)
+- [AI Quest Generator](/npc-mentality/en/usage/quest-generator.md)
+- [Relationship Contagion System](/npc-mentality/en/usage/relationship.md)
+- [Rumor System](/npc-mentality/en/usage/rumor.md)
+- [World Time System](/npc-mentality/en/usage/world-time.md)

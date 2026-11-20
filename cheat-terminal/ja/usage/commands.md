@@ -1,0 +1,79 @@
+> For AI agents: the complete documentation index is available at /cheat-terminal/ja/llms.txt, the full documentation bundle is available at /cheat-terminal/ja/llms-full.txt.
+
+# コマンドリファレンス
+
+## 組み込みコマンド
+
+| コマンド                       | 説明                                           |
+| -------------------------- | -------------------------------------------- |
+| `help [command\|category]` | コマンド一覧 / 詳細                                  |
+| `clear`                    | 出力をクリア                                       |
+| `history`                  | 入力履歴                                         |
+| `echo <text>`              | テキストを出力                                      |
+| `alias <name> <expansion>` | エイリアス登録 (`alias remove <name>`, `alias` で一覧) |
+
+## モジュール
+
+デフォルトの bootstrap で以下のモジュールが自動インストールされます。
+
+### Scene
+
+```bash
+scene list                 # 読み込み済み scene + build settings scene
+scene load Lobby           # 単一ロード
+scene load InGame additive # 加算ロード
+scene unload InGame
+```
+
+### Data
+
+登録された data table ID と row 名を表示します。
+
+```bash
+data                 # table ID / name / row count
+data items           # items table の row ID / name
+data items sword     # ID, name, summary を検索して fields を表示
+```
+
+### Performance
+
+```bash
+perf   # FPS / frame ms / memory / Mono / GC / draw calls, batches, triangles when available
+```
+
+### Logs
+
+`Debug.Log` 出力を capped ring buffer に収集します。
+
+```bash
+logs                 # 最新 30 件
+logs 100             # 最新 100 件
+logs error           # レベルフィルタ (error / warning / info)
+logs network         # テキスト部分一致
+logs find <text>     # 明示的な検索
+logs clear           # クリア
+logs export          # ファイル保存 (persistentDataPath)
+```
+
+### Unity Components
+
+Unity の組み込みコンポーネントをターミナルから直接制御します。詳細は [Unity コンポーネントコマンド](/cheat-terminal/ja/usage/unity-components.md) を参照してください。
+
+| コマンド        | 説明                                   |
+| ----------- | ------------------------------------ |
+| `transform` | position / rotation / scale の取得・変更   |
+| `rb`        | Rigidbody プロパティ制御                    |
+| `cam`       | Camera 設定 (FOV, background color など) |
+| `light`     | Light プロパティ制御                        |
+| `audio`     | AudioListener volume / mute / pause  |
+| `time`      | Time.timeScale / fixedDeltaTime 制御   |
+| `go`        | GameObject active / tag / list       |
+
+## エイリアス & マクロ
+
+よく使う組み合わせはエイリアスにできます:
+
+```bash
+alias rich gold 999999
+rich            # -> gold 999999
+```

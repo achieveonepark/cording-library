@@ -1,0 +1,55 @@
+> For AI agents: the complete documentation index is available at /ach-economy/llms.txt, the full documentation bundle is available at /ach-economy/llms-full.txt.
+
+# 소개
+
+## Ach Economy란?
+
+**Ach Economy**는 상점 가격·재고가 고정값이 아니라 생산·소비·플레이어 매매에 따라 변동하는 경제를, 재사용 가능한 Unity 패키지로 묶은 것입니다.
+
+`EconomyConfig` 하나만 넘기면 `Economy` 클래스 안에서 **가격 결정 · 거점 간 무역 · 생산-소비 · 인플레이션 계측**이 전부 자동으로 돌아갑니다. ScriptableObject도, 씬에 붙이는 컴포넌트도 필요 없습니다.
+
+```csharp
+var economy = new Economy(EconomyConfig.Default);
+economy.AddCommodity("wheat", basePrice: 10f, targetStock: 100f);
+economy.AddMarket("town_a", new() { ["wheat"] = 200f });
+
+var r = economy.Buy("town_a", "wheat", 10);   // 재고 ↓ → 가격 ↑
+```
+
+## 두 개의 층위
+
+동적 경제는 성격이 다른 두 층위로 나뉩니다. 한 덩어리로 보면 설계가 꼬입니다.
+
+### [미시 — 가격 결정](/ach-economy/getting-started.md)
+
+단일 시장의 공급/수요로 가격·재고가 움직입니다. 무역·상점 컨텐츠의 핵심.
+
+### [거시 — 인플레이션](/ach-economy/api.md)
+
+전체 경제에 재화가 얼마나 들어오고(source) 빠지는가(sink). 라이브 서비스의 핵심.
+
+Ach Economy는 이 둘을 한 `Economy` 파사드 뒤로 숨기고, 사용자에게는 **`EconomyConfig` struct + `Economy` class** 두 가지만 노출합니다.
+
+## 핵심 특징
+
+| 항목                 | 설명                                                |
+| ------------------ | ------------------------------------------------- |
+| **단기/장기 가격 분리**    | 단기가는 거래 즉시, 장기가는 틱마다 대칭 관성으로 수렴                   |
+| **대칭 관성**          | 오를 때·내릴 때 같은 속도 → 대량매도 후 익일 매수 차익거래 익스플로잇 차단      |
+| **거점 간 무역**        | 무역로로 연결된 노드 간 재고가 평준화(재정거래 자동 모사)                 |
+| **생산-소비 루프**       | 레시피가 입력을 출력으로 바꿔 수급 수치를 채움                        |
+| **source/sink 계측** | `Inject`/`Consume`로 faucet·drain을 기록해 인플레이션 압력 산출 |
+
+## 설치
+
+Unity Package Manager에서 **Add package from git URL...** 를 선택하고 아래 주소를 입력하세요.
+
+```text
+https://github.com/achieveonepark/ach-economy.git
+```
+
+:::info
+특정 버전을 고정하려면 릴리스 태그를 푸시한 뒤 `...ach-economy.git#1.0.0` 처럼 태그를 붙이면 됩니다. OpenUPM 등록은 아직 진행되지 않았습니다.
+:::
+
+다음으로 [시작하기](/ach-economy/getting-started.md)에서 첫 경제를 만들어 보세요.

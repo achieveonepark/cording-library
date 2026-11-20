@@ -1,0 +1,59 @@
+> For AI agents: the complete documentation index is available at /AchReactive/zh/llms.txt, the full documentation bundle is available at /AchReactive/zh/llms-full.txt.
+
+# 创作工具
+
+无需用 JSON 手写数据。两个 UIToolkit 编辑器窗口会生成代码与数据。
+
+## Type Designer — 从类型生成代码
+
+菜单：**Tools ▸ AchReactive ▸ Type Designer**
+
+```
+Type Name:   [ Monster        ]
+Base Type:   [ EntityData ▾   ]
+Output:      [ Assets/Generated ]
+Fields:
+  [ hp        ] [ Float    ▾ ] [−]
+  [ dropTable ] [ StringArray ▾ ] [−]
+  [ + Add Field ]
+                              [ Generate ]
+```
+
+点击 **Generate** 会生成两个文件。
+
+- `MonsterData.cs` — 继承 `EntityData` 的 `IData` 实现（兼容 Newtonsoft）
+- `MonsterCsvMapper.cs` — `ICsvMapper<MonsterData>` 实现
+
+支持的字段类型：`string`、`int`、`float`、`bool`，以及各自的数组类型（`string[]` 等）。
+数组在 CSV 中以 `|` 分隔。
+
+如果不想生成，手写 `class MonsterData : EntityData { ... }` 也能 100% 正常工作。
+
+## Data Editor — 创建/编辑数据
+
+菜单：**Tools ▸ AchReactive ▸ Data Editor**
+
+- 左侧：实例列表（用 + Instance 添加）
+- 右侧：所选实例的 `id` 与 **Reactions 构建器**
+  - **Trigger** 下拉菜单 — 已注册的触发器 + 通用通道（on_use、on_hit …）
+  - **Conditions / Effects** — `type` 是从注册表填充的下拉菜单，`params` 为 JSON
+- 顶部 **Export JSON…** — 以 `reactions` 格式的数组保存
+
+```
+Reactions
+ ┌────────────────────────────────────────┐
+ │ Trigger: [ on_use ▾ ]              [−]  │
+ │ Conditions (AND)                        │
+ │   [ alive ▾ ] [ {} ]              [−]   │
+ │   [ + Condition ]                       │
+ │ Effects                                 │
+ │   [ damage ▾ ] [ { "power": 1.8 } ] [−] │
+ │   [ + Effect ]                          │
+ └────────────────────────────────────────┘
+```
+
+关键在于**不需要直接手动输入 trigger/condition/effect 类型**。
+下拉菜单只会显示注册表中实际注册的名称，因此从源头杜绝了拼写错误与未注册类型。
+保存的 JSON 可由 `JsonDataLoader` 直接读取。
+
+> 创作用 UI，运行时消费用数据文件 —— 用户无需直接接触 JSON。

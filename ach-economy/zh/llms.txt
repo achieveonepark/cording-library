@@ -1,0 +1,9 @@
+# Ach Economy
+
+> A reusable Unity economy simulation package for supply-demand pricing and source/sink inflation management.
+
+## Others
+
+- [API](/ach-economy/zh/api.md): Economy 类与 EconomyConfig struct 的完整参考
+- [更新日志](/ach-economy/zh/changelog.md): Ach Economy 各版本的主要变更
+- [快速开始](/ach-economy/zh/getting-started.md): 用 EconomyConfig 构建第一个经济，并运行交易、生产、贸易与通胀

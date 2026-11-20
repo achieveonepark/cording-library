@@ -1,0 +1,84 @@
+> For AI agents: the complete documentation index is available at /AchReactive/en/llms.txt, the full documentation bundle is available at /AchReactive/en/llms-full.txt.
+
+# Reactions and default behaviors
+
+## Execution flow
+
+```csharp
+var engine = new ReactionEngine();
+engine.Run("on_use", skillData, ctx);
+```
+
+`Run(trigger, data, ctx)` iterates over `data.reactions` and processes each reaction as follows.
+
+```
+1. Does the trigger channel name match?      (otherwise skip)
+2. Does the trigger guard pass?              (TriggerRegistry, passes if none)
+3. Do all conditions (AND) pass?             (ConditionRegistry)
+4. Execute effects in order                  (EffectRegistry)
+```
+
+The return value is the number of reactions actually executed.
+
+## ReactionContext
+
+```csharp
+var ctx = new ReactionContext
+{
+    Source  = caster,     // subject
+    Target  = target,     // single target
+    Targets = targets,    // area targets (takes priority if present)
+    World   = world,      // spawn/query boundary
+};
+```
+
+An effect reads its own arguments from `ctx.Params`. The engine injects them per item.
+
+## Default effects
+
+| type              | Description                                 | params                                |
+| ----------------- | ------------------------------------------- | ------------------------------------- |
+| `damage`          | reduces hp by `atk*power + flat - def`      | `power`, `flat`                       |
+| `heal`            | heals `atk*power + flat` (capped at hp_max) | `power`, `flat`                       |
+| `set_stat`        | set a stat base value                       | `stat`, `value`                       |
+| `add_stat`        | increase/decrease a stat base value         | `stat`, `delta`                       |
+| `add_modifier`    | add a stat modifier (basic buff form)       | `stat`, `modifier`, `value`, `source` |
+| `remove_modifier` | remove modifiers for a source token         | `source`                              |
+| `spawn`           | spawn an entity via World                   | `entityId`                            |
+| `log`             | debug log                                   | `message`                             |
+
+The `modifier` value is one of `flat` / `percent_add` / `percent_mul`. The targets are all of `Targets` if present,
+otherwise `Target`.
+
+## Default conditions
+
+| type                        | Description          | params          |
+| --------------------------- | -------------------- | --------------- |
+| `always`                    | always true          | —               |
+| `alive` / `dead`            | target alive/dead    | —               |
+| `chance`                    | pass by probability  | `value` (0\~1)  |
+| `hp_below` / `hp_above`     | compare HP ratio     | `value` (0\~1)  |
+| `stat_above` / `stat_below` | compare a stat value | `stat`, `value` |
+
+Unless otherwise specified, conditions evaluate `Target` (or `Source` if absent).
+
+## Default trigger guard
+
+Most triggers (`on_use`, `on_hit`, `on_equip`, etc.) fire on the channel name alone, so they have no guard.
+Only triggers that need a threshold comparison have a guard.
+
+| type          | Description                                                | triggerParams      |
+| ------------- | ---------------------------------------------------------- | ------------------ |
+| `on_hp_below` | fires only when Source's HP ratio is at or below threshold | `threshold` (0\~1) |
+
+## Stat conventions
+
+The default effects/conditions use the following keys (`StatKeys`). To use a different scheme, register the effect
+directly to override it.
+
+| Key      | Meaning                                           |
+| -------- | ------------------------------------------------- |
+| `hp`     | current health (resource)                         |
+| `hp_max` | maximum health (denominator for ratio conditions) |
+| `atk`    | attack power (modifiers applied)                  |
+| `def`    | defense (modifiers applied)                       |

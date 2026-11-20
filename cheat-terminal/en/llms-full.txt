@@ -1,0 +1,996 @@
+---
+url: /cheat-terminal/en/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/en/llms.txt, the full documentation bundle is available at /cheat-terminal/en/llms-full.txt.
+
+# Getting Started
+
+## Installation
+
+In Unity Package Manager, choose **Add package from git URL**:
+
+```
+https://github.com/achieveonepark/cheat-terminal.git
+```
+
+## Opening the console
+
+The terminal bootstraps automatically in the editor and development builds. A developer dock is visible at the top right: the sliders icon opens Cheat Library and the terminal icon opens Terminal. Drag the grip or either icon to move the dock within the safe area.
+
+```csharp
+// Release builds do not auto-create the console, so call this once.
+Achieve.CheatTerminal.TerminalBehaviour.Bootstrap();
+```
+
+| Action                                      | How                                             | Editor / desktop |
+| ------------------------------------------- | ----------------------------------------------- | ---------------- |
+| Show / hide the top-right `Terminal` handle | **Tap with 4 fingers, 3 times**                 | `F9`             |
+| Open / close the cheat HUD                  | **Tap with 3 fingers, 3 times**                 | `F1`, `F10`      |
+| Open / close the console                    | Tap the `Terminal` handle, or the panel `Close` | `F2`, `` ` ``    |
+| Run a command                               | Type and press Enter                            |                  |
+| Previous / next history                     | Up / Down arrow                                 |                  |
+| Help                                        | `help`, `help <category>`, `help <command>`     |                  |
+
+Repeating the same gesture closes it again. See [Cheat HUD](/cheat-terminal/en/usage/cheat-hud.md) for details.
+
+## Using it in the editor
+
+A mouse cannot produce a multi-touch gesture, so the editor and desktop use keys instead:
+`F1` opens Cheat Library, `F2` opens Terminal, `F10` is another cheat shortcut, and `F9` toggles the dock. Backquote only opens Terminal; Escape closes the active surface.
+
+When the Game view does not have focus the keys never reach the game. Use the menu then:
+
+```
+Tools > Cheat Terminal > Toggle Console
+                       > Toggle Cheat HUD
+                       > Toggle Corner Handle
+                       > Pause Game While Open
+```
+
+:::info
+Nothing is clickable without an `EventSystem`. If the scene has none, the terminal creates
+one - with `InputSystemUIInputModule` in Input System-only projects.
+:::
+
+## Control from code
+
+```csharp
+using Achieve.CheatTerminal;
+
+TerminalBehaviour.Open();        // Open
+TerminalBehaviour.Toggle();      // Toggle
+TerminalBehaviour.Execute("gold 100000"); // Execute directly
+
+TerminalBehaviour.ToggleCheatHud();      // Toggle the cheat HUD
+TerminalBehaviour.HandleVisible = true;  // Show the top-right handle
+
+// Open / close listener (console and cheat HUD combined)
+TerminalBehaviour.VisibilityChanged += open => Time.timeScale = open ? 0.2f : 1f;
+TerminalBehaviour.PauseGameWhileOpen = true; // the same thing, in one line
+```
+
+## Parameter forms and execution
+
+Parameter fields are always visible. Enter values and press Run or Enter; you never need to type the command name. `<amount>` is required, `[amount]` is optional, `<x> <y> <z>` creates separate coordinate fields, and `<on|off>` adds choice buttons. Required fields must be filled. Optional fields can be omitted from the end, without gaps. `[args]` and `<text...>` accept several space-separated arguments; quote a single value that contains spaces.
+
+Use category buttons and search to find commands. Values survive filtering, resizing and reopening. Results and errors appear on the card, bottom status bar and terminal output. Switching surfaces closes the previous surface.
+
+Next: [Adding Commands](/cheat-terminal/en/usage/adding-commands.md)
+
+
+
+---
+url: /cheat-terminal/en/usage/adding-commands.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/en/llms.txt, the full documentation bundle is available at /cheat-terminal/en/llms-full.txt.
+
+# Adding Commands
+
+Commands are registered explicitly with `RegisterCommand(...)`. There is no automatic scan, and execution uses a `CommandContext` delegate instead of reflection invocation.
+
+> **Usage string rules** — `usage` decides how the cheat runs in the cheat HUD.
+> Write no brackets when the command takes no arguments (`god`), `<amount>` for required
+> arguments and `[amount]` for optional ones. The HUD creates separate parameter fields and a Run button. You do not need to type the command name. → [Cheat HUD](/cheat-terminal/en/usage/cheat-hud.md)
+
+## Basic registration
+
+```csharp
+using System.Globalization;
+using Achieve.CheatTerminal;
+using UnityEngine;
+
+public class PlayerCheats : MonoBehaviour
+{
+    private int _gold;
+
+    private void Start()
+    {
+        TerminalBehaviour.RegisterCommand(
+            "gold",
+            AddGold,
+            "Add gold",
+            "Cheats",
+            "gold <amount>");
+
+        TerminalBehaviour.RegisterCommand(
+            "god",
+            ctx => ctx.Output.WriteLine("god toggled", LogLevel.Success),
+            "Toggle invincibility",
+            "Cheats",
+            "god");
+    }
+
+    private void AddGold(CommandContext ctx)
+    {
+        if (!ctx.Has(0) ||
+            !int.TryParse(ctx.Args[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int amount))
+        {
+            ctx.Output.WriteLine("Usage: gold <amount>", LogLevel.Error);
+            return;
+        }
+
+        _gold += amount;
+        ctx.Output.WriteLine($"Gold is now {_gold}", LogLevel.Success);
+    }
+}
+```
+
+Run `gold 100000` or `god` in the console. `help Cheats` lists commands in that category with descriptions.
+
+## Static commands
+
+Static methods are not collected automatically. Register them explicitly when you want them available.
+
+```csharp
+public static class DebugCheats
+{
+    public static void Register(Terminal terminal)
+    {
+        terminal.RegisterCommand("ping", Ping, "Print pong", "Debug", "ping");
+        terminal.RegisterCommand("timescale", SetTimeScale, "Set Time.timeScale", "Debug", "timescale <scale>");
+    }
+
+    private static void Ping(CommandContext ctx)
+        => ctx.Output.WriteLine("pong", LogLevel.Success);
+
+    private static void SetTimeScale(CommandContext ctx)
+    {
+        if (!ctx.Has(0) || !float.TryParse(ctx.Args[0], NumberStyles.Float,
+                CultureInfo.InvariantCulture, out float scale))
+        {
+            ctx.Output.WriteLine("Usage: timescale <scale>", LogLevel.Error);
+            return;
+        }
+
+        Time.timeScale = scale;
+    }
+}
+```
+
+Register them with:
+
+```csharp
+DebugCheats.Register(TerminalBehaviour.Current);
+```
+
+## Arguments
+
+Read arguments from `CommandContext`.
+
+- `ctx.Args`: raw argument list
+- `ctx.Has(index)`: whether an argument exists
+- `ctx.GetString/GetInt/GetFloat/GetBool`: fallback-based convenience getters
+- For strict validation, use `TryParse(..., CultureInfo.InvariantCulture, ...)` directly.
+
+## Adding completion candidates
+
+You can attach command-specific suggestions at registration time.
+
+```csharp
+TerminalBehaviour.RegisterCommand(
+    "difficulty",
+    ctx => SetDifficulty(ctx.GetString(0, "normal")),
+    "Set difficulty",
+    "Cheats",
+    "difficulty <easy|normal|hard>",
+    (ctx, results) =>
+    {
+        if (ctx.ArgumentIndex != 0) return;
+        foreach (var value in new[] { "easy", "normal", "hard" })
+        {
+            if (value.StartsWith(ctx.CurrentToken, System.StringComparison.OrdinalIgnoreCase))
+                results.Add(new CompletionItem(value, value, "difficulty value", "Cheats"));
+        }
+    });
+```
+
+Usage tokens like `<easy|normal|hard>` are also cached as default keyword suggestions.
+
+## Registering data tables
+
+Registered tables appear in the `data` command, input suggestions, and the `Data` tab.
+
+```csharp
+TerminalBehaviour.RegisterDataTable("items", "Items", () => new[]
+{
+    new DataTableRow("sword_001", "Bronze Sword"),
+    new DataTableRow("potion_hp", "Health Potion"),
+});
+```
+
+## Writing output
+
+Use `CommandContext.Output` for leveled output.
+
+```csharp
+TerminalBehaviour.RegisterCommand("save", ctx =>
+{
+    ctx.Output.WriteLine("Saved", LogLevel.Success); // Info/Success/Warning/Error/System
+}, "Save game", "System", "save");
+```
+
+## Advanced: ITerminalModule
+
+:::info
+**Who is this for?**
+
+Use modules when you want to ship a reusable set of related commands.
+
+For in-game cheat and debug commands, `RegisterCommand(...)` is usually enough.
+
+:::
+
+Implement `ITerminalModule` and install it once with `InstallModule()`.
+
+```csharp
+using Achieve.CheatTerminal;
+
+public class NetworkDebugModule : ITerminalModule
+{
+    public string Name => "NetworkDebug";
+
+    public void Install(Terminal terminal)
+    {
+        terminal.RegisterCommand(
+            "net",
+            Run,
+            "Network debug tools",
+            "Network",
+            "net <ping|status>");
+    }
+
+    private static void Run(CommandContext ctx)
+    {
+        string sub = ctx.GetString(0, "status");
+        switch (sub)
+        {
+            case "ping":   ctx.Output.WriteLine("pong", LogLevel.Success); break;
+            case "status": ctx.Output.WriteLine("connected", LogLevel.Info); break;
+            default:       ctx.Output.WriteLine($"Unknown: {sub}", LogLevel.Error); break;
+        }
+    }
+}
+```
+
+Install it after bootstrap:
+
+```csharp
+TerminalBehaviour.Instance.InstallModule(new NetworkDebugModule());
+```
+
+Next: [Command Reference](/cheat-terminal/en/usage/commands.md)
+
+
+
+---
+url: /cheat-terminal/en/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/en/llms.txt, the full documentation bundle is available at /cheat-terminal/en/llms-full.txt.
+
+# Changelog
+
+Notable package changes. This project follows [Semantic Versioning](https://semver.org/).
+
+See [Project History](/cheat-terminal/en/history.md) for the reasoning behind each release.
+
+## 1.1.0 - 2026-10-17
+
+### Added
+
+- Visible top-right developer dock with vector cheat/terminal icons, drag grip, safe-area clamping and retained position across visibility changes and screen resizing.
+- Cheat parameter forms generated from usage: required/optional fields, choice buttons, grouped coordinates, rest arguments, validation and retained input values. Run buttons assemble and execute commands without typing their names.
+- Category filters and per-card execution feedback, including errors. Terminal now has a Run button, Tab completion, keyboard history, command echo and a safe-area layout.
+- Local cheat-authoring skills under `.agents/skills/cheat-terminal` and `.claude/skills/cheat-terminal`.
+- Unity tests for command forms, quoted values, execution, UI interaction, dock dragging and pause restoration.
+
+### Changed
+
+- Default shortcuts are **F1: Cheat Library**, **F2: Terminal**. F10 remains a cheat shortcut; F9 toggles the dock; backquote opens Terminal; Escape closes the active surface. `ConsoleKey` and the new `CheatHudKey` are configurable.
+- Redesigned both surfaces with consistent dark colors, mint accents, clearer spacing and dedicated controls. Switching surfaces closes the previous one while retaining aggregate visibility/pause behavior.
+- Cheats run through explicit Run buttons; parameter forms are always visible. No additional registration is needed.
+- Previous release entries are numbered `1.0.0` through `1.0.4`; this UI update is `1.1.0`.
+
+### Fixed
+
+- Quoted argument serialization preserves spaces, embedded quotes, backslashes and empty quoted tokens.
+- HUD execution feedback reflects command errors instead of reporting every invocation as successful.
+- Generated dock icons and panel backgrounds include their required CanvasRenderer. Parameter fields retain their minimum height and no longer overlap Run buttons without a theme asset.
+
+## 1.0.4 - 2026-08-29
+
+### Changed
+
+- The cheat HUD covers the whole screen instead of sliding in from the left. Rows are proper touch targets (104px minimum), content is inset by `Screen.safeArea`, wide screens split the list into two or three columns, and the bottom bar carries a large `CLOSE` button. The old panel is still available through `TerminalBehaviour.CheatHudFullScreen = false` and `CheatHudView.WidthPercent`.
+
+### Added
+
+- Open/close listeners: `TerminalBehaviour.VisibilityChanged` (console and HUD combined), `ConsoleVisibilityChanged`, `CheatHudVisibilityChanged`. The views raise `OnOpened` / `OnClosed` / `OnVisibilityChanged` directly.
+- `TerminalBehaviour.PauseGameWhileOpen` / `PausedTimeScale`: hold `Time.timeScale` while open and restore it on close.
+- Console keyboard shortcuts for the editor and desktop: `F1` toggles, the backquote `` ` `` only opens (so it never eats a keystroke while typing). The cheat HUD also answers to `F2` next to `F10`.
+- `Tools > Cheat Terminal` editor menu for play mode (toggle console / HUD / handle, Pause Game While Open, manual bootstrap).
+- `TerminalShortcutKey` gained `F1`-`F4`, `F11`, `F12`, `BackQuote`, `Escape`; `MultiFingerTapGesture` accepts a second `AlternateKey`.
+
+### Fixed
+
+- Input System-only projects had no `EventSystem`, leaving every console and cheat HUD button dead. One is now created with `InputSystemUIInputModule`.
+
+### Documentation
+
+- Added a [Project History](/cheat-terminal/en/history.md) page reconstructed from the commit history (ko / en / ja / zh).
+
+## 1.0.3 - 2026-08-17
+
+### Changed
+
+- The top-right `>_` handle is hidden by default. Tapping with **four fingers three times** anywhere on screen shows it, and the same gesture hides it again. `TerminalCornerTrigger.Visible` / `TerminalBehaviour.HandleVisible` expose it from code (`TerminalCornerTrigger.Enabled` is kept as an alias).
+
+### Added
+
+- Cheat HUD (`CheatHudView`): a UI Toolkit panel that slides in from the left and lists every registered command, grouped by category. Toggled by tapping with **three fingers three times** (F10 on desktop) or through `TerminalBehaviour.Open/Close/ToggleCheatHud()`. Cheats without arguments run on a single tap; cheats with `<...>` or `[...]` arguments open an inline input. Includes a search box, a status line for the last executed command, and a `>_` button that opens the console.
+- `MultiFingerTapGesture`: reusable "N fingers, M taps" detector that requires an exact finger count, so the three- and four-finger gestures never trigger each other. Optional keyboard fallback (F9 / F10) for the editor and desktop.
+- `TerminalInput`: reflection-free input abstraction covering both the legacy Input Manager and the Input System package.
+- `AGENT.md` documenting the conventions for authoring cheats.
+
+## 1.0.2 - 2026-06-27
+
+### Changed (breaking)
+
+- Removed reflection-based `[Terminal]` method discovery and invocation. Commands are now registered explicitly with `RegisterCommand(...)`.
+- Removed the reflection-based Object Inspector module from the default runtime.
+- EventSystem fallback no longer probes optional Input System types via reflection. Projects using Input System-only input should provide an EventSystem with `InputSystemUIInputModule`.
+
+### Fixed
+
+- Terminal input now executes only on an explicit submit, not on focus loss.
+- Terminal output escapes rich text-sensitive characters before wrapping lines in color tags.
+- Unity component commands now use invariant-culture numeric parsing, strict bool parsing, and inactive-inclusive GameObject lookup where appropriate.
+- Runtime helper GameObjects created by Logs and Performance modules are disposed with the terminal bootstrap.
+
+### Added
+
+- Cached completion items for command names, usage keywords, and command-specific providers.
+- Context-aware completions for built-in commands, including scenes, logs, GameObjects, component targets, and boolean values.
+- `data [table] [id|text]` command plus `RegisterDataTable(...)` for reflection-free data lookup.
+- Terminal UI tabs for Console, registered Commands, and registered Data tables.
+
+## 1.0.1 - 2026-05-30
+
+### Changed
+
+- Renamed the namespace from `UniTerminal` to `Achieve.CheatTerminal`.
+
+### Added
+
+- Unity component commands: `transform`, `rb`, `cam`, `light`, `audio`, `time`, `go`.
+- Documentation in Korean, English, Japanese and Chinese, including advanced module usage.
+
+## 1.0.0 - 2026-05-29
+
+### Changed (breaking)
+
+- Removed the internal collaborator interfaces (`ICommandRegistry`, `ICommandParser`, `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`, `ITerminalTrigger`, `ITerminal`) and `TerminalBuilder`. The core `Terminal` is now a concrete class that owns concrete collaborators. Only `ICommand`, `ICommandOutput`, `ITerminalView`, and `ITerminalModule` remain as real extension points.
+- No marker interface for commands - the `[Terminal]` attribute is the only marker.
+- `Terminal.ScanStaticCommands()` scans user assemblies and auto-registers all static `[Terminal]` methods. The bootstrap runs it on startup through `TerminalBehaviour.AutoScanStaticCommands`. Instance commands still use `Register(this)`.
+
+### Added
+
+- Runtime Logs module: captures `Debug.Log` output into a ring buffer with `logs [n | error | warning | info | <text> | find <text> | clear | export]`. Export writes to `Application.persistentDataPath` so logs are retrievable on device.
+- Up/Down arrow recalls previous/next command history in the input field via uGUI `IMoveHandler`, so it works under both the legacy Input Manager and the Input System package.
+- `help <category>` lists the commands in a category with descriptions. `help` now hints at `help <command>` / `help <category>`.
+
+### Fixed
+
+- EventSystem now creates `InputSystemUIInputModule` when the Input System package is active, resolved via reflection, avoiding the per-frame `InvalidOperationException`.
+- Top-right corner trigger is now a visible `>_` handle and opens on a single tap.
+
+## 0.1.0 - 2026-05-29
+
+### Added
+
+- Core command system: `ICommandRegistry`, `ICommandParser` (quote-aware), `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`, and `ICommandOutput` with default implementations.
+- `[Terminal("name {0}")]` attribute and reflection-based `AttributeCommand` binding, including positional binding, optional parameters, and `CommandContext` injection.
+- Interface-driven `Terminal` core assembled via `TerminalBuilder`.
+- uGUI overlay view (`UGuiTerminalView`) deactivated while closed for zero idle cost.
+- Top-right corner open gesture (`TerminalCornerTrigger`, double-tap by default).
+- `TerminalBehaviour` bootstrap with a static convenience API. It auto-bootstraps in the editor and development builds.
+- Built-in commands: `help`, `clear`, `history`, `echo`, `alias`.
+- Module system (`ITerminalModule`) with `InstallModule` / `GetModule<T>` on the bootstrap.
+- Scene Tools module: `scene list | load <name> [additive] | unload <name>`.
+- Object Inspector module: `find`, `inspect`, `set <name>.<member> <value>`, `call`, with explicit object registration (`ObjectInspectorModule.RegisterObject`).
+- Performance Monitor module: `perf` (FPS, frame ms, memory, GC, render stats via `ProfilerRecorder`).
+- Basic Usage sample.
+
+
+
+---
+url: /cheat-terminal/en/history.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/en/llms.txt, the full documentation bundle is available at /cheat-terminal/en/llms-full.txt.
+
+# Project History
+
+How this package evolved, reconstructed from its commit history. The
+[Changelog](/cheat-terminal/en/changelog.md) records _what_ changed in each release; this page records _why_.
+
+## At a glance
+
+| Version | Date       | Headline change                                                         |
+| ------- | ---------- | ----------------------------------------------------------------------- |
+| 1.1.0   | 2026-10-17 | Parameter forms, draggable dock, F1/F2 shortcuts and execution feedback |
+| 1.0.4   | 2026-08-29 | Full-screen cheat HUD, visibility events and editor support             |
+| 1.0.3   | 2026-08-17 | Multi-touch gestures bring the UI up; UI Toolkit cheat HUD              |
+| 1.0.2   | 2026-06-27 | Reflection removed for good, context-aware completion, data tables      |
+| 1.0.1   | 2026-05-30 | `Achieve.CheatTerminal` namespace, Unity component commands             |
+| 1.0.0   | 2026-05-29 | Rewritten around a concrete core, Logs module                           |
+| 0.1.0   | 2026-05-29 | First core, uGUI view, module system                                    |
+
+## Three turning points
+
+1. **Reflection → explicit registration.** 0.1.0 discovered commands through a
+   `[Terminal("name {0}")]` attribute and reflection binding, and 1.0.0 added automatic
+   scanning of static methods on top. To keep runtime behavior predictable under IL2CPP/AOT,
+   1.0.2 removed the attribute, the scan and every reflective call path, leaving explicit
+   `RegisterCommand(...)` as the only way in.
+2. **Interface zoo → concrete core.** The collaborator interfaces of 0.1.0
+   (`ICommandRegistry`, `ICommandParser`, `IAutoCompleteProvider`, …) and `TerminalBuilder`
+   were deleted in 1.0.0; `Terminal` now owns concrete collaborators directly. Only
+   `ICommand`, `ICommandOutput`, `ITerminalView` and `ITerminalModule` remain as extension
+   points.
+3. **Always-on UI → gesture-summoned UI.** The invisible double-tap corner area of 0.1.0
+   became a visible single-tap `>_` handle in 1.0.0, and in 1.0.3 that handle itself became
+   hidden by default, reachable only through a multi-touch gesture.
+
+## 1.0.3 — Gestures and the cheat HUD
+
+- The top-right `>_` handle is hidden by default; **four fingers tapped three times** shows
+  and hides it.
+- Added a **UI Toolkit cheat HUD** that slides in from the left. Every registered command is
+  listed automatically, grouped by category, and cheats without arguments run on a single tap.
+  **Three fingers tapped three times** opens and closes it. → [Cheat HUD](/cheat-terminal/en/usage/cheat-hud.md)
+- Gestures come from `MultiFingerTapGesture`, which requires an exact finger count so the
+  three- and four-finger gestures can never trigger each other.
+- Touch reading goes through the `TerminalInput` abstraction, covering the legacy Input
+  Manager and the Input System package without reflection (the latter being an optional
+  dependency resolved by a version define).
+- Added `AGENT.md` at the repository root with the conventions for authoring cheats.
+
+## 1.0.2 — Reflection removed, completion sharpened
+
+- Deleted `TerminalAttribute`, `AttributeCommand` and the reflection-based Object Inspector
+  module. Commands previously registered through the attribute must move to
+  `RegisterCommand(...)`.
+- Completion now caches command names, `usage` keywords and command-specific candidates, and
+  offers context-aware suggestions for scenes, logs, GameObjects, component targets and
+  boolean values (`ICommandCompletionProvider`, `CommandCompletionContext`, `CompletionItem`).
+- `RegisterDataTable(...)` and the `data [table] [id|text]` command expose game data tables
+  without reflection.
+- The terminal UI gained `Console / Commands / Data` tabs.
+- Fixes: input runs only on an explicit submit rather than on focus loss, output escapes rich
+  text-sensitive characters, Unity component commands parse with invariant culture, and the
+  helper GameObjects created by the Logs and Performance modules are disposed with the
+  bootstrap.
+- Around the same time the documentation site moved from Docusaurus to **Fumadocs + Next.js**,
+  the folder was unified as `docs~`, the Introduction / Getting started / Usage / Changelog
+  structure was settled and a Korean `CHANGELOG.ko.md` was added.
+
+## 1.0.1 — Namespace and Unity component commands
+
+- Renamed the namespace `UniTerminal` → `Achieve.CheatTerminal` (breaking).
+- Added commands that drive Unity's built-in components directly: `transform`, `rb`, `cam`,
+  `light`, `audio`, `time`, `go`. → [Unity component commands](/cheat-terminal/en/usage/unity-components.md)
+- Localized the docs into ko / en / ja / zh, added the advanced `ITerminalModule` section and
+  introduced the `CHANGELOG`.
+
+## 1.0.0 — Rewritten around a concrete core
+
+- Removed the collaborator interfaces and `TerminalBuilder`; `Terminal` became a concrete class.
+- `Terminal.ScanStaticCommands()` auto-registered static `[Terminal]` methods (this was later
+  removed in 1.0.2).
+- **Runtime Logs module**: captures `Debug.Log` into a ring buffer, queried with
+  `logs [n | error | warning | info | <text> | find <text> | clear | export]`. `export` writes
+  to `Application.persistentDataPath`, so logs are retrievable from a device.
+- Up/Down arrows recall command history in the input field, and `help <category>` was added.
+- Fixed the EventSystem input module, turned the corner trigger into a visible `>_` handle with
+  a single tap, added Unity `.meta` files, and settled the package name
+  `com.achieve.cheat-terminal`.
+- Added the documentation site (Docusaurus) and CI that deploys it to GitHub Pages.
+
+## 0.1.0 — First release
+
+- Core made of a quote-aware parser, history, aliases, argument conversion, completion and an
+  output buffer.
+- `[Terminal]` attribute binding through reflection, assembled with `TerminalBuilder`.
+- uGUI overlay view that is fully deactivated while closed, plus a double-tap corner trigger.
+- Built-in commands `help`, `clear`, `history`, `echo`, `alias`.
+- Module system (`ITerminalModule`) with Scene Tools, Object Inspector and Performance modules,
+  and the Basic Usage sample.
+
+## Upgrade cheat sheet
+
+| Was                                  | Is                                                           |
+| ------------------------------------ | ------------------------------------------------------------ |
+| `[Terminal]` attribute / static scan | `TerminalBehaviour.RegisterCommand(...)`                     |
+| `UniTerminal` namespace              | `Achieve.CheatTerminal`                                      |
+| `TerminalBuilder` assembly           | `new Terminal()` + `AttachView(...)`                         |
+| Object Inspector module              | `RegisterDataTable(...)` + the `data` command                |
+| Always-visible corner handle         | Four-finger triple tap (`TerminalBehaviour.HandleVisible`)   |
+| `TerminalCornerTrigger.Enabled`      | `TerminalCornerTrigger.Visible` (`Enabled` kept as an alias) |
+
+
+
+---
+url: /cheat-terminal/en/index.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/en/llms.txt, the full documentation bundle is available at /cheat-terminal/en/llms-full.txt.
+
+# Introduction
+
+Cheat Terminal is a Unity runtime developer console for cheats, debugging, log review, and live runtime control.
+
+Commands are registered explicitly with `RegisterCommand(...)`. There is no automatic assembly scanning or reflection invocation in the default runtime path, which keeps IL2CPP/AOT builds predictable. The console runs as a uGUI overlay with **zero idle cost** while closed.
+
+```csharp
+TerminalBehaviour.RegisterCommand(
+    "gold",
+    ctx => ctx.Output.WriteLine("gold added", LogLevel.Success),
+    "Add gold",
+    "Cheats",
+    "gold <amount>");
+```
+
+## Features
+
+- **Explicit registration** - Register commands with `RegisterCommand("name", ctx => ...)`; no hidden reflection scan.
+- **Runtime IntelliSense** - Shows command, keyword, data table, and row suggestions with details.
+- **Performance-first** - Disabled canvas while closed, capped output ring buffer, and keyboard history through the shared `TerminalInput` backend.
+- **Modular** - Scene, Data, Performance, Logs, and Unity Components modules are installed by default.
+- **Tabbed UI** - Console, Commands, and Data tabs show output, registered commands, and registered data.
+- **Mobile-friendly** - Multi-touch gestures (3 or 4 fingers, tapped 3 times) bring the UI up, and device logs export to a file.
+- **Cheat HUD** - Run registered cheats with parameter fields and Run buttons in a full-screen UI Toolkit panel; open/close listeners drive `Time.timeScale`.
+
+## Requirements
+
+- Unity 6 (6000.x)
+- `com.unity.ugui` (included by default)
+
+Next: [Getting Started](/cheat-terminal/en/getting-started.md)
+
+
+
+---
+url: /cheat-terminal/en/usage/cheat-hud.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/en/llms.txt, the full documentation bundle is available at /cheat-terminal/en/llms-full.txt.
+
+# Cheat HUD
+
+Every cheat registered on the terminal can be run from a **full-screen UI Toolkit HUD**.
+Registering a command is all it takes: the HUD picks it up automatically.
+
+## Opening it
+
+| Gesture                         | Action                                           | Editor / desktop |
+| ------------------------------- | ------------------------------------------------ | ---------------- |
+| **Tap with 3 fingers, 3 times** | Open / close the cheat HUD                       | `F1` / `F10`     |
+| **Tap with 4 fingers, 3 times** | Show / hide the top-right `Terminal / F2` handle | `F9`             |
+| Tap the handle                  | Open / close the console                         | `F2` / `` ` ``   |
+
+In the editor the `Tools > Cheat Terminal` menu does the same thing - use it when the Game view
+does not have focus and the keys never reach the game.
+
+```csharp
+using Achieve.CheatTerminal;
+
+TerminalBehaviour.OpenCheatHud();
+TerminalBehaviour.CloseCheatHud();
+TerminalBehaviour.ToggleCheatHud();
+```
+
+## Layout
+
+- The HUD covers the **whole screen** by default. Every row is a comfortable touch target
+  (104px minimum) with text sized to match.
+- Content is padded by `Screen.safeArea`, so notches and home indicators never cover a row.
+- Wide screens (landscape, tablets, the editor Game view) split the list into two or three
+  columns automatically.
+- The bottom status bar carries a large `CLOSE` button, for when the `X` in the header is out
+  of thumb reach on a tall phone.
+- Prefer the old narrow panel that slides in from the left? Turn full screen off.
+
+```csharp
+TerminalBehaviour.CheatHudFullScreen = false;           // back to the sliding panel
+TerminalBehaviour.Instance.CheatHud.WidthPercent = 42f; // its width, in percent
+```
+
+## Open / close listeners
+
+The game keeps running behind the HUD and the console. Subscribe to the open/close state to
+drop `Time.timeScale`, block input, or anything else.
+
+```csharp
+// true when the console or the cheat HUD opens, false once both are closed
+TerminalBehaviour.VisibilityChanged += open => Time.timeScale = open ? 0.2f : 1f;
+
+// or one surface at a time
+TerminalBehaviour.CheatHudVisibilityChanged += open => { /* ... */ };
+TerminalBehaviour.ConsoleVisibilityChanged  += open => { /* ... */ };
+```
+
+If all you need is to stop time, it is one line. The time scale in effect when the HUD opens is
+saved and restored on close.
+
+```csharp
+TerminalBehaviour.PauseGameWhileOpen = true; // hold the time scale while open
+TerminalBehaviour.PausedTimeScale = 0f;      // the value to hold (default 0)
+```
+
+:::info
+Unsubscribe with `-=`. The views raise the same events directly:
+`CheatHudView.OnOpened` / `OnClosed` / `OnVisibilityChanged`, and the identically named
+events on `UGuiTerminalView`.
+:::
+
+## How entries are listed
+
+- Commands are grouped by `category`; the built-in `System` category is always sorted last.
+- The search box at the top filters by name, description and category.
+- The `usage` string decides how a cheat runs.
+
+| usage                | HUD behavior                             |
+| -------------------- | ---------------------------------------- |
+| `god` (no arguments) | Press Run                                |
+| `gold <amount>`      | Enter amount, then Run                   |
+| `heal [amount]`      | Leave amount blank or enter it, then Run |
+
+```csharp
+// One-tap cheat: no <> or [] in the usage string.
+TerminalBehaviour.RegisterCommand("god", ToggleGod, "Toggle god mode", "Cheats", "god");
+
+// Cheat with arguments
+TerminalBehaviour.RegisterCommand("gold", AddGold, "Add gold", "Cheats", "gold <amount>");
+```
+
+## Behavior
+
+- The HUD subscribes to `Terminal.Registry.Changed`, so commands added or removed at runtime
+  show up right away.
+- Results go to the terminal console output and to the status line at the bottom of the HUD.
+- While closed the panel is `display: none`, so it costs nothing to render or lay out, and the
+  root element never intercepts gameplay input.
+- The `Terminal / F2` button in the header opens the full terminal console.
+
+## Dock and shortcuts
+
+The terminal bootstraps automatically in the editor and development builds. A developer dock is visible at the top right: the sliders icon opens Cheat Library and the terminal icon opens Terminal. Drag the grip or either icon to move the dock within the safe area.
+
+`F1` opens Cheat Library, `F2` opens Terminal, `F10` is another cheat shortcut, and `F9` toggles the dock. Backquote only opens Terminal; Escape closes the active surface.
+
+## Parameter forms and execution
+
+Parameter fields are always visible. Enter values and press Run or Enter; you never need to type the command name. `<amount>` is required, `[amount]` is optional, `<x> <y> <z>` creates separate coordinate fields, and `<on|off>` adds choice buttons. Required fields must be filled. Optional fields can be omitted from the end, without gaps. `[args]` and `<text...>` accept several space-separated arguments; quote a single value that contains spaces.
+
+Use category buttons and search to find commands. Values survive filtering, resizing and reopening. Results and errors appear on the card, bottom status bar and terminal output. Switching surfaces closes the previous surface.
+
+
+
+---
+url: /cheat-terminal/en/usage/commands.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/en/llms.txt, the full documentation bundle is available at /cheat-terminal/en/llms-full.txt.
+
+# Command Reference
+
+## Built-in commands
+
+| Command                    | Description                                                |
+| -------------------------- | ---------------------------------------------------------- |
+| `help [command\|category]` | Command list / details                                     |
+| `clear`                    | Clear output                                               |
+| `history`                  | Input history                                              |
+| `echo <text>`              | Print text                                                 |
+| `alias <name> <expansion>` | Register an alias (`alias remove <name>`, `alias` to list) |
+
+## Modules
+
+The default bootstrap automatically installs these modules.
+
+### Scene
+
+```bash
+scene list                 # Loaded scenes + build setting scenes
+scene load Lobby           # Single load
+scene load InGame additive # Additive load
+scene unload InGame
+```
+
+### Data
+
+Browse registered data table IDs and row names.
+
+```bash
+data                 # Table IDs / names / row counts
+data items           # Row IDs / names in the items table
+data items sword     # Search IDs, names, summaries and print fields
+```
+
+### Performance
+
+```bash
+perf   # FPS / frame ms / memory / Mono / GC / draw calls, batches, triangles when available
+```
+
+### Logs
+
+Captures `Debug.Log` output into a capped ring buffer.
+
+```bash
+logs                 # Latest 30
+logs 100             # Latest 100
+logs error           # Level filter (error / warning / info)
+logs network         # Text contains filter
+logs find <text>     # Explicit search
+logs clear           # Clear
+logs export          # Save to file (persistentDataPath, retrievable from device)
+```
+
+### Unity Components
+
+Control Unity's built-in components directly from the terminal. See [Unity Component Commands](/cheat-terminal/en/usage/unity-components.md) for the full reference.
+
+| Command     | Description                                    |
+| ----------- | ---------------------------------------------- |
+| `transform` | Read or write position, rotation, and scale    |
+| `rb`        | Rigidbody property control                     |
+| `cam`       | Camera settings (FOV, background colour, etc.) |
+| `light`     | Light property control                         |
+| `audio`     | AudioListener volume, mute, and pause          |
+| `time`      | Time.timeScale and fixedDeltaTime control      |
+| `go`        | GameObject activation, tag, and listing        |
+
+## Aliases and macros
+
+Create aliases for frequent command combinations:
+
+```bash
+alias rich gold 999999
+rich            # -> gold 999999
+```
+
+
+
+---
+url: /cheat-terminal/en/usage/unity-components.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/en/llms.txt, the full documentation bundle is available at /cheat-terminal/en/llms-full.txt.
+
+# Unity Component Commands
+
+`UnityComponentsModule` provides seven commands covering the most frequently used Unity built-in components, all controllable from the terminal without touching any code.\
+The module is installed automatically in editor and development builds — no extra setup required.
+
+***
+
+## `transform` — Transform manipulation
+
+```bash
+transform get   <name>                   # Print position, rotation, and scale
+transform pos   <name> [x y z]           # Get or set world position
+transform rot   <name> [x y z]           # Get or set euler rotation
+transform scale <name> [x y z]           # Get or set local scale
+transform reset <name>                   # Reset position, rotation, and scale to identity
+```
+
+### Examples
+
+```bash
+transform get   Player
+transform pos   Player 0 1 0
+transform rot   Enemy  0 90 0
+transform scale Boss   2 2 2
+transform reset Cube
+```
+
+:::info
+
+Omitting the `x y z` arguments prints the current value without modifying it.
+
+:::
+
+***
+
+## `rb` — Rigidbody control
+
+```bash
+rb get       <name>           # Print all Rigidbody properties
+rb velocity  <name> [x y z]  # Get or set linear velocity
+rb gravity   <name> [on|off] # Get or set useGravity
+rb kinematic <name> [on|off] # Get or set isKinematic
+rb mass      <name> [value]  # Get or set mass
+rb drag      <name> [value]  # Get or set linear damping (drag)
+```
+
+### Examples
+
+```bash
+rb get       Player
+rb velocity  Player 0 10 0
+rb gravity   Player off
+rb kinematic Player on
+rb mass      Boulder 50
+rb drag      Ship 0.1
+```
+
+:::info
+
+An error is shown when the target GameObject has no `Rigidbody` component.
+
+:::
+
+***
+
+## `cam` — Camera settings
+
+Always targets `Camera.main` unless otherwise noted.
+
+```bash
+cam list                          # List all cameras in the scene
+cam fov  [value]                  # Get or set fieldOfView (1–179°)
+cam bg   [r g b [a]]              # Get or set backgroundColor (0–1 range)
+cam ortho [on|off]                # Toggle perspective / orthographic
+cam size  [value]                 # Get or set orthographicSize
+cam clip  [near far]              # Get or set near and far clip planes
+```
+
+### Examples
+
+```bash
+cam list
+cam fov 75
+cam bg 0.1 0.1 0.2
+cam ortho on
+cam size 5
+cam clip 0.01 1000
+```
+
+***
+
+## `light` — Light control
+
+```bash
+light list                        # List all Lights in the scene
+light intensity <name> [value]    # Get or set intensity
+light color     <name> [r g b]    # Get or set colour (0–1 range)
+light range     <name> [value]    # Get or set range
+light shadow    <name> [on|off]   # Toggle soft shadows on or off
+```
+
+### Examples
+
+```bash
+light list
+light intensity Sun 1.5
+light color     Sun 1 0.9 0.8
+light range     PointLight 10
+light shadow    Sun off
+```
+
+***
+
+## `audio` — AudioListener control
+
+Affects the global `AudioListener`.
+
+```bash
+audio volume [value]   # Get or set master volume (0–1)
+audio mute   [on|off]  # Mute or unmute audio
+audio pause            # Pause all audio
+audio resume           # Resume all audio
+```
+
+### Examples
+
+```bash
+audio volume 0.5
+audio mute on
+audio pause
+audio resume
+```
+
+***
+
+## `time` — Time control
+
+```bash
+time get            # Print timeScale, fixedDeltaTime, time, frameCount
+time scale [value]  # Get or set Time.timeScale (≥ 0)
+time fixed [value]  # Get or set Time.fixedDeltaTime
+```
+
+### Examples
+
+```bash
+time get
+time scale 0.5     # Slow motion
+time scale 0       # Pause
+time scale 1       # Resume normal speed
+time fixed 0.02    # 50 Hz physics updates
+```
+
+:::info
+
+Pause with `time scale 0`, inspect state via the terminal, then resume with `time scale 1`.
+
+:::
+
+***
+
+## `go` — GameObject utilities
+
+```bash
+go list   [tag]             # List GameObjects (up to 40, optional tag filter)
+go active <name> <on|off>   # Call SetActive
+go tag    <name> [tag]      # Get or set the tag
+```
+
+### Examples
+
+```bash
+go list
+go list Player              # Only objects tagged "Player"
+go active Enemy on
+go active Canvas off
+go tag Player Untagged
+```
+
+:::info
+
+`go list` shows at most 40 objects from `FindObjectsByType`.
+
+:::
+
+***
+
+## Value format reference
+
+| Type            | Accepted formats                            |
+| --------------- | ------------------------------------------- |
+| float           | `1`, `1.5`, `-0.3`                          |
+| bool            | `on` / `off` / `true` / `false` / `1` / `0` |
+| Vector3 (x y z) | Space-separated: `0 1 0`                    |
+| Color (r g b)   | Float 0–1: `1 0.5 0`                        |
+
+***
+
+## Category
+
+All commands belong to the `Components` category. Run `help Components` to list them.
+
+

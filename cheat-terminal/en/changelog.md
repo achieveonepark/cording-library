@@ -1,0 +1,134 @@
+> For AI agents: the complete documentation index is available at /cheat-terminal/en/llms.txt, the full documentation bundle is available at /cheat-terminal/en/llms-full.txt.
+
+# Changelog
+
+Notable package changes. This project follows [Semantic Versioning](https://semver.org/).
+
+See [Project History](/cheat-terminal/en/history.md) for the reasoning behind each release.
+
+## 1.1.0 - 2026-10-17
+
+### Added
+
+- Visible top-right developer dock with vector cheat/terminal icons, drag grip, safe-area clamping and retained position across visibility changes and screen resizing.
+- Cheat parameter forms generated from usage: required/optional fields, choice buttons, grouped coordinates, rest arguments, validation and retained input values. Run buttons assemble and execute commands without typing their names.
+- Category filters and per-card execution feedback, including errors. Terminal now has a Run button, Tab completion, keyboard history, command echo and a safe-area layout.
+- Local cheat-authoring skills under `.agents/skills/cheat-terminal` and `.claude/skills/cheat-terminal`.
+- Unity tests for command forms, quoted values, execution, UI interaction, dock dragging and pause restoration.
+
+### Changed
+
+- Default shortcuts are **F1: Cheat Library**, **F2: Terminal**. F10 remains a cheat shortcut; F9 toggles the dock; backquote opens Terminal; Escape closes the active surface. `ConsoleKey` and the new `CheatHudKey` are configurable.
+- Redesigned both surfaces with consistent dark colors, mint accents, clearer spacing and dedicated controls. Switching surfaces closes the previous one while retaining aggregate visibility/pause behavior.
+- Cheats run through explicit Run buttons; parameter forms are always visible. No additional registration is needed.
+- Previous release entries are numbered `1.0.0` through `1.0.4`; this UI update is `1.1.0`.
+
+### Fixed
+
+- Quoted argument serialization preserves spaces, embedded quotes, backslashes and empty quoted tokens.
+- HUD execution feedback reflects command errors instead of reporting every invocation as successful.
+- Generated dock icons and panel backgrounds include their required CanvasRenderer. Parameter fields retain their minimum height and no longer overlap Run buttons without a theme asset.
+
+## 1.0.4 - 2026-08-29
+
+### Changed
+
+- The cheat HUD covers the whole screen instead of sliding in from the left. Rows are proper touch targets (104px minimum), content is inset by `Screen.safeArea`, wide screens split the list into two or three columns, and the bottom bar carries a large `CLOSE` button. The old panel is still available through `TerminalBehaviour.CheatHudFullScreen = false` and `CheatHudView.WidthPercent`.
+
+### Added
+
+- Open/close listeners: `TerminalBehaviour.VisibilityChanged` (console and HUD combined), `ConsoleVisibilityChanged`, `CheatHudVisibilityChanged`. The views raise `OnOpened` / `OnClosed` / `OnVisibilityChanged` directly.
+- `TerminalBehaviour.PauseGameWhileOpen` / `PausedTimeScale`: hold `Time.timeScale` while open and restore it on close.
+- Console keyboard shortcuts for the editor and desktop: `F1` toggles, the backquote `` ` `` only opens (so it never eats a keystroke while typing). The cheat HUD also answers to `F2` next to `F10`.
+- `Tools > Cheat Terminal` editor menu for play mode (toggle console / HUD / handle, Pause Game While Open, manual bootstrap).
+- `TerminalShortcutKey` gained `F1`-`F4`, `F11`, `F12`, `BackQuote`, `Escape`; `MultiFingerTapGesture` accepts a second `AlternateKey`.
+
+### Fixed
+
+- Input System-only projects had no `EventSystem`, leaving every console and cheat HUD button dead. One is now created with `InputSystemUIInputModule`.
+
+### Documentation
+
+- Added a [Project History](/cheat-terminal/en/history.md) page reconstructed from the commit history (ko / en / ja / zh).
+
+## 1.0.3 - 2026-08-17
+
+### Changed
+
+- The top-right `>_` handle is hidden by default. Tapping with **four fingers three times** anywhere on screen shows it, and the same gesture hides it again. `TerminalCornerTrigger.Visible` / `TerminalBehaviour.HandleVisible` expose it from code (`TerminalCornerTrigger.Enabled` is kept as an alias).
+
+### Added
+
+- Cheat HUD (`CheatHudView`): a UI Toolkit panel that slides in from the left and lists every registered command, grouped by category. Toggled by tapping with **three fingers three times** (F10 on desktop) or through `TerminalBehaviour.Open/Close/ToggleCheatHud()`. Cheats without arguments run on a single tap; cheats with `<...>` or `[...]` arguments open an inline input. Includes a search box, a status line for the last executed command, and a `>_` button that opens the console.
+- `MultiFingerTapGesture`: reusable "N fingers, M taps" detector that requires an exact finger count, so the three- and four-finger gestures never trigger each other. Optional keyboard fallback (F9 / F10) for the editor and desktop.
+- `TerminalInput`: reflection-free input abstraction covering both the legacy Input Manager and the Input System package.
+- `AGENT.md` documenting the conventions for authoring cheats.
+
+## 1.0.2 - 2026-06-27
+
+### Changed (breaking)
+
+- Removed reflection-based `[Terminal]` method discovery and invocation. Commands are now registered explicitly with `RegisterCommand(...)`.
+- Removed the reflection-based Object Inspector module from the default runtime.
+- EventSystem fallback no longer probes optional Input System types via reflection. Projects using Input System-only input should provide an EventSystem with `InputSystemUIInputModule`.
+
+### Fixed
+
+- Terminal input now executes only on an explicit submit, not on focus loss.
+- Terminal output escapes rich text-sensitive characters before wrapping lines in color tags.
+- Unity component commands now use invariant-culture numeric parsing, strict bool parsing, and inactive-inclusive GameObject lookup where appropriate.
+- Runtime helper GameObjects created by Logs and Performance modules are disposed with the terminal bootstrap.
+
+### Added
+
+- Cached completion items for command names, usage keywords, and command-specific providers.
+- Context-aware completions for built-in commands, including scenes, logs, GameObjects, component targets, and boolean values.
+- `data [table] [id|text]` command plus `RegisterDataTable(...)` for reflection-free data lookup.
+- Terminal UI tabs for Console, registered Commands, and registered Data tables.
+
+## 1.0.1 - 2026-05-30
+
+### Changed
+
+- Renamed the namespace from `UniTerminal` to `Achieve.CheatTerminal`.
+
+### Added
+
+- Unity component commands: `transform`, `rb`, `cam`, `light`, `audio`, `time`, `go`.
+- Documentation in Korean, English, Japanese and Chinese, including advanced module usage.
+
+## 1.0.0 - 2026-05-29
+
+### Changed (breaking)
+
+- Removed the internal collaborator interfaces (`ICommandRegistry`, `ICommandParser`, `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`, `ITerminalTrigger`, `ITerminal`) and `TerminalBuilder`. The core `Terminal` is now a concrete class that owns concrete collaborators. Only `ICommand`, `ICommandOutput`, `ITerminalView`, and `ITerminalModule` remain as real extension points.
+- No marker interface for commands - the `[Terminal]` attribute is the only marker.
+- `Terminal.ScanStaticCommands()` scans user assemblies and auto-registers all static `[Terminal]` methods. The bootstrap runs it on startup through `TerminalBehaviour.AutoScanStaticCommands`. Instance commands still use `Register(this)`.
+
+### Added
+
+- Runtime Logs module: captures `Debug.Log` output into a ring buffer with `logs [n | error | warning | info | <text> | find <text> | clear | export]`. Export writes to `Application.persistentDataPath` so logs are retrievable on device.
+- Up/Down arrow recalls previous/next command history in the input field via uGUI `IMoveHandler`, so it works under both the legacy Input Manager and the Input System package.
+- `help <category>` lists the commands in a category with descriptions. `help` now hints at `help <command>` / `help <category>`.
+
+### Fixed
+
+- EventSystem now creates `InputSystemUIInputModule` when the Input System package is active, resolved via reflection, avoiding the per-frame `InvalidOperationException`.
+- Top-right corner trigger is now a visible `>_` handle and opens on a single tap.
+
+## 0.1.0 - 2026-05-29
+
+### Added
+
+- Core command system: `ICommandRegistry`, `ICommandParser` (quote-aware), `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`, and `ICommandOutput` with default implementations.
+- `[Terminal("name {0}")]` attribute and reflection-based `AttributeCommand` binding, including positional binding, optional parameters, and `CommandContext` injection.
+- Interface-driven `Terminal` core assembled via `TerminalBuilder`.
+- uGUI overlay view (`UGuiTerminalView`) deactivated while closed for zero idle cost.
+- Top-right corner open gesture (`TerminalCornerTrigger`, double-tap by default).
+- `TerminalBehaviour` bootstrap with a static convenience API. It auto-bootstraps in the editor and development builds.
+- Built-in commands: `help`, `clear`, `history`, `echo`, `alias`.
+- Module system (`ITerminalModule`) with `InstallModule` / `GetModule<T>` on the bootstrap.
+- Scene Tools module: `scene list | load <name> [additive] | unload <name>`.
+- Object Inspector module: `find`, `inspect`, `set <name>.<member> <value>`, `call`, with explicit object registration (`ObjectInspectorModule.RegisterObject`).
+- Performance Monitor module: `perf` (FPS, frame ms, memory, GC, render stats via `ProfilerRecorder`).
+- Basic Usage sample.

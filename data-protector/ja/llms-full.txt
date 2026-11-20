@@ -1,0 +1,134 @@
+---
+url: /data-protector/ja/api.md
+---
+
+> For AI agents: the complete documentation index is available at /data-protector/ja/llms.txt, the full documentation bundle is available at /data-protector/ja/llms-full.txt.
+
+# API
+
+## DataProtector
+
+### Encrypt
+
+データを圧縮してから暗号化した結果を返します。
+
+```csharp
+byte[] DataProtector.Encrypt(byte[] data, string key);
+```
+
+### Decrypt
+
+データを復号してから解凍した結果を返します。
+
+```csharp
+byte[] DataProtector.Decrypt(byte[] data, string key);
+```
+
+## HashChecker
+
+### ComputeHash
+
+暗号化されたデータのハッシュ値を抽出します。
+
+```csharp
+string HashChecker.ComputeHash(byte[] data);
+```
+
+### ValidateHash
+
+2 つのハッシュ値を比較します。
+
+```csharp
+bool HashChecker.ValidateHash(string hashA, string hashB);
+```
+
+
+
+---
+url: /data-protector/ja/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /data-protector/ja/llms.txt, the full documentation bundle is available at /data-protector/ja/llms-full.txt.
+
+# 変更履歴
+
+## 1.0.0 — 2024.09.17
+
+- 🎉 初回リリース！
+
+
+
+---
+url: /data-protector/ja/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /data-protector/ja/llms.txt, the full documentation bundle is available at /data-protector/ja/llms-full.txt.
+
+# はじめに
+
+## インストール
+
+以下のいずれかの方法を選択します。
+
+:::tip
+GitHub URL の `#` 以降のバージョンを確認してください。Changelog の最新の変更に対応するバージョンを指定できます。
+:::
+
+### Unity Package Manager (UPM)
+
+1. UPM を開き、左上の `+` ボタンをクリックします。
+2. `Install package from git URL...` を選択します。
+3. `https://github.com/achieveonepark/DataProtector.git#1.0.0` を入力して Install を押します。
+
+### 手動追加
+
+Unity プロジェクトの `Packages/manifest.json` を開き、`dependencies` に次の行を追加します。
+
+```json
+"com.achieve.data-protector": "https://github.com/achieveonepark/DataProtector.git#1.0.0"
+```
+
+## 基本的な使い方
+
+16 バイトのキーでデータを暗号化・復号します。
+
+```csharp
+using Achieve.DataProtector;
+
+string key = "1234567890123456"; // 16 バイトのキー
+
+var encrypted = DataProtector.Encrypt(originalBytes, key);
+var decrypted = DataProtector.Decrypt(encrypted, key);
+```
+
+詳細なメソッドは [API](/data-protector/ja/api.md) を参照してください。
+
+
+
+---
+url: /data-protector/ja/index.md
+---
+
+> For AI agents: the complete documentation index is available at /data-protector/ja/llms.txt, the full documentation bundle is available at /data-protector/ja/llms-full.txt.
+
+# 概要
+
+Data Protector は、`byte[]` と `string` データを保存する前に圧縮・暗号化し、外部から容易にアクセスできないように保護するパッケージです。
+
+## 主な機能
+
+- `byte[]` と `string` データの圧縮および暗号化
+- 暗号化にはユーザーが指定する 16 バイトの文字列キーを使用
+- `SHA256` ベースのハッシュ値を生成・比較してファイルの変更を検出
+
+## 仕組み
+
+- データのセキュリティには `AES-128` 暗号化を使用します。
+- 圧縮は C# の `GZipStream` で処理し、保存領域を効率的に使用します。
+
+## 次のステップ
+
+- [はじめに](/data-protector/ja/getting-started.md) — インストールと基本的な使い方
+- [API](/data-protector/ja/api.md) — API リファレンス全体
+
+

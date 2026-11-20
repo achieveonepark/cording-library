@@ -1,0 +1,29 @@
+> For AI agents: the complete documentation index is available at /AchReactive/en/llms.txt, the full documentation bundle is available at /AchReactive/en/llms-full.txt.
+
+# Changelog
+
+## 0.1.0
+
+First public release. Transitioned from the skill-only tool (Skill Creator) to the **domain-agnostic reaction framework AchReactive**.
+
+### Added
+
+- **Data Layer** — `IData`, `IDataLoader<T>`, `DataBase<T>` (no use of typeof)
+- **Loader** — `JsonDataLoader<T>` (Newtonsoft), `CsvDataLoader<T>` + `ICsvMapper<T>`
+- **Reaction Layer** — `Reaction`, `EntityData`, `ParamBag`, `ReactionContext`, `ReactionEngine`
+- **Registry** — `Effect/Condition/TriggerRegistry` (attribute auto-collection + manual registration)
+- **Default behavior pool** — 8 effects, 8 conditions, 1 trigger guard
+- **Integration boundary** — `IEntity`, `IWorld`, `StatSheet`, `CooldownStore`
+- **UIToolkit authoring tools** — Type Designer (code generation), Data Editor (data generation)
+- **Basic sample** — example with two domains: skills + monsters
+
+### Changed
+
+- Package name `com.achieve.skill-creator` → `com.achieve.reactive`
+- Namespace → `AchReactive`
+- `JsonUtility` → `Newtonsoft.Json` (wrapper classes removed)
+
+### Removed
+
+- Skill-only legacy (`SkillSystem`/`SkillRunner`/`EffectExecutor`, etc.)
+- The buff duration/stack system is temporarily on hold because it requires a redesign of runtime state (planned for a follow-up)

@@ -1,0 +1,26 @@
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# キー定数コード生成
+
+ドット区切りのキーからネストした静的クラスを生成できます。
+
+```json
+{
+  "menu.start": "開始",
+  "item.sword.name": "鉄の剣"
+}
+```
+
+```csharp
+L.Menu.Start
+L.Item.Sword.Name
+```
+
+`LocalizationSettings` の `generatedClassName`、`generatedNamespace`、`generatedOutputPath` とデータベースを設定し、**AchEngine › Localization › Generate Key Class** を実行します。
+
+`LocalizedString` をフィールドに使うと Inspector のキー選択ドロップダウンを利用できます。
+
+```csharp
+[LocalizedString]
+[SerializeField] private LocalizedString _title;
+```

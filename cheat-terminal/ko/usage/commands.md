@@ -1,0 +1,79 @@
+> For AI agents: the complete documentation index is available at /cheat-terminal/ko/llms.txt, the full documentation bundle is available at /cheat-terminal/ko/llms-full.txt.
+
+# 명령 레퍼런스
+
+## 내장 명령
+
+| 명령                         | 설명                                          |
+| -------------------------- | ------------------------------------------- |
+| `help [명령\|카테고리]`          | 명령 목록 / 상세                                  |
+| `clear`                    | 출력 지우기                                      |
+| `history`                  | 입력 기록                                       |
+| `echo <text>`              | 텍스트 출력                                      |
+| `alias <name> <expansion>` | 별칭 등록 (`alias remove <name>`, `alias` 로 목록) |
+
+## 모듈
+
+기본 부트스트랩에서 아래 모듈이 자동 설치됩니다.
+
+### Scene
+
+```bash
+scene list                 # 로드된 씬 + 빌드 세팅 씬
+scene load Lobby           # 단일 로드
+scene load InGame additive # 가산 로드
+scene unload InGame
+```
+
+### Data
+
+등록된 데이터 테이블 ID와 row 이름을 조회합니다.
+
+```bash
+data                 # 테이블 ID / 이름 / row 수
+data items           # items 테이블의 row ID / 이름
+data items sword     # ID, 이름, 요약 검색 및 필드 출력
+```
+
+### Performance
+
+```bash
+perf   # FPS / 프레임 ms / 메모리 / Mono / GC / 드로우콜·배치·삼각형 (가능 시)
+```
+
+### Logs
+
+`Debug.Log` 출력을 캡 링 버퍼에 수집합니다.
+
+```bash
+logs                 # 최근 30개
+logs 100             # 최근 100개
+logs error           # 레벨 필터 (error / warning / info)
+logs network         # 텍스트 부분일치 필터
+logs find <text>     # 명시적 검색
+logs clear           # 비우기
+logs export          # 파일로 저장 (persistentDataPath, 실기기 회수 가능)
+```
+
+### Unity Components
+
+유니티 내장 컴포넌트를 터미널에서 직접 제어합니다. 자세한 내용은 [Unity 컴포넌트 명령](/cheat-terminal/ko/usage/unity-components.md)을 참조하세요.
+
+| 명령          | 설명                               |
+| ----------- | -------------------------------- |
+| `transform` | 위치·회전·스케일 조회 및 변경                |
+| `rb`        | Rigidbody 속성 제어                  |
+| `cam`       | Camera 설정 (FOV, 배경색 등)           |
+| `light`     | Light 속성 제어                      |
+| `audio`     | AudioListener 볼륨·뮤트·일시정지         |
+| `time`      | Time.timeScale·fixedDeltaTime 제어 |
+| `go`        | GameObject 활성화·태그·목록             |
+
+## 별칭 & 매크로
+
+자주 쓰는 조합은 별칭으로:
+
+```bash
+alias rich gold 999999
+rich            # → gold 999999
+```

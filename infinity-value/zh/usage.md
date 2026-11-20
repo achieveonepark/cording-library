@@ -1,0 +1,35 @@
+> For AI agents: the complete documentation index is available at /infinity-value/zh/llms.txt, the full documentation bundle is available at /infinity-value/zh/llms-full.txt.
+
+# 使用方法
+
+该包含有可通过 Unity Package Manager 导入的示例。
+
+## 基础用法
+
+展示值的创建、算术运算、比较和显示。
+
+导入路径：
+
+```text
+Samples~/Basic Usage
+```
+
+## 内容单位名称
+
+展示拥有自己 `InfinityValueUnitNames` 的 ScriptableObject 风格内容实例。
+
+导入路径：
+
+```text
+Samples~/Content Unit Names
+```
+
+## 保存与加载
+
+展示使用 `TryParse` 的简单 PlayerPrefs 持久化。
+
+导入路径：
+
+```text
+Samples~/Save Load
+```

@@ -1,0 +1,79 @@
+> For AI agents: the complete documentation index is available at /cheat-terminal/zh/llms.txt, the full documentation bundle is available at /cheat-terminal/zh/llms-full.txt.
+
+# 命令参考
+
+## 内置命令
+
+| 命令                         | 说明                                         |
+| -------------------------- | ------------------------------------------ |
+| `help [command\|category]` | 命令列表 / 详情                                  |
+| `clear`                    | 清空输出                                       |
+| `history`                  | 输入历史                                       |
+| `echo <text>`              | 输出文本                                       |
+| `alias <name> <expansion>` | 注册别名 (`alias remove <name>`, `alias` 查看列表) |
+
+## 模块
+
+默认 bootstrap 会自动安装以下模块。
+
+### Scene
+
+```bash
+scene list                 # 已加载场景 + build settings 场景
+scene load Lobby           # 单场景加载
+scene load InGame additive # additive 加载
+scene unload InGame
+```
+
+### Data
+
+查看已注册的数据表 ID 和 row 名称。
+
+```bash
+data                 # table ID / name / row count
+data items           # items 表的 row ID / name
+data items sword     # 搜索 ID、name、summary 并输出 fields
+```
+
+### Performance
+
+```bash
+perf   # FPS / frame ms / memory / Mono / GC / draw calls, batches, triangles when available
+```
+
+### Logs
+
+将 `Debug.Log` 输出收集到 capped ring buffer。
+
+```bash
+logs                 # 最近 30 条
+logs 100             # 最近 100 条
+logs error           # 级别过滤 (error / warning / info)
+logs network         # 文本包含过滤
+logs find <text>     # 显式搜索
+logs clear           # 清空
+logs export          # 保存到文件 (persistentDataPath)
+```
+
+### Unity Components
+
+从终端直接控制 Unity 内置组件。完整说明见 [Unity 组件命令](/cheat-terminal/zh/usage/unity-components.md)。
+
+| 命令          | 说明                                 |
+| ----------- | ---------------------------------- |
+| `transform` | 读取或修改 position / rotation / scale  |
+| `rb`        | Rigidbody 属性控制                     |
+| `cam`       | Camera 设置 (FOV, 背景色等)              |
+| `light`     | Light 属性控制                         |
+| `audio`     | AudioListener 音量、静音、暂停             |
+| `time`      | Time.timeScale 和 fixedDeltaTime 控制 |
+| `go`        | GameObject active / tag / list     |
+
+## 别名和宏
+
+常用组合可以注册为别名:
+
+```bash
+alias rich gold 999999
+rich            # -> gold 999999
+```

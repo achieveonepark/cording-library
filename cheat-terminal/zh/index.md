@@ -1,0 +1,33 @@
+> For AI agents: the complete documentation index is available at /cheat-terminal/zh/llms.txt, the full documentation bundle is available at /cheat-terminal/zh/llms-full.txt.
+
+# 介绍
+
+Cheat Terminal 是 Unity 运行时开发者控制台，用于作弊命令、调试、日志查看和运行时状态控制。
+
+命令通过 `RegisterCommand(...)` 显式注册。默认运行路径不进行自动程序集扫描，也不使用 reflection 调用，因此在 IL2CPP/AOT 构建中更可预测。控制台关闭时以 uGUI 覆盖层运行，**空闲成本为 0**。
+
+```csharp
+TerminalBehaviour.RegisterCommand(
+    "gold",
+    ctx => ctx.Output.WriteLine("gold added", LogLevel.Success),
+    "添加金币",
+    "Cheats",
+    "gold <amount>");
+```
+
+## 特性
+
+- **显式注册** - 使用 `RegisterCommand("name", ctx => ...)` 注册命令；没有隐藏的 reflection 扫描。
+- **Runtime IntelliSense** - 显示 command、keyword、data table、row suggestions 及说明。
+- **性能优先** - 关闭时禁用 Canvas，输出使用 capped ring buffer，历史导航使用通用的 `TerminalInput`。
+- **模块化** - 默认安装 Scene / Data / Performance / Logs / Unity Components 模块。
+- **Tab UI** - Console / Commands / Data tab 显示输出、已注册命令和已注册数据。
+- **移动端友好** - 通过多点触控手势（三指 / 四指连点 3 次）唤出，并可将设备日志 export 为文件。
+- **作弊 HUD** - 在全屏 UI Toolkit 面板中填写参数并点击 Run 执行已注册命令；开关监听可控制 `Time.timeScale`。
+
+## 要求
+
+- Unity 6 (6000.x)
+- `com.unity.ugui` (默认包含)
+
+下一步: [入门](/cheat-terminal/zh/getting-started.md)

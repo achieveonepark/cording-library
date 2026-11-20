@@ -1,0 +1,41 @@
+> For AI agents: the complete documentation index is available at /infinity-value/ja/llms.txt, the full documentation bundle is available at /infinity-value/ja/llms-full.txt.
+
+# 変更履歴
+
+## 未リリース
+
+## 1.2.2 — 2026-07-11
+
+- `double` をオーバーフローさせずにコストカーブを計算できる `Pow`、`Sqrt`、`Log10` を追加
+- 等比数列の価格カーブ(`baseCost * growthRate^n`)で最大購入可能数を求める `AffordableCount` を追加
+- `Min`、`Max`、`Clamp` の静的ヘルパーを追加
+- `operator ++`、`operator --` を追加
+- オーバーフローしない 0〜1 の進捗値を返す `ToProgress` を追加
+- Unity インスペクターに `InfinityValue` フィールドを公開する `SerializableInfinityValue` を追加。コンパクト表記(`5.3B`)に対応したカスタム `PropertyDrawer` と、可逆変換できる `ToExactString`/`TryParseExact` を含む
+- エディター専用インスペクターコードのための `Editor/Achieve.InfinityValue.Editor.asmdef` を追加
+
+## 1.2.1 — 2026-07-07
+
+- `package.json` の `author` フィールドを、Unity Package Manager/OpenUPM が期待するオブジェクトスキーマ(`{ "name": "Achieveone" }`)に正規化
+
+## 1.2.0 — 2026-06-14
+
+- コンテンツごとの単位名インスタンスのために `InfinityValueUnitNames` を追加
+- `InfinityValueUnitNames` を受け取るコンストラクターおよび `TryParse` オーバーロードを追加
+- `5.30B` のようなコンパクトな小数文字列のパースを修正
+- ドキュメントを GitBook 対応の Markdown と VitePress デプロイに再構築
+- `Samples~` に Unity Package Manager サンプルを追加
+
+## 1.1.0 — 2026-05-23
+
+- 内部スロット順が異なる値の意味的同等性とハッシュを修正
+- 減算の借り上げ動作と負の結果のクランプを修正
+- `TryParse`、`Zero`、`One`、double 演算、double 変換を追加
+
+## 1.0.1 — 2026-01-04
+
+- 内部構造の最適化による GC プレッシャーの低減
+
+## 1.0.0 — 2024-09-17
+
+- 初回リリース

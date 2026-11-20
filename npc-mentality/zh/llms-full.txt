@@ -1,0 +1,708 @@
+---
+url: /npc-mentality/zh/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/zh/llms.txt, the full documentation bundle is available at /npc-mentality/zh/llms-full.txt.
+
+# 安装与快速入门
+
+## Package Manager（Git URL）
+
+在 Unity 编辑器中选择 **Window → Package Manager → + → Add package from git URL**：
+
+```
+https://github.com/achieveonepark/npc-mentality.git
+```
+
+## 直接编辑 manifest.json
+
+打开 `Packages/manifest.json`，在 `dependencies` 中添加：
+
+```json
+{
+  "dependencies": {
+    "com.achieveonepark.npc-mentality": "https://github.com/achieveonepark/npc-mentality.git"
+  }
+}
+```
+
+***
+
+## 快速入门
+
+### 1. 向 NPC 添加组件
+
+在 Inspector 中向 NPC GameObject 添加所需组件。
+
+```
+Add Component → NPC Mentality → NPC Memory
+Add Component → NPC Mentality → Emotion Controller
+Add Component → NPC Mentality → Crowd NPC
+```
+
+### 2. 记录玩家行为
+
+```csharp
+using NpcMentality;
+
+public class PlayerInteraction : MonoBehaviour
+{
+    public NPCMemory targetNpc;
+
+    void StealItem()
+    {
+        targetNpc.Remember(EventType.Steal, weight: -3f);
+    }
+
+    void HelpVillager()
+    {
+        targetNpc.Remember(EventType.Help, weight: 5f);
+    }
+}
+```
+
+### 3. 读取 NPC 反应
+
+```csharp
+float attitude = targetNpc.GetAttitude();
+
+if (attitude < -5f)
+    dialogue.Say("你又来了...别动我的东西。");
+else if (attitude > 5f)
+    dialogue.Say("上次谢谢你的帮助。");
+else
+    dialogue.Say("欢迎光临。");
+```
+
+### 4. 注册时间系统
+
+在场景中创建一个空 GameObject，并添加 `WorldTimeSystem` 组件。
+
+```csharp
+void Start()
+{
+    WorldTimeSystem.Instance.Register("Shop",
+        openHour: 8,
+        closeHour: 22,
+        onOpen:  () => Debug.Log("商店开门了"),
+        onClose: () => Debug.Log("商店关门了")
+    );
+}
+```
+
+***
+
+## 编辑器窗口
+
+使用 **Tools → NPC Mentality** 查看所有 7 个系统的 API 参考。
+
+## 示例
+
+从 Package Manager 中导入 **Samples → Basic Demo** 可以获取 `DemoUsage.cs`，这是一个在单个场景中连接所有 7 个系统的示例代码。
+
+
+
+---
+url: /npc-mentality/zh/index.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/zh/llms.txt, the full documentation bundle is available at /npc-mentality/zh/llms-full.txt.
+
+# 简介
+
+**NPC Mentality** 是一个 Unity 包，包含 7 个 AI 系统，让 NPC 感觉真实存在。
+
+## 为什么要做这个
+
+传统 NPC 遵循以下三种模式之一：
+
+- 移动到目标点
+- 输出预设对话
+- 向玩家冲刺
+
+NPC Mentality 在此基础上增加了**记忆、关系、情感、时间**层。当玩家从商人处偷窃时，商人会记住它，谣言会传播给亲近的邻居，整个村子的氛围都会改变——只需一行代码。
+
+## 系统构成
+
+| # | 系统                                                 | 核心作用             |
+| - | -------------------------------------------------- | ---------------- |
+| 1 | [NPC记忆](/npc-mentality/zh/usage/memory.md)         | 累积玩家行为，计算态度      |
+| 2 | [关系传染](/npc-mentality/zh/usage/relationship.md)    | 通过朋友网络传播情感       |
+| 3 | [群体AI](/npc-mentality/zh/usage/crowd-ai.md)        | 基于NavMesh的自主群体行为 |
+| 4 | [情感动画](/npc-mentality/zh/usage/emotion.md)         | 情感 → 速度、动画器自动联动  |
+| 5 | [任务生成](/npc-mentality/zh/usage/quest-generator.md) | 基于行为的自动任务生成      |
+| 6 | [时间世界](/npc-mentality/zh/usage/world-time.md)      | 游戏时间调度管理         |
+| 7 | [谣言系统](/npc-mentality/zh/usage/rumor.md)           | NPC间信息传播与变形      |
+
+## 需求
+
+- **Unity** 2021.3 LTS 或更高版本
+- **NavMesh** — 使用群体AI和情感动画时需要
+- **.NET Standard 2.1**
+
+
+
+---
+url: /npc-mentality/zh/usage/crowd-ai.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/zh/llms.txt, the full documentation bundle is available at /npc-mentality/zh/llms-full.txt.
+
+# 自然群体AI
+
+NPC 使用 NavMeshAgent 执行自主、自然的群体行为。
+
+## 概述
+
+```
+普通 NPC:
+  移动到目标点
+
+NPC Mentality:
+  - 互相避让
+  - 逛商店
+  - 环顾四周
+  - 突然停下
+  - 绕道而行
+```
+
+## 组件
+
+`CrowdNPC` — MonoBehaviour。需要 **NavMeshAgent**。
+
+| 字段                       | 类型      | 默认值   | 说明        |
+| ------------------------ | ------- | ----- | --------- |
+| `WanderRadius`           | `float` | `10f` | 漫游半径（米）   |
+| `BehaviorChangeCooldown` | `float` | `3f`  | 行为切换间隔（秒） |
+
+## CrowdBehaviorType 枚举
+
+```csharp
+public enum CrowdBehaviorType
+{
+    Wander, BrowseShop, LookAround,
+    StopAndObserve, AvoidObstacle, Hurt, Idle
+}
+```
+
+***
+
+## 提示
+
+- 降低 `BehaviorChangeCooldown` 让行为更随机，增大则更有目的性。
+- 与 [WorldTimeSystem](/npc-mentality/zh/usage/world-time.md) 联动，夜晚增加 Idle 比例。
+- 与 [EmotionController](/npc-mentality/zh/usage/emotion.md) 结合，根据情感改变移动速度。
+
+
+
+---
+url: /npc-mentality/zh/usage/emotion.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/zh/llms.txt, the full documentation bundle is available at /npc-mentality/zh/llms-full.txt.
+
+# 基于情感的动画系统
+
+一行代码自动设置移动速度、动画器触发器和眨眼频率。
+
+## 概述
+
+```
+传统:
+  anim.Play("Idle");
+
+NPC Mentality:
+  emotion.Set(Emotion.Angry);
+  → 自动: 步行速度增加 / 头部摇晃 / 表情变化 / 眨眼减少
+```
+
+## EmotionType 枚举
+
+```csharp
+public enum EmotionType
+{
+    Neutral, Happy, Angry, Sad, Afraid, Surprised, Disgusted
+}
+```
+
+## 各情感效果
+
+| 情感        | NavMesh速度 | 动画器触发器     | BlinkRate |
+| --------- | --------- | ---------- | --------- |
+| `Neutral` | ×1.0      | `"Idle"`   | `1.0`     |
+| `Happy`   | ×1.0      | `"Happy"`  | `1.0`     |
+| `Angry`   | ×1.5      | `"Angry"`  | `0.3`（减少） |
+| `Sad`     | ×0.7      | `"Sad"`    | `0.8`     |
+| `Afraid`  | ×1.3      | `"Afraid"` | `1.5`（增加） |
+
+***
+
+## 示例
+
+```csharp
+using NpcMentality;
+
+public class NPCReaction : MonoBehaviour
+{
+    private NPCMemory _memory;
+    private EmotionController _emotion;
+
+    private void Awake()
+    {
+        _memory  = GetComponent<NPCMemory>();
+        _emotion = GetComponent<EmotionController>();
+    }
+
+    public void OnTalkWithPlayer()
+    {
+        float attitude = _memory.GetAttitude();
+
+        if (attitude < -8f)      _emotion.Set(EmotionType.Angry);
+        else if (attitude < -2f) _emotion.Set(EmotionType.Disgusted);
+        else if (attitude > 8f)  _emotion.Set(EmotionType.Happy);
+        else                     _emotion.Set(EmotionType.Neutral);
+    }
+}
+```
+
+
+
+---
+url: /npc-mentality/zh/usage/memory.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/zh/llms.txt, the full documentation bundle is available at /npc-mentality/zh/llms-full.txt.
+
+# NPC记忆系统
+
+NPC 记住玩家的行为并计算累积态度（Attitude）。
+
+## 概述
+
+```
+玩家:
+- 偷了商人的东西3次
+- 救了村民
+
+NPC:
+  商人: "你又来了...别动我的东西。"
+  村民: "上次谢谢你的帮助。"
+```
+
+## 组件
+
+`NPCMemory` — MonoBehaviour。添加到 NPC GameObject。
+
+| 字段            | 类型                  | 默认值  | 说明                     |
+| ------------- | ------------------- | ---- | ---------------------- |
+| `MaxMemories` | `int`               | `20` | 最大记忆数，超出时删除最旧的         |
+| `memories`    | `List<MemoryEvent>` | —    | 记忆列表（可在 Inspector 中查看） |
+
+## API
+
+### Remember
+
+```csharp
+void Remember(EventType type, float weight = 1f, string context = "")
+```
+
+| 参数        | 说明                   |
+| --------- | -------------------- |
+| `type`    | 行为类型（`EventType` 枚举） |
+| `weight`  | 态度影响。正数 = 友好，负数 = 敌对 |
+| `context` | 可选描述字符串              |
+
+```csharp
+npc.Remember(EventType.Steal,  weight: -3f);
+npc.Remember(EventType.Help,   weight:  5f);
+npc.Remember(EventType.Attack, weight: -10f);
+npc.Remember(EventType.Gift,   weight:  3f);
+```
+
+### GetAttitude
+
+```csharp
+float GetAttitude()
+```
+
+返回所有记忆的 weight 总和。
+
+```csharp
+float attitude = npc.GetAttitude();
+// attitude > 0  → 友好
+// attitude == 0 → 中立
+// attitude < 0  → 敌对
+```
+
+### HasMemory / ForgetOldest
+
+```csharp
+bool HasMemory(EventType type)
+void ForgetOldest()
+```
+
+***
+
+## 示例
+
+```csharp
+using NpcMentality;
+
+public class ShopKeeper : MonoBehaviour
+{
+    private NPCMemory _memory;
+
+    private void Awake() => _memory = GetComponent<NPCMemory>();
+
+    public string GetGreeting()
+    {
+        return _memory.GetAttitude() switch
+        {
+            < -5f => "滚出去。",
+            < 0f  => "你要买什么？",
+            < 5f  => "欢迎光临。",
+            _     => "希望多来几个像你这样的顾客！"
+        };
+    }
+}
+```
+
+
+
+---
+url: /npc-mentality/zh/usage/quest-generator.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/zh/llms.txt, the full documentation bundle is available at /npc-mentality/zh/llms-full.txt.
+
+# AI任务生成器
+
+分析玩家行为模式，自动生成符合情境的任务。
+
+## 概述
+
+```
+玩家:
+  - 经常去森林
+  - 杀了很多狼
+
+生成:
+  "森林附近出现了奇怪的狼。"
+
+比随机任务自然得多。
+```
+
+## API
+
+### GenerateQuest
+
+```csharp
+QuestData GenerateQuest(EventType trigger, string subject = "creature")
+```
+
+```csharp
+QuestData q = generator.GenerateQuest(EventType.Kill, "wolf");
+// → "森林附近出现了奇怪的狼。"
+```
+
+### OnQuestGenerated 事件
+
+```csharp
+generator.OnQuestGenerated += quest =>
+{
+    QuestUI.Show(quest.Title, quest.Description);
+    QuestLog.Add(quest);
+};
+```
+
+***
+
+## 默认模板
+
+| EventType | 生成示例                     |
+| --------- | ------------------------ |
+| `Kill`    | "森林附近出现了奇怪的 \{subject}。" |
+| `Steal`   | "商人区的货物消失了。"             |
+| `Help`    | "再次需要援手。"                |
+| `Rescue`  | "有人身处险境。"                |
+
+***
+
+## 示例
+
+```csharp
+using NpcMentality;
+
+public class PlayerBehaviorTracker : MonoBehaviour
+{
+    public AIQuestGenerator questGenerator;
+    private int _wolfKillCount = 0;
+
+    public void OnWolfKilled()
+    {
+        _wolfKillCount++;
+        if (_wolfKillCount >= 5)
+        {
+            questGenerator.GenerateQuest(EventType.Kill, "wolf");
+            _wolfKillCount = 0;
+        }
+    }
+}
+```
+
+
+
+---
+url: /npc-mentality/zh/usage/relationship.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/zh/llms.txt, the full documentation bundle is available at /npc-mentality/zh/llms-full.txt.
+
+# 关系传染系统
+
+情感通过 NPC 之间的朋友关系传播。
+
+## 概述
+
+```
+A 讨厌玩家
+    ↓
+A 的朋友 B 也受影响 (×0.5)
+    ↓
+B 的朋友 C 略微受影响 (×0.25)
+
+结果: 整个商人村都讨厌你
+```
+
+## RelationshipGraph
+
+存储 NPC 间朋友关系的 ScriptableObject。
+
+**创建：** 在 Project 面板右键 → Create → NPC Mentality → Relationship Graph
+
+```csharp
+graph.AddFriendship("merchant_a", "villager_b");
+graph.AddFriendship("villager_b", "blacksmith_c");
+
+List<string> friends = graph.GetFriends("merchant_a");
+```
+
+***
+
+## RelationshipContagion
+
+静态辅助类，将态度变化传播到朋友网络。
+
+### Propagate
+
+```csharp
+static void Propagate(
+    string sourceNpcId,
+    float attitudeChange,
+    RelationshipGraph graph,
+    Dictionary<string, NPCMemory> allNpcs,
+    int depth = 2,
+    float decay = 0.5f
+)
+```
+
+***
+
+## 示例
+
+```csharp
+using NpcMentality;
+using System.Collections.Generic;
+
+public class VillageManager : MonoBehaviour
+{
+    public RelationshipGraph graph;
+    private Dictionary<string, NPCMemory> _npcs = new();
+
+    private void Start()
+    {
+        graph.AddFriendship("merchant", "innkeeper");
+        graph.AddFriendship("innkeeper", "blacksmith");
+
+        foreach (var npc in FindObjectsOfType<NPCMemory>())
+            _npcs[npc.gameObject.name] = npc;
+    }
+
+    public void OnPlayerAttacksMerchant()
+    {
+        _npcs["merchant"].Remember(EventType.Attack, weight: -10f);
+
+        RelationshipContagion.Propagate(
+            sourceNpcId: "merchant",
+            attitudeChange: -10f,
+            graph: graph,
+            allNpcs: _npcs,
+            depth: 2,
+            decay: 0.5f
+        );
+        // merchant: -10, innkeeper: -5, blacksmith: -2.5
+    }
+}
+```
+
+
+
+---
+url: /npc-mentality/zh/usage/rumor.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/zh/llms.txt, the full documentation bundle is available at /npc-mentality/zh/llms-full.txt.
+
+# 谣言系统
+
+信息在 NPC 之间流传时内容逐渐变形。
+
+## 概述
+
+```
+玩家击败了Boss
+    ↓
+NPC1: "听说有人杀了一条龙？"
+    ↓
+NPC2: "不对吧？据说是个魔法师。"
+    ↓
+NPC3: "听说魔王死了。"
+```
+
+## 组件
+
+`RumorSystem` — MonoBehaviour。
+
+| 字段                 | 类型                | 默认值    | 说明           |
+| ------------------ | ----------------- | ------ | ------------ |
+| `MutationChance`   | `float`           | `0.3f` | 谣言变形概率（0\~1） |
+| `MutationSuffixes` | `List<string>`    | 默认4个   | 变形时附加的句子     |
+| `ActiveRumors`     | `List<RumorData>` | —      | 当前进行中的谣言列表   |
+
+***
+
+## API
+
+```csharp
+rumorSystem.SpreadRumor("有人杀了一条龙", sourceNpcId: "player");
+
+var rumor = rumorSystem.ActiveRumors[^1];
+rumorSystem.PassRumor(rumor, "npc_01");
+```
+
+***
+
+## 示例
+
+```csharp
+using NpcMentality;
+
+public class RumorDemo : MonoBehaviour
+{
+    public RumorSystem rumorSystem;
+    public string[] npcIds = { "blacksmith", "innkeeper", "farmer", "guard" };
+
+    public void OnPlayerKillsDragon()
+    {
+        rumorSystem.SpreadRumor("有人杀了一条龙", "player");
+        StartCoroutine(SpreadToVillage());
+    }
+
+    private System.Collections.IEnumerator SpreadToVillage()
+    {
+        var rumor = rumorSystem.ActiveRumors[^1];
+        foreach (string npcId in npcIds)
+        {
+            yield return new WaitForSeconds(2f);
+            rumorSystem.PassRumor(rumor, npcId);
+        }
+    }
+}
+```
+
+***
+
+## 提示
+
+- `MutationChance = 0f` — 不变形，只传播事实。
+- `MutationChance = 1f` — 每次传递都必定变形。
+- 与 [RelationshipContagion](/npc-mentality/zh/usage/relationship.md) 结合，同时传播谣言内容和情感。
+- 利用 `HopCount` 实现"这个谣言不可信"的 UI。
+
+
+
+---
+url: /npc-mentality/zh/usage/world-time.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/zh/llms.txt, the full documentation bundle is available at /npc-mentality/zh/llms-full.txt.
+
+# 时间流逝世界系统
+
+根据游戏内时间流逝自动管理商店开关和 NPC 时间表。
+
+## 概述
+
+```
+08:00 → 商店开门
+12:00 → NPC 用餐
+22:00 → 商店关门
+02:00 → 小偷出现
+```
+
+## 组件
+
+`WorldTimeSystem` — MonoBehaviour 单例。每个场景只放一个。
+
+| 字段            | 类型      | 默认值  | 说明             |
+| ------------- | ------- | ---- | -------------- |
+| `TimeScale`   | `float` | `1f` | 时间倍速           |
+| `CurrentHour` | `float` | `0f` | 当前时间（0\~24，只读） |
+
+***
+
+## API
+
+```csharp
+WorldTimeSystem.Instance.Register(
+    "Shop",
+    openHour: 8,
+    closeHour: 22,
+    onOpen:  () => shopkeeper.Open(),
+    onClose: () => shopkeeper.Close()
+);
+
+if (WorldTimeSystem.Instance.IsOpen("Shop"))
+    ShowShopUI();
+
+WorldTimeSystem.Instance.OnHourChanged += hour =>
+    Debug.Log($"当前时间: {Mathf.FloorToInt(hour):D2}:00");
+```
+
+***
+
+## 示例
+
+```csharp
+using NpcMentality;
+
+public class VillageScheduler : MonoBehaviour
+{
+    public CrowdNPC[] villagers;
+    public GameObject thiefPrefab;
+
+    private void Start()
+    {
+        var wt = WorldTimeSystem.Instance;
+        wt.Register("Day", openHour: 6, closeHour: 22,
+            onOpen:  () => { foreach (var v in villagers) v.enabled = true; },
+            onClose: () => { foreach (var v in villagers) v.enabled = false; });
+
+        wt.Register("Thief", openHour: 2, closeHour: 4,
+            onOpen:  () => Instantiate(thiefPrefab, GetAlleyPosition(), Quaternion.identity),
+            onClose: () => DespawnThieves());
+    }
+}
+```
+
+

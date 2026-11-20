@@ -1,0 +1,26 @@
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 单例
+
+## `Singleton<T>` — 纯 C# 单例
+
+用于不需要 Unity 生命周期的服务。
+
+```csharp
+public sealed class GameRules : Singleton<GameRules> { }
+var rules = GameRules.Instance;
+```
+
+## `MonoSingleton<T>` — 场景内单例
+
+```csharp
+public class ObjectTouchManager : MonoSingleton<ObjectTouchManager> { }
+```
+
+## `PersistentMonoSingleton<T>` — 持久单例
+
+```csharp
+public class AudioRoot : PersistentMonoSingleton<AudioRoot> { }
+```
+
+需要跨场景保留的组件使用 `PersistentMonoSingleton<T>`。

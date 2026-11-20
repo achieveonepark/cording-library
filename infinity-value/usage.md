@@ -1,0 +1,35 @@
+> For AI agents: the complete documentation index is available at /infinity-value/llms.txt, the full documentation bundle is available at /infinity-value/llms-full.txt.
+
+# 사용법
+
+이 패키지는 Unity Package Manager를 통해 임포트할 수 있는 샘플을 포함합니다.
+
+## Basic Usage
+
+생성, 산술, 비교, 표시를 보여줍니다.
+
+임포트 경로:
+
+```text
+Samples~/Basic Usage
+```
+
+## Content Unit Names
+
+자체 `InfinityValueUnitNames`를 소유하는 ScriptableObject 스타일의 콘텐츠 인스턴스를 보여줍니다.
+
+임포트 경로:
+
+```text
+Samples~/Content Unit Names
+```
+
+## Save Load
+
+`TryParse`를 사용한 간단한 PlayerPrefs 영속화를 보여줍니다.
+
+임포트 경로:
+
+```text
+Samples~/Save Load
+```

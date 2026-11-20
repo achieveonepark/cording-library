@@ -1,0 +1,51 @@
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# DI システム — 概要
+
+AchEngine は VContainer を直接公開せず、シンプルな DI 抽象化を提供します。
+
+
+> **オプションモジュール**
+> 
+> `jp.hadashikick.vcontainer` がある場合のみ実際のコンテナが有効です。未導入でも手動設定の `ServiceLocator` は使用できます。
+> 
+
+
+## 主な構成要素
+
+| クラス                  | 役割                                       |
+| -------------------- | ---------------------------------------- |
+| `AchEngineScope`     | VContainer の `LifetimeScope` をラップするシーン入口 |
+| `AchEngineInstaller` | サービス登録を定義する基底クラス                         |
+| `IServiceBuilder`    | VContainer に依存しない登録インターフェース              |
+| `ServiceLocator`     | ランタイム解決用の静的ファサード                         |
+
+## 基本フロー
+
+```mermaid
+flowchart TD
+A([シーンロード]) --> B[AchEngineScope.Awake]
+B --> C["AchEngineInstaller<br/>.Install(builder) × N"]
+C --> D[("VContainer をビルド")]
+D --> E[ServiceLocator.Setup]
+E --> F{ランタイム}
+F --> G["[Inject]<br/>属性注入"]
+F --> H["ServiceLocator<br/>.Resolve<T>()"]
+```
+
+## `ServiceLifetime`
+
+```csharp
+public enum ServiceLifetime
+{
+    Singleton, // コンテナごとに 1 インスタンス
+    Transient, // 要求ごとに新規生成
+    Scoped,    // スコープごとに 1 インスタンス
+}
+```
+
+## 次のステップ
+
+- [AchEngineInstaller](/AchEngine/ja/usage/di/installer.md)
+- [ServiceLocator](/AchEngine/ja/usage/di/locator.md)
+- [DI ライフサイクル](/AchEngine/ja/usage/di/lifecycle.md)

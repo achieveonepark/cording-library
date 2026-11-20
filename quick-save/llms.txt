@@ -1,0 +1,7 @@
+# Quick Save
+
+> Quick Save documentation
+
+## Others
+
+- [404](/quick-save/404.md)

@@ -1,0 +1,670 @@
+---
+url: /quick-save/ko/api/builder.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ko/llms.txt, the full documentation bundle is available at /quick-save/ko/llms-full.txt.
+
+# Builder
+
+`QuickSave<T>.Builder`는 `QuickSave<T>` 인스턴스를 생성하기 위한 빌더 클래스입니다.
+
+```csharp
+var save = new QuickSave<T>.Builder()
+    /* 옵션 메서드 */
+    .Build();
+```
+
+***
+
+## 메서드
+
+### Build()
+
+```csharp
+public QuickSave<T> Build()
+```
+
+설정을 적용하여 `QuickSave<T>` 인스턴스를 반환합니다. 이 시점에 저장 디렉토리가 없으면 자동 생성됩니다.
+
+***
+
+### UseEncryption(string encryptionKey)
+
+```csharp
+public Builder UseEncryption(string encryptionKey)
+```
+
+> `USE_ENCRYPT` 심볼이 정의되어 있을 때만 사용 가능합니다 (DataProtector 설치 필요).
+
+저장 시 암호화, 로드 시 복호화를 활성화합니다.
+
+| 파라미터            | 타입       | 설명           |
+| --------------- | -------- | ------------ |
+| `encryptionKey` | `string` | 암/복호화에 사용할 키 |
+
+```csharp
+new QuickSave<PlayerData>.Builder()
+    .UseEncryption("your-secret-key")
+    .Build();
+```
+
+***
+
+### UseVersion(int version)
+
+```csharp
+public Builder UseVersion(int version)
+```
+
+> `USE_ENCRYPT` 심볼이 정의되어 있을 때만 사용 가능합니다.
+
+저장 파일 이름에 버전 번호를 포함시킵니다. 기본값은 `0`입니다.
+
+| 파라미터      | 타입    | 설명              |
+| --------- | ----- | --------------- |
+| `version` | `int` | 파일 이름에 붙을 버전 번호 |
+
+```csharp
+new QuickSave<PlayerData>.Builder()
+    .UseEncryption("your-secret-key")
+    .UseVersion(2)
+    .Build();
+// → PlayerData_2.acqs
+```
+
+
+
+---
+url: /quick-save/ko/api/methods.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ko/llms.txt, the full documentation bundle is available at /quick-save/ko/llms-full.txt.
+
+# QuickSave<T> 메서드
+
+`QuickSave<T>`의 공개 메서드 레퍼런스입니다.
+
+> 제네릭 제약: `where T : class`
+
+***
+
+## SaveData
+
+```csharp
+public void SaveData(T data)
+```
+
+`data`를 MemoryPack으로 직렬화하여 파일에 저장합니다. 암호화가 활성화된 경우 직렬화 후 암호화합니다.
+
+| 파라미터   | 타입  | 설명     |
+| ------ | --- | ------ |
+| `data` | `T` | 저장할 객체 |
+
+```csharp
+save.SaveData(player);
+```
+
+***
+
+## SaveDataAsync
+
+```csharp
+public Task SaveDataAsync(T data)
+```
+
+`SaveData`의 비동기 버전입니다. 메인 스레드를 블로킹하지 않습니다.
+
+```csharp
+await save.SaveDataAsync(player);
+```
+
+***
+
+## LoadData
+
+```csharp
+public T LoadData()
+```
+
+저장 파일을 읽어 역직렬화한 객체를 반환합니다.
+
+| 반환값                       | 조건               |
+| ------------------------- | ---------------- |
+| `T` 인스턴스                  | 정상 로드            |
+| `null`                    | 파일 없음            |
+| `InvalidDataException` 발생 | 파일 존재하지만 역직렬화 실패 |
+
+```csharp
+try
+{
+    var data = save.LoadData();
+    if (data == null) { /* 파일 없음 */ }
+}
+catch (InvalidDataException e)
+{
+    Debug.LogError(e.Message); // 파일 손상
+}
+```
+
+***
+
+## LoadDataAsync
+
+```csharp
+public Task<T> LoadDataAsync()
+```
+
+`LoadData`의 비동기 버전입니다.
+
+```csharp
+var data = await save.LoadDataAsync();
+```
+
+***
+
+## HasSaveData
+
+```csharp
+public bool HasSaveData()
+```
+
+저장 파일이 존재하면 `true`, 없으면 `false`를 반환합니다. `LoadData` 전에 파일 유무를 확인할 때 사용합니다.
+
+```csharp
+if (save.HasSaveData())
+{
+    var data = save.LoadData();
+}
+```
+
+***
+
+## DeleteData
+
+```csharp
+public void DeleteData()
+```
+
+저장 파일을 삭제합니다. 파일이 없으면 아무 동작도 하지 않습니다.
+
+```csharp
+save.DeleteData();
+```
+
+
+
+---
+url: /quick-save/ko/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ko/llms.txt, the full documentation bundle is available at /quick-save/ko/llms-full.txt.
+
+# 변경 내역
+
+## \[1.0.3] `최신` — 2026-05-23
+
+### 추가
+
+- **`SaveDataAsync(T data)`** — 비동기 저장 메서드. `File.WriteAllBytesAsync` 기반으로 메인 스레드를 블로킹하지 않습니다.
+- **`LoadDataAsync()`** — 비동기 로드 메서드. 대용량 저장 파일이나 느린 스토리지 환경(모바일)에서 프레임 드랍을 방지합니다.
+- **`HasSaveData()`** — 로드 시도 전에 저장 파일 존재 여부를 확인할 수 있는 메서드. 기존에는 `LoadData()` 반환값이 `null`인지 확인해야 했습니다.
+
+### 버그 수정
+
+- **`Builder.UseVersion()` 무시 버그** — `UseVersion(n)` 호출 시 설정한 버전 값이 내부에서 항상 `0`으로 고정되던 문제를 수정했습니다. 암호화 + 버전 관리를 함께 사용하는 경우 저장 파일 경로가 의도와 다르게 생성되고 있었습니다.
+- **`SaveData<T>` 타입 파라미터 섀도잉** — `QuickSave<T>` 클래스의 제네릭 `T`와 다른 타입을 직렬화할 수 있던 구조적 버그를 수정했습니다. 예를 들어 `QuickSave<MyData>` 인스턴스에 `string`을 전달해도 컴파일이 통과했습니다.
+- **`LoadData()` 에러 구분 개선** — 기존에는 파일이 없을 때와 파일이 손상됐을 때 모두 처리가 불명확했습니다. 이제 파일 없음은 `null` 반환, 역직렬화 실패는 `InvalidDataException`을 던져 두 케이스를 명확히 구분할 수 있습니다.
+
+### 성능
+
+- **저장 디렉토리 생성 최적화** — `SaveData`, `LoadData`, `DeleteData` 호출마다 `Directory.Exists`를 실행하던 구조를 개선했습니다. 이제 `Build()` 시점에 딱 한 번만 디렉토리를 확인하고 생성하며, 이후 파일 경로는 `_filePath`에 캐싱됩니다.
+
+***
+
+## \[1.0.2] — 2026-05-16
+
+### 추가
+
+- **`DeleteData()`** — 저장 파일(`.acqs`)을 런타임에서 직접 삭제하는 메서드. 파일이 없는 경우에도 예외를 발생시키지 않습니다.
+- **Editor 메뉴 `Achieve > Delete Save`** — Unity 에디터에서 `quicksave/` 디렉토리 내 모든 `.acqs` 파일을 일괄 삭제하는 유틸리티. 삭제 전 파일 수와 경로를 보여주는 확인 다이얼로그가 표시됩니다.
+
+***
+
+## \[1.0.0] — 2024-01-01
+
+### 추가
+
+- 패키지 최초 릴리즈
+- **`SaveData(T data)`** — MemoryPack 기반 바이너리 직렬화 저장
+- **`LoadData()`** — 바이너리 파일 역직렬화 로드
+- `Application.persistentDataPath/quicksave/` 경로에 `.acqs` 확장자로 저장
+- **암호화 옵션** — `USE_ENCRYPT` define과 DataProtector 패키지 연동으로 AES 암호화 지원
+- **버전 관리** — `UseVersion(int)` 으로 파일 이름에 버전 번호를 붙여 다중 버전 저장 파일 운용 가능
+- **Builder 패턴** — `QuickSave<T>.Builder`로 플루언트하게 인스턴스 구성
+
+
+
+---
+url: /quick-save/ko/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ko/llms.txt, the full documentation bundle is available at /quick-save/ko/llms-full.txt.
+
+# 시작하기
+
+## 사전 준비: MemoryPack 설치
+
+Quick Save는 MemoryPack에 의존합니다. 먼저 [NuGetForUnity](https://github.com/GlitchEnzo/NuGetForUnity)를 통해 MemoryPack을 설치하세요.
+
+1. NuGetForUnity를 프로젝트에 설치합니다.
+2. Unity 메뉴에서 **NuGet > Manage NuGet Packages**를 엽니다.
+3. `MemoryPack`을 검색하여 설치합니다.
+
+## 설치
+
+### Unity Package Manager (UPM) — 권장
+
+1. **Window > Package Manager**를 엽니다.
+2. 좌측 상단 `+` 버튼 → **Add package from git URL...**&#xB97C; 선택합니다.
+3. 아래 URL을 입력하고 **Add**를 클릭합니다.
+
+```
+https://github.com/achieveonepark/QuickSave.git#1.0.3
+```
+
+### manifest.json 직접 편집
+
+`Packages/manifest.json`의 `dependencies`에 추가합니다.
+
+```json
+{
+  "dependencies": {
+    "com.achieve.quick-save": "https://github.com/achieveonepark/QuickSave.git#1.0.3"
+  }
+}
+```
+
+
+> **Info**
+> 
+> 암호화가 필요하면 [DataProtector](https://github.com/achieveonepark/DataProtector) 패키지를 추가로 설치하세요. DataProtector가 있으면 `USE_ENCRYPT` 심볼이 자동 정의되어 `UseEncryption()`, `UseVersion()` 메서드가 활성화됩니다. 자세한 내용은 [사용법 › 암호화 & 버전 관리](/quick-save/ko/usage/encryption.md)를 참고하세요.
+> 
+
+
+## 빠른 시작
+
+### 1. 저장할 데이터 클래스 정의
+
+MemoryPack으로 직렬화할 클래스에 `[MemoryPackable]` 어트리뷰트와 `partial` 키워드를 붙입니다.
+
+```csharp
+using MemoryPack;
+
+[MemoryPackable]
+public partial class PlayerData
+{
+    public string Name;
+    public int Level;
+    public float HP;
+    public long Gold;
+}
+```
+
+### 2. QuickSave 인스턴스 생성
+
+`Builder` 패턴으로 인스턴스를 생성합니다. 생성 시 저장 디렉토리(`persistentDataPath/quicksave/`)도 함께 준비됩니다.
+
+```csharp
+using Achieve.QuickSave;
+
+var save = new QuickSave<PlayerData>.Builder().Build();
+```
+
+### 3. 저장, 로드, 삭제
+
+```csharp
+var player = new PlayerData { Name = "Hero", Level = 1, HP = 100f, Gold = 0 };
+
+save.SaveData(player);                 // 저장
+
+if (save.HasSaveData())                // 존재 확인
+{
+    PlayerData loaded = save.LoadData(); // 로드
+    Debug.Log(loaded.Name);            // "Hero"
+}
+
+save.DeleteData();                     // 삭제
+```
+
+## 다음 단계
+
+- [사용법 › 기본 사용법](/quick-save/ko/usage/basic.md)
+- [API › QuickSave\<T> 메서드](/quick-save/ko/api/methods.md)
+
+
+
+---
+url: /quick-save/ko/index.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ko/llms.txt, the full documentation bundle is available at /quick-save/ko/llms-full.txt.
+
+# 소개
+
+**Unity 경량 저장 시스템.**
+MemoryPack 기반 바이너리 직렬화로 빠르고 안전하게 게임 데이터를 저장하세요.
+
+## 특징
+
+- ⚡ **고성능 직렬화** — Cysharp의 MemoryPack을 사용한 고속 바이너리 직렬화/역직렬화.
+- 🔒 **암호화 지원** — 저장 데이터를 암호화해 변조와 열람을 방지합니다.
+- 🧩 **간결한 API** — 빌더 패턴으로 저장/로드 흐름을 한눈에 구성합니다.
+
+## 바로가기
+
+- [시작하기](/quick-save/ko/getting-started.md)
+- [사용법](/quick-save/ko/usage/basic.md)
+- [API 레퍼런스](/quick-save/ko/api/methods.md)
+- [GitHub](https://github.com/achieveonepark/quick-save)
+
+
+
+---
+url: /quick-save/ko/usage/async.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ko/llms.txt, the full documentation bundle is available at /quick-save/ko/llms-full.txt.
+
+# 비동기 저장 / 로드
+
+## 왜 비동기가 필요한가
+
+`SaveData` / `LoadData`는 내부적으로 `File.WriteAllBytes` / `File.ReadAllBytes`를 사용합니다. 저장 파일이 크거나 저장 장치가 느린 환경(특히 모바일)에서는 메인 스레드를 일시적으로 블로킹할 수 있습니다.
+
+`SaveDataAsync` / `LoadDataAsync`는 `File.WriteAllBytesAsync` / `File.ReadAllBytesAsync`를 사용하여 메인 스레드 블로킹 없이 동작합니다.
+
+***
+
+## SaveDataAsync
+
+```csharp
+await save.SaveDataAsync(playerData);
+```
+
+***
+
+## LoadDataAsync
+
+```csharp
+PlayerData loaded = await save.LoadDataAsync();
+
+if (loaded == null)
+{
+    // 저장 파일 없음
+}
+```
+
+***
+
+## 전체 예제 (async/await)
+
+```csharp
+using Achieve.QuickSave;
+using UnityEngine;
+
+public class SaveManager : MonoBehaviour
+{
+    private QuickSave<PlayerData> _save;
+
+    void Awake()
+    {
+        _save = new QuickSave<PlayerData>.Builder().Build();
+    }
+
+    public async void OnSaveButtonClicked(PlayerData player)
+    {
+        await _save.SaveDataAsync(player);
+        Debug.Log("저장 완료");
+    }
+
+    public async void OnLoadButtonClicked()
+    {
+        try
+        {
+            PlayerData data = await _save.LoadDataAsync();
+            if (data == null)
+                Debug.Log("저장 데이터 없음");
+            else
+                Debug.Log($"로드 완료: {data.Name}");
+        }
+        catch (System.IO.InvalidDataException e)
+        {
+            Debug.LogError($"저장 파일 손상: {e.Message}");
+        }
+    }
+}
+```
+
+***
+
+## UniTask와 함께 사용
+
+UniTask가 프로젝트에 있는 경우 `Task`를 `UniTask`로 변환하여 사용할 수 있습니다.
+
+```csharp
+using Cysharp.Threading.Tasks;
+
+public async UniTaskVoid SaveAsync(PlayerData player)
+{
+    await _save.SaveDataAsync(player).AsUniTask();
+}
+```
+
+
+
+---
+url: /quick-save/ko/usage/basic.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ko/llms.txt, the full documentation bundle is available at /quick-save/ko/llms-full.txt.
+
+# 기본 사용법
+
+## 데이터 클래스 준비
+
+Quick Save는 `MemoryPack`으로 직렬화하므로 저장할 클래스에 두 가지 조건이 필요합니다.
+
+- `[MemoryPackable]` 어트리뷰트
+- `partial` 키워드
+
+```csharp
+using MemoryPack;
+
+[MemoryPackable]
+public partial class InventoryData
+{
+    public List<string> Items;
+    public int Capacity;
+}
+```
+
+> `QuickSave<T>`의 제네릭 제약은 `where T : class`입니다. 구조체(struct)는 지원하지 않습니다.
+
+***
+
+## Builder로 인스턴스 생성
+
+```csharp
+var save = new QuickSave<InventoryData>.Builder().Build();
+```
+
+`Build()` 호출 시점에 저장 디렉토리(`persistentDataPath/quicksave/`)가 없으면 자동으로 생성됩니다. 이후 `SaveData` / `LoadData` 호출 시에는 디렉토리 체크 비용이 발생하지 않습니다.
+
+***
+
+## SaveData
+
+```csharp
+var inventory = new InventoryData
+{
+    Items = new List<string> { "Sword", "Shield" },
+    Capacity = 20
+};
+
+save.SaveData(inventory);
+```
+
+파일은 `{persistentDataPath}/quicksave/InventoryData.acqs`에 저장됩니다.
+
+***
+
+## HasSaveData
+
+로드 전에 파일 존재 여부를 확인합니다.
+
+```csharp
+if (save.HasSaveData())
+{
+    // 파일이 있을 때만 로드
+}
+```
+
+***
+
+## LoadData
+
+```csharp
+InventoryData loaded = save.LoadData();
+```
+
+- 파일이 없으면 `null`을 반환합니다.
+- 파일이 존재하지만 역직렬화에 실패하면 `InvalidDataException`이 발생합니다. 파일 없음과 파일 손상을 구분해 처리할 수 있습니다.
+
+```csharp
+try
+{
+    var data = save.LoadData();
+    if (data == null)
+    {
+        // 저장 파일 없음 → 기본값 사용
+    }
+}
+catch (InvalidDataException e)
+{
+    Debug.LogError($"저장 파일 손상: {e.Message}");
+    save.DeleteData(); // 손상된 파일 제거 후 재시작
+}
+```
+
+***
+
+## DeleteData
+
+```csharp
+save.DeleteData();
+```
+
+파일이 존재하지 않으면 아무 작업도 하지 않습니다. (예외 없음)
+
+***
+
+## 에디터에서 저장 파일 삭제
+
+Unity 에디터 메뉴 **Achieve > Delete Save**를 사용하면 `quicksave/` 디렉토리의 모든 `.acqs` 파일을 삭제할 수 있습니다. 삭제 전 확인 다이얼로그가 표시됩니다.
+
+
+
+---
+url: /quick-save/ko/usage/encryption.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ko/llms.txt, the full documentation bundle is available at /quick-save/ko/llms-full.txt.
+
+# 암호화 & 버전 관리
+
+## 사전 준비
+
+암호화 기능은 [DataProtector](https://github.com/achieveonepark/DataProtector) 패키지가 설치되어 있을 때만 활성화됩니다.
+
+DataProtector를 설치하면 Assembly Definition이 자동으로 `USE_ENCRYPT` 심볼을 정의하고, Builder의 `UseEncryption()` · `UseVersion()` 메서드가 컴파일에 포함됩니다.
+
+***
+
+## UseEncryption
+
+```csharp
+var save = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-secret-key-32chars")
+    .Build();
+```
+
+- `SaveData` / `SaveDataAsync` 호출 시 직렬화된 바이너리를 암호화한 후 저장합니다.
+- `LoadData` / `LoadDataAsync` 호출 시 파일을 복호화한 후 역직렬화합니다.
+
+> 암호화 키는 안전한 곳에 보관하세요. 키가 바뀌면 기존 저장 파일을 로드할 수 없습니다.
+
+***
+
+## UseVersion
+
+버전을 지정하면 파일 이름에 버전 번호가 포함됩니다. 게임 업데이트 시 이전 버전 저장 파일과 새 버전 저장 파일을 분리하여 운용할 수 있습니다.
+
+```csharp
+var saveV1 = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(1)
+    .Build();
+
+var saveV2 = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(2)
+    .Build();
+```
+
+저장 파일 경로:
+
+```
+{persistentDataPath}/quicksave/PlayerData_1.acqs   ← v1
+{persistentDataPath}/quicksave/PlayerData_2.acqs   ← v2
+```
+
+***
+
+## 마이그레이션 패턴
+
+구 버전 저장 파일을 새 버전으로 마이그레이션하는 예시입니다.
+
+```csharp
+var oldSave = new QuickSave<PlayerDataV1>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(1)
+    .Build();
+
+var newSave = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(2)
+    .Build();
+
+if (oldSave.HasSaveData() && !newSave.HasSaveData())
+{
+    PlayerDataV1 legacy = oldSave.LoadData();
+    PlayerData migrated = Migrate(legacy);
+    newSave.SaveData(migrated);
+    oldSave.DeleteData();
+}
+```
+
+***
+
+## 버전 없이 암호화만 사용하기
+
+`UseVersion`을 호출하지 않으면 버전은 기본값 `0`으로 처리되고 파일 이름은 `TypeName_0.acqs`가 됩니다.
+
+```csharp
+var save = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    // UseVersion 미호출 → _0.acqs
+    .Build();
+```
+
+

@@ -1,0 +1,9 @@
+# Ach Economy
+
+> A reusable Unity economy simulation package for supply-demand pricing and source/sink inflation management.
+
+## Others
+
+- [API](/ach-economy/ja/api.md): Economy クラスと EconomyConfig struct の完全リファレンス
+- [変更履歴](/ach-economy/ja/changelog.md): Ach Economy のバージョンごとの主な変更点
+- [はじめに](/ach-economy/ja/getting-started.md): EconomyConfig で最初の経済を作り、取引・生産・貿易・インフレを回してみます

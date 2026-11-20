@@ -1,0 +1,1915 @@
+---
+url: /AchEngine/zh/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 更新日志
+
+## 1.3.2
+
+**新功能**
+
+- 添加以 Unity Ads Legacy 4.16.4 为默认提供方的 `AdsManager`，用于异步初始化以及插屏、激励和横幅广告的加载/展示。
+- 仅当 `AdsShowResult.ShouldGrantReward` 为 `true` 时才发放激励广告奖励。
+- 添加公开 `IAdsProvider`，可切换到 Unity LevelPlay、AppLovin MAX、Google AdMob/Google Ad Manager、FairBid 等广告中介 SDK。
+- 添加 `com.unity.ads` 4.16.4 依赖和 `AchManagerInstaller` 中的 `AdsManager` 自动注册。
+
+**文档**
+
+- 添加同步的四语言 `AdsManager` 设置与中介迁移指南。
+
+## 1.3.1
+
+**改进**
+
+- 在 Unity 编辑器中，`IAPManager` 会明确使用 Unity IAP Fake Store。
+- 在编辑器中，即使未配置 `ReceiptValidator` 或 `PurchaseProcessor`，Fake Store 订单也会自动确认，从而可以在没有后端的情况下测试购买 UI 流程。
+- Full Sample 的购买弹窗支持在编辑器 Fake Store 测试中不配置验证器。实际构建仍然需要奖励处理验证。
+
+## 1.3.0
+
+**新功能**
+
+- 添加 Unity 6000.3+ 的 `AchEngine/Scene Navigator` 工具栏，可列出 Build Settings 场景、显示当前编辑场景，并在打开前检查未保存的修改。
+- `UIRoot` 会自动为 `Screen`、`Popup` 和 `Tooltip` 层添加 `UISafeAreaFitter`。`Background` 和 `Overlay` 继续保持全屏。
+
+**改进**
+
+- Addressables 资源和位置缓存会确认请求类型后再复用句柄。
+- 初始化、下载大小检查、依赖下载、目录检查和目录更新使用的临时句柄会自动释放。
+- 修复关闭 Domain Reload 时重复进入 Play Mode 导致调试控制台回调重复注册的问题。
+- 运行时对象查找改为 `FindFirstObjectByType`，并避免对子 UI Root 重复调用 `DontDestroyOnLoad`。
+- `IScene` 现在是可选的场景生命周期钩子，没有实现它的场景不会再产生警告。
+
+**文档**
+
+- 更新 Addressables、UI Safe Area、Scene Navigator 和 AI Assistant 技能文档，并添加 1.2.0 / 1.3.0 发布说明。
+
+## 1.2.0
+
+- 以静态 `AddressableManager` 和基于 `AchTask` 的资源、场景、实例化、释放、远程下载及目录 API 重构 Addressables。
+- 添加位置元数据和资源句柄缓存、场景句柄追踪、编辑器设置、监视文件夹工具和更新后的示例。
+- 按照显式缓存释放流程更新 Addressables 和集成指南。
+
+## 1.1.2
+
+- 移除 iOS 原生调试控制台；Android 覆盖层和 Editor IMGUI 保持可用。
+
+## 1.1.1
+
+- 添加 `IIAPReceiptValidator` 扩展点、Apple StoreKit 2 JWS / app-account-token、手动恢复和未完成订单重试 API。
+- 添加交易 ID 匹配，避免同一商品的其他请求错误完成待处理订单，并更新 IAP 测试和 Full Sample 文档。
+
+## 1.1.0
+
+- 通过 `IAPManager` 添加 Unity IAP 5.4.1 支持，并声明 `com.unity.purchasing` 依赖。
+
+## 1.0.8
+
+- 添加随 AchEngine 发布的 `AIAssistantSkills/` 定义。
+
+## 1.0.7
+
+- 修复未安装 `com.unity.addressables` 时 Addressables 编辑器无法编译的问题。
+- 添加缺少的 `AGENTS.md.meta`。
+
+## 1.0.6
+
+- 移除 `AchEngine.Extensions` 程序集及其扩展方法文档。
+
+## 1.0.5
+
+- 添加 `AchTask` / `AchTask<T>` 和异步文档。
+
+## 1.0.4
+
+- 用 `AudioManager` 替换 `SoundManager`。
+- 添加 `AudioManager`、`AchTimer`、`UIAchTimer`、按钮扩展、`AchDebugConsole` 以及 RedDot API。
+- 按当前 API 签名更新所有指南。
+
+## 1.0.3
+
+- 添加保存服务、`AchProjectile`、独立的 `AchFollower` 和多语言 TMP FontAsset 烘焙。
+
+## 1.0.2
+
+- 添加 ECS、Managers、Singleton、日志、WebRequest、PlayerData、QuickSave、A\*、AchMover、RedDot、UI 和 Full Sample。
+- 改进 Addressables、DI、Localization、Table、UI 及文档覆盖。
+
+## 1.0.1
+
+- 添加单文件和文件夹 JSON → CSV 导出工具。
+
+
+
+---
+url: /AchEngine/zh/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 快速开始
+
+5 分钟体验 AchEngine 核心功能的指南。
+
+## 1. 设置 DI 作用域
+
+在场景中创建一个空 GameObject，并添加 `AchEngineScope` 组件。
+
+```
+Hierarchy
+└── [AchEngineScope]   ← 添加 AchEngineScope 组件
+```
+
+## 2. 编写 Installer
+
+```csharp
+using AchEngine.DI;
+using UnityEngine;
+
+public class GameInstaller : AchEngineInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            .Register<IGameService, GameService>()
+            .Register<IPlayerService, PlayerService>(ServiceLifetime.Transient);
+    }
+}
+```
+
+把 `GameInstaller` 拖到 `AchEngineScope` Inspector 的 **Installers** 数组中。
+
+## 3. 创建 UI Root
+
+在 **Project Settings › AchEngine › UI Workspace** 中点击 **创建 UI Root** 按钮，或在场景中放置 `UIRoot` 预制体。
+
+## 4. 定义 UIView
+
+```csharp
+using AchEngine.UI;
+
+public class MainMenuView : UIView
+{
+    protected override void OnInitialize()
+    {
+        // 首次创建时调用一次
+    }
+
+    protected override void OnOpened()
+    {
+        // Show() 后过渡完成时调用
+    }
+
+    protected override void OnClosed()
+    {
+        // Close() 后返回对象池
+    }
+}
+```
+
+## 5. 显示 View
+
+```csharp
+// 使用 [Inject]（需要 VContainer）
+[Inject] readonly IUIService _ui;
+_ui.Show<MainMenuView>();
+
+// 使用 ServiceLocator（MonoBehaviour 等）
+ServiceLocator.Resolve<IUIService>().Show("MainMenu");
+
+// 关闭
+_ui.Close<MainMenuView>();
+```
+
+## 6. 加载表数据
+
+```csharp
+// 通过 TableManager 类型安全地访问
+var itemTable = TableManager.Get<ItemTable>();
+var sword = itemTable.Get(101);
+Debug.Log(sword.Name); // "Iron Sword"
+```
+
+## 后续步骤
+
+各模块的详细说明请通过左侧边栏查看。
+
+- [DI 系统](/AchEngine/zh/usage/di.md)
+- [UI System](/AchEngine/zh/usage/ui.md)
+- [Table Loader](/AchEngine/zh/usage/table.md)
+- [Addressables](/AchEngine/zh/usage/addressables.md)
+- [Localization](/AchEngine/zh/usage/localization.md)
+- [模块联动指南](/AchEngine/zh/usage/integration.md)
+
+
+
+---
+url: /AchEngine/zh/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 简介
+
+AchEngine 是把 Unity 开发中常用功能整合到一个 UPM 包中的**集成开发工具包**。
+
+各模块可独立使用，即使没有 VContainer、MemoryPack、Addressables 等可选包，核心功能也能继续工作。
+
+## 模块构成
+
+| 模块               | 说明                           | 可选包                         |
+| ---------------- | ---------------------------- | --------------------------- |
+| **DI**           | VContainer 封装、ServiceLocator | `jp.hadashikick.vcontainer` |
+| **UI System**    | 基于层级的 View 管理、对象池、过渡         | -                           |
+| **Table Loader** | 从 Google Sheets 生成 C# 数据管线   | `com.cysharp.memorypack`    |
+| **Addressables** | 资源缓存、自动分组管理、远程分发             | `com.unity.addressables`    |
+| **Localization** | JSON 本地化、键码生成                | `com.unity.textmeshpro`（可选） |
+
+## 包信息
+
+- **Package ID:** `com.achieve.engine`
+- **版本:** 1.0.1
+- **最低 Unity 版本:** 6000.3
+- **必需依赖:** `com.unity.ugui`
+
+## 可选包
+
+安装下列包会**自动定义**对应符号并启用 AchEngine 的高级功能。不安装也不会产生编译错误，只是禁用相应功能。
+
+```
+jp.hadashikick.vcontainer   -> 启用 DI 容器               -> ACHENGINE_VCONTAINER
+com.cysharp.memorypack      -> 启用二进制序列化           -> ACHENGINE_MEMORYPACK
+com.unity.addressables      -> 启用 Addressables 模块      -> ACHENGINE_ADDRESSABLES
+com.unity.textmeshpro       -> 启用 TMP Localization       -> ACHENGINE_LOCALIZATION_TMP
+com.unity.entities          -> 启用 ECS 封装               -> ACHENGINE_ENTITIES
+```
+
+
+> **Info**
+> 
+> 可选包的安装情况可在 **Project Settings > AchEngine** 的 Overview 中一目了然，并可通过按钮直接安装。
+> 
+
+
+
+
+---
+url: /AchEngine/zh/usage/addressables/folders.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 监视文件夹与分组
+
+注册监视文件夹后，该文件夹中的资源会自动添加到指定的 Addressables 分组。
+
+在 **Project Settings › AchEngine › Addressables › 监视文件夹** 中点击 **+ 添加文件夹**。
+
+## 字段
+
+| 字段     | 说明                        |
+| ------ | ------------------------- |
+| 文件夹路径  | 以 `Assets/` 开头的相对路径       |
+| 分组名称   | Addressables 分组名，不存在时自动创建 |
+| 地址生成方式 | 文件名、相对监视文件夹路径或完整路径        |
+| 包含子文件夹 | 是否递归扫描子文件夹                |
+| 标签     | 以逗号分隔的 Addressables 标签    |
+
+## `AddressNamingMode`
+
+| 值                  | 示例                            |
+| ------------------ | ----------------------------- |
+| `FilenameOnly`     | `icon_sword`                  |
+| `RelativeToFolder` | `Icons/icon_sword`            |
+| `FullPath`         | `Assets/Art/Icons/icon_sword` |
+
+多个文件夹存在同名文件时建议使用 `RelativeToFolder`。
+
+
+> **自动扫描**
+> 
+> 资源添加、移动或删除时，`AssetPostprocessor` 会更新监视文件夹。已有资源可通过 **AchEngine › Addressables › Re-scan Watched Folders** 一次性注册。
+> 
+
+
+
+
+---
+url: /AchEngine/zh/usage/addressables/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# Addressables — 概览
+
+AchEngine Addressables 模块封装 Unity Addressable Asset System，提供位置元数据缓存、资源句柄缓存和监视文件夹自动分组。使用静态 `AddressableManager` 可以统一处理初始化、加载和释放。
+
+
+> **可选模块**
+> 
+> 仅在安装 `com.unity.addressables` 后启用。
+> 
+
+
+## 核心组件
+
+| 类型                           | 作用                           |
+| ---------------------------- | ---------------------------- |
+| `AddressableManager`         | 基于 `AchTask` 的资源、场景和远程内容 API |
+| `AssetHandleCache`           | 缓存已加载的句柄                     |
+| `LocationCache`              | 缓存地址和标签的位置元数据                |
+| `AddressableManagerSettings` | 自动初始化设置                      |
+
+## 使用规则
+
+- 异步 API 返回 `AchTask` / `AchTask<T>`，安装 UniTask 时使用 UniTask，否则使用 Task。
+- `LoadAsync` 复用相同地址的句柄，`LoadAllAsync` 复用相同标签的多资源句柄。
+- 缓存还会检查请求的资源类型，不会用不兼容类型的句柄。
+- 缓存不统计引用次数；所有者不再使用资源时调用一次 `Release(key)`。
+- `InstantiateAsync` 创建的对象用 `ReleaseInstance` 释放，原始预制体缓存用 `Release(address)` 释放。
+- 场景不会自动卸载，必须显式调用 `UnloadSceneAsync(address)`。
+
+```csharp
+using AchEngine.Assets;
+
+var sprite = await AddressableManager.LoadAsync<Sprite>("icon_sword");
+spriteRenderer.sprite = sprite;
+var icons = await AddressableManager.LoadAllAsync<Sprite>("ui-icons");
+var hero = await AddressableManager.InstantiateAsync("Characters/Hero", transform);
+AddressableManager.ReleaseInstance(hero);
+AddressableManager.Release("icon_sword");
+AddressableManager.Release("ui-icons");
+```
+
+初始化和目录检查使用的临时句柄会自动释放；已加载资源和场景仍需显式释放。
+
+## 下一步
+
+- [监视文件夹与分组](/AchEngine/zh/usage/addressables/folders.md)
+- [远程内容](/AchEngine/zh/usage/addressables/remote.md)
+
+
+
+---
+url: /AchEngine/zh/usage/addressables/remote.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 远程内容
+
+远程 Bundle 的 Build Path 和 Load Path 在 Unity **Addressables Groups** 的 Profile 与组架构中配置。构建后将目录和 Bundle 部署到远程路径。
+
+## 推荐流程
+
+1. 配置远程分组和下载标签。
+2. 使用 **AchEngine › Addressables › Build Content** 构建内容。
+3. 将生成的目录和 Bundle 部署到远程 Load Path。
+4. 运行时检查目录并下载所需依赖。
+
+## 检查目录更新
+
+```csharp
+using AchEngine.Assets;
+
+var catalogs = await AddressableManager.CheckForCatalogUpdatesAsync();
+if (catalogs.Count > 0)
+    await AddressableManager.UpdateCatalogsAsync(catalogs);
+```
+
+目录更新成功后旧的位置缓存会自动清除。已加载的资源缓存会保留；需要重新获取已改变的资源时先 `Release` 对应地址。
+
+## 下载前检查大小
+
+```csharp
+long size = await AddressableManager.GetDownloadSizeAsync("remote_assets");
+if (size > 0)
+    await AddressableManager.DownloadDependenciesAsync("remote_assets", p => progressBar.value = p.Percent);
+```
+
+返回值单位为字节，已经缓存的依赖不会计入。
+
+## 构建命令
+
+**Build Content**、**Clean Build** 和 **Re-scan Watched Folders** 可从 Project Settings 或 **AchEngine › Addressables** 菜单执行。
+
+
+> **开发时使用 Fast Mode**
+> 
+> 将 Play Mode 设置为 **Use Asset Database (Fast Mode)**，可以不构建 Bundle 直接迭代。
+> 
+
+
+
+
+---
+url: /AchEngine/zh/usage/async.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# AchTask
+
+`AchTask` 将 UniTask 与 `System.Threading.Tasks.Task` 统一到一个异步 API 中。安装 UniTask 时使用 UniTask，否则回退到 Task。
+
+## 检测
+
+项目存在 `com.cysharp.unitask` 时，asmdef 的 `versionDefines` 会自动定义 `ENABLE_UNITASK`。
+
+| 环境          | 实现                       |
+| ----------- | ------------------------ |
+| 安装 UniTask  | `UniTask` / `UniTask<T>` |
+| 未安装 UniTask | `Task` / `Task<T>`       |
+
+## await 与工厂方法
+
+```csharp
+await AchTask.Delay(2f);
+await AchTask.DelayRealtime(1.5f);
+await AchTask.WaitUntil(() => player.IsGrounded, cts.Token);
+
+var a = AchTask.Delay(1f);
+var b = AchTask.Delay(2f);
+await AchTask.WhenAll(a, b);
+await AchTask.WhenAny(a, b);
+return condition ? DoWorkAsync() : AchTask.CompletedTask;
+```
+
+UniTask 环境中的 `Delay` 会遵循 `Time.timeScale`；需要真实时间时使用 `DelayRealtime`。
+
+## `AchTask<T>` 与转换
+
+```csharp
+public static AchTask<string> FetchNameAsync()
+    => AchTask<string>.FromResult("Player");
+
+string name = await FetchNameAsync();
+Task task = someAchTask.AsTask();
+AchTask from = someTask;
+```
+
+## 相关文档
+
+- [AchTimer](/AchEngine/zh/usage/timer.md)
+- [HttpLink](/AchEngine/zh/usage/web-request.md)
+
+
+
+---
+url: /AchEngine/zh/usage/debug-console.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# AchDebugConsole
+
+`AchDebugConsole` 是显示在 Android/iOS 原生 UI 层的调试控制台，编辑器中使用 IMGUI 回退。
+
+## 概览
+
+通过 `Application.logMessageReceivedThreaded` 自动接收 Log、Warning、Error、Exception 和 Assert，最多保留 500 条日志，并在 UI 线程分发。
+
+## 平台行为
+
+- **Android**：`WindowManager` 浮动覆盖层，可拖动，需要 `SYSTEM_ALERT_WINDOW`。
+- **iOS**：`UIWindowLevelAlert + 100` 的独立窗口，不需要额外权限。
+- **Editor**：`Show` / `Hide` 切换内部状态；要在 Game View 显示覆盖层，请在 `OnGUI()` 调用 `DrawEditorGUI()`。
+
+## API
+
+```csharp
+AchDebugConsole.Show();
+AchDebugConsole.Hide();
+AchDebugConsole.Toggle();
+AchDebugConsole.Clear();
+bool visible = AchDebugConsole.IsVisible;
+```
+
+Android 6.0 以上需要在 `Show()` 前请求运行时权限。原生 UI 线程负责渲染，因此可以在性能分析时使用。
+
+## 相关文档
+
+- [UI 系统](/AchEngine/zh/usage/ui.md)
+
+
+
+---
+url: /AchEngine/zh/usage/di/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# DI 系统 — 概览
+
+AchEngine 提供简单的 DI 抽象层，不直接暴露 VContainer。
+
+
+> **可选模块**
+> 
+> 只有安装 `jp.hadashikick.vcontainer` 时才启用实际容器。未安装时仍可手动配置 `ServiceLocator`。
+> 
+
+
+## 核心组件
+
+| 类型                   | 作用                                  |
+| -------------------- | ----------------------------------- |
+| `AchEngineScope`     | 封装 VContainer `LifetimeScope` 的场景入口 |
+| `AchEngineInstaller` | 定义服务注册的基类                           |
+| `IServiceBuilder`    | 不依赖 VContainer 的注册接口                |
+| `ServiceLocator`     | 运行时解析服务的静态门面                        |
+
+## 基本流程
+
+```mermaid
+flowchart TD
+A([加载场景]) --> B[AchEngineScope.Awake]
+B --> C["AchEngineInstaller<br/>.Install(builder) × N"]
+C --> D[("构建 VContainer")]
+D --> E[ServiceLocator.Setup]
+E --> F{运行时}
+F --> G["[Inject]<br/>属性注入"]
+F --> H["ServiceLocator<br/>.Resolve<T>()"]
+```
+
+## `ServiceLifetime`
+
+```csharp
+public enum ServiceLifetime
+{
+    Singleton, // 每个容器一个实例
+    Transient, // 每次请求创建新实例
+    Scoped,    // 每个作用域一个实例
+}
+```
+
+## 下一步
+
+- [AchEngineInstaller](/AchEngine/zh/usage/di/installer.md)
+- [ServiceLocator](/AchEngine/zh/usage/di/locator.md)
+- [DI 生命周期](/AchEngine/zh/usage/di/lifecycle.md)
+
+
+
+---
+url: /AchEngine/zh/usage/di/installer.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# AchEngineInstaller
+
+`AchEngineInstaller` 定义 `AchEngineScope` 的服务注册。
+
+```csharp
+public class GameInstaller : AchEngineInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            .Register<IGameService, GameService>()
+            .Register<IPlayerService, PlayerService>(ServiceLifetime.Transient)
+            .RegisterInstance<GameConfig>(config);
+    }
+}
+```
+
+在空 GameObject 上添加 `AchEngineScope`，并把 `GameInstaller` 添加到 Inspector 的 **Installers** 数组。
+
+```text
+AchEngineScope
+└── Installers
+    └── GameInstaller
+```
+
+安装 VContainer 时使用 `[Inject]`；在任何位置解析服务时使用 `ServiceLocator.Resolve<T>()`。
+
+```csharp
+[Inject] private IGameService _game;
+var game = ServiceLocator.Resolve<IGameService>();
+```
+
+Scope 在 `Awake` 构建容器，在 `OnDestroy` 释放。建议将全局服务和场景专用服务放在不同的 Scope 中。
+
+```mermaid
+sequenceDiagram
+participant Scope as AchEngineScope
+participant Installer
+participant Container as DI Container
+participant Locator as ServiceLocator
+Scope->>Installer: Install(builder)
+Installer->>Container: 注册服务
+Scope->>Container: Build
+Scope->>Locator: Setup(container)
+Locator-->>Scope: 运行时解析
+Scope->>Container: 销毁时释放
+```
+
+
+
+---
+url: /AchEngine/zh/usage/di/lifecycle.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# DI 生命周期设计
+
+介绍如何使用 DI 连接场景切换、弹窗、数据服务和游戏逻辑。
+
+## 整体结构
+
+```mermaid
+graph TB
+subgraph Bootstrap["Bootstrap 场景"]
+AES[AchEngineScope]
+UIR[UIRoot]
+end
+subgraph Lobby["Lobby 场景 (additive)"]
+LS[LobbyScope]
+LV[LobbyView]
+end
+subgraph InGame["InGame 场景 (additive)"]
+GS[GameScope]
+HV[HUDView]
+end
+Bootstrap --> Lobby
+Bootstrap --> InGame
+AES -.->|ServiceLocator| LS
+AES -.->|ServiceLocator| GS
+```
+
+在 Bootstrap 注册全局服务，在 Lobby/InGame 的 Scope 注册场景专用服务。场景卸载时会调用 `AchEngineScope.OnDestroy()` 并释放该 Scope 的服务。
+
+## 场景切换
+
+```csharp
+public async Task LoadInGame(int stageId)
+{
+    ServiceLocator.Resolve<IUIService>().CloseAll();
+    await SceneManager.UnloadSceneAsync("Lobby");
+    await SceneManager.LoadSceneAsync("InGame", LoadSceneMode.Additive);
+    ServiceLocator.Resolve<IGameService>().StartStage(stageId);
+}
+```
+
+## 弹窗与数据
+
+通过 `Show` 回调将数据传给 `UIView` 弹窗：
+
+```csharp
+var ui = ServiceLocator.Resolve<IUIService>();
+ui.Show<ItemDetailPopup>(popup => popup.SetItem(item, icon, iconAddress));
+```
+
+使用 DI 注入封装 Table 的服务；`MonoBehaviour` 中可以通过 `ServiceLocator.Resolve<T>()` 访问服务。
+
+## 下一步
+
+- [模块集成](/AchEngine/zh/usage/integration.md)
+- [AchEngineInstaller](/AchEngine/zh/usage/di/installer.md)
+
+
+
+---
+url: /AchEngine/zh/usage/di/locator.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# ServiceLocator
+
+即使没有安装 VContainer，也可以手动初始化 `ServiceLocator`。安装 VContainer 时通常由 `AchEngineScope` 自动初始化。
+
+```csharp
+ServiceLocator.Setup(provider);
+var service = ServiceLocator.Resolve<IGameService>();
+bool exists = ServiceLocator.TryResolve<IGameService>(out var game);
+ServiceLocator.Clear();
+```
+
+Unity 直接创建的 `MonoBehaviour` 或静态回调使用 `ServiceLocator`；由 VContainer 创建的对象使用 `[Inject]`。
+
+`ServiceLocator` 只是查找门面，不负责生命周期。没有 DI 容器时，服务的创建和释放由启动代码负责。
+
+## 相关文档
+
+- [DI 系统](/AchEngine/zh/usage/di.md)
+- [DI 生命周期](/AchEngine/zh/usage/di/lifecycle.md)
+
+
+
+---
+url: /AchEngine/zh/usage/ecs/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# ECS 封装
+
+该可选模块连接 Unity Entities 与 AchEngine 的 World、服务抽象。只有安装 `com.unity.entities` 时才会编译。
+
+```csharp
+public partial struct DamageSystem : ISystem
+{
+    public void OnUpdate(ref SystemState state)
+    {
+        var entityManager = state.World.EntityManager;
+        // 在这里查询和更新 Entity。
+    }
+}
+```
+
+## 何时使用
+
+当游戏数据已经建模为 Entity，并需要统一访问 World、CommandBuffer、Baker 或 DI 时使用。普通 UI 与场景流程继续使用常规 AchEngine 模块。
+
+```csharp
+public class UnitBaker : Baker<UnitAuthoring>
+{
+    public override void Bake(UnitAuthoring authoring)
+    {
+        var entity = GetEntity(TransformUsageFlags.Dynamic);
+        AddComponent(entity, new Health { Value = authoring.health });
+    }
+}
+
+builder.RegisterInstance(World.Default);
+```
+
+
+
+---
+url: /AchEngine/zh/usage/installation.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 安装
+
+## UPM — Git URL（推荐）
+
+在 Unity **Window › Package Manager** 中选择 **+ › Add package from git URL...**，输入：
+
+```
+https://github.com/achieveonepark/AchEngine.git
+```
+
+需要固定版本时追加 `#1.0.0` 等标签。
+
+## `manifest.json`
+
+```json
+{
+  "dependencies": {
+    "com.achieve.engine": "https://github.com/achieveonepark/AchEngine.git"
+  }
+}
+```
+
+## 可选包
+
+| 包            | ID                          | 启用功能               |
+| ------------ | --------------------------- | ------------------ |
+| VContainer   | `jp.hadashikick.vcontainer` | DI 容器              |
+| MemoryPack   | `com.cysharp.memorypack`    | QuickSave 序列化      |
+| Addressables | `com.unity.addressables`    | AddressableManager |
+| R3           | `com.cysharp.r3`            | UIBindingManager   |
+
+VContainer 需要配置 OpenUPM 注册表；MemoryPack 和 R3 请参考各自的 GitHub 安装指南。
+
+## 验证
+
+Unity Console 没有包错误，并且出现 **Window › AchEngine › AchEngine Info** 即表示安装完成。
+
+
+
+---
+url: /AchEngine/zh/usage/integration.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 模块集成
+
+介绍 DI、Table Loader、Localization、Addressables 和 UI 的组合方式。
+
+```mermaid
+graph TB
+subgraph Bootstrap["Bootstrap 场景"]
+GI[GlobalInstaller]
+GI --> TS[ITableService]
+GI --> UI[IUIService]
+GI --> AU[IAudioService]
+UIR[UIRoot]
+end
+subgraph Lobby["Lobby 场景 (additive)"]
+LI[LobbyInstaller]
+LI --> SH[IShopService]
+end
+subgraph InGame["InGame 场景 (additive)"]
+GAI[GameInstaller]
+GAI --> GM[IGameService]
+end
+Bootstrap --> Lobby
+Bootstrap --> InGame
+```
+
+## Table 与 Localization
+
+表中保存翻译键，而不是翻译后的文本。
+
+```text
+| Id  | NameKey         | DescKey         | Price |
+|-----|-----------------|-----------------|-------|
+| 101 | item.sword.name | item.sword.desc | 500   |
+```
+
+```csharp
+var item = TableManager.Get<ItemTable>().Get(itemId);
+_nameText.text = LocalizationManager.Get(item.NameKey);
+_descText.text = LocalizationManager.Get(item.DescKey);
+```
+
+## Table 与 Addressables
+
+在表中管理 `IconAddress` 和 `SfxAddress`，加载的资源在 View 关闭时释放。
+
+```csharp
+_iconImage.sprite = await AddressableManager.LoadAsync<Sprite>(item.IconAddress);
+AddressableManager.Release(item.IconAddress);
+```
+
+## DI 服务层
+
+用接口包装静态管理器可以提高可测试性。将 `ITableService`、`ILocalizationService` 和 `IItemService` 注册到 GlobalInstaller，并注入 View。
+
+## 相关文档
+
+- [DI](/AchEngine/zh/usage/di/index.md)
+- [Table Loader](/AchEngine/zh/usage/table/index.md)
+- [Localization](/AchEngine/zh/usage/localization/index.md)
+- [Addressables](/AchEngine/zh/usage/addressables/index.md)
+
+
+
+---
+url: /AchEngine/zh/usage/localization/codegen.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 键常量代码生成
+
+可以根据点号分隔的键生成嵌套静态类。
+
+```json
+{
+  "menu.start": "开始",
+  "item.sword.name": "铁剑"
+}
+```
+
+```csharp
+L.Menu.Start
+L.Item.Sword.Name
+```
+
+在 `LocalizationSettings` 中配置 `generatedClassName`、`generatedNamespace`、`generatedOutputPath` 和数据库，然后执行 **AchEngine › Localization › Generate Key Class**。
+
+使用 `LocalizedString` 字段可以在 Inspector 中通过下拉框选择键。
+
+```csharp
+[LocalizedString]
+[SerializeField] private LocalizedString _title;
+```
+
+
+
+---
+url: /AchEngine/zh/usage/localization/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# Localization — 概览
+
+AchEngine Localization 读取 JSON 语言文件，在运行时解析键，并可生成类型安全的键常量。
+
+## 核心组件
+
+| 类型                     | 作用                       |
+| ---------------------- | ------------------------ |
+| `LocalizationManager`  | 获取文本和切换语言的静态 API         |
+| `LocalizationSettings` | 默认语言与回退语言设置              |
+| `LocaleDatabase`       | 语言与 JSON `TextAsset` 的映射 |
+| `LocalizedString`      | Inspector 中选择本地化键        |
+| `LocalizedText`        | 自动刷新 `Text` / `TMP_Text` |
+
+## 基本用法
+
+```csharp
+string title = LocalizationManager.Get("menu.title");
+string welcome = LocalizationManager.Get("dialog.welcome", "Player1", 5);
+LocalizationManager.LocaleChanged += OnLocaleChanged;
+LocalizationManager.SetLocale("zh");
+```
+
+```json
+{
+  "menu.title": "设置",
+  "dialog.welcome": "欢迎，{0}"
+}
+```
+
+给 `Text` 或 `TMP_Text` 添加 `LocalizedText` 后，语言切换会自动刷新。TMP 需要 `ACHENGINE_LOCALIZATION_TMP` 符号。
+
+FontAsset Maker 可以收集每种语言的字符并生成独立的 TMP FontAsset。
+
+## 下一步
+
+- [设置与数据库](/AchEngine/zh/usage/localization/setup.md)
+- [键常量生成](/AchEngine/zh/usage/localization/codegen.md)
+
+
+
+---
+url: /AchEngine/zh/usage/localization/setup.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 设置与数据库
+
+## 1. 创建 `LocalizationSettings`
+
+通过 **Create › Achieve › Localization › Settings** 创建，并放置在 `Resources/LocalizationSettings`。
+
+## 2. 创建 `LocaleDatabase`
+
+通过 **Create › Achieve › Localization › Locale Database** 创建，为每种语言添加语言与 JSON `TextAsset` 配对。
+
+## 3. 添加 JSON
+
+```json
+{
+  "menu.start": "开始",
+  "menu.quit": "退出"
+}
+```
+
+所有语言必须使用相同的键，只翻译值。
+
+## 4. 配置语言
+
+设置 `defaultLocaleCode`、`fallbackLocaleCode`、`autoDetectSystemLanguage`、`autoInitialize` 和 `database`。
+
+```csharp
+LocalizationManager.Initialize();
+LocalizationManager.SetLocale("en");
+```
+
+打开 **AchEngine › Localization › Localization Table** 可以编辑键、导入 CSV/JSON，并检查语言文件的键是否一致。
+
+
+
+---
+url: /AchEngine/zh/usage/managers/ads.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# AdsManager
+
+`AdsManager` 使用 Unity Ads Legacy 4.16.4 作为默认提供方，负责加载和展示插屏、激励和横幅广告。
+`com.unity.ads` 已声明为 AchEngine 1.3.2 依赖，添加包时 Package Manager 会一并解析。
+`AchManagerInstaller` 也会自动注册 `AdsManager`。
+
+正式投放需要 Unity Dashboard 中的 Android/iOS 游戏 ID 与广告单元 ID。Editor 使用 Android 游戏 ID，
+也请配置它。仅在开发期间将 `testMode` 保持为 `true`。
+
+## 快速设置
+
+在启动流程中、初始化之前设置一次。使用 VContainer 时，对注入的 `AdsManager` 调用相同代码。
+
+```csharp
+var ads = ServiceLocator.Resolve<AdsManager>();
+
+ads.Configure(new AdsConfiguration(
+    androidGameId: "Android game ID",
+    iosGameId: "iOS game ID",
+    interstitialAdUnitId: "Interstitial_Android",
+    rewardedAdUnitId: "Rewarded_Android",
+    bannerAdUnitId: "Banner_Android",
+    testMode: true));
+
+ads.InitializationFailed += message => Debug.LogError(message);
+
+await ads.Initialize();
+await ads.LoadInterstitialAsync();
+await ads.LoadRewardedAsync();
+```
+
+如果 Android 和 iOS 使用不同的广告单元 ID，请在各平台启动流程中创建对应的
+`AdsConfiguration`。`Configure()` 只能在初始化开始前调用。
+
+## 插屏和激励广告
+
+展示前先加载；每次尝试展示全屏广告后都要重新加载。仅当 `ShouldGrantReward` 为 `true` 时发放奖励，
+跳过或失败的激励广告不得发奖。
+
+```csharp
+var result = await ads.ShowRewardedAsync();
+
+if (result.ShouldGrantReward)
+    GrantCoinsToPlayer();
+else if (!result.IsSuccess)
+    Debug.LogWarning(result.Message);
+
+await ads.LoadRewardedAsync();
+```
+
+## 横幅广告
+
+默认 Unity Ads 提供方会将横幅显示在屏幕底部中央。`ShowBannerAsync()` 成功只表示已向 SDK 发出展示请求，
+不代表产生了一次展示。
+
+```csharp
+await ads.LoadBannerAsync();
+await ads.ShowBannerAsync();
+ads.HideBanner();
+```
+
+## 广告中介
+
+默认提供方是一个轻量 Unity Ads Legacy 集成。若要进行新项目的在线运营和多个广告网络竞价，可使用以下中介：
+
+| 选项                               | 适用场景                            | AchEngine 接入方式                             |
+| -------------------------------- | ------------------------------- | ------------------------------------------ |
+| Unity LevelPlay                  | 以 Unity Ads 为中心的运营及 Unity 当前中介栈 | 将 LevelPlay SDK 封装为 `IAdsProvider`。        |
+| AppLovin MAX                     | 需要高级变现/竞价工具和广泛网络运营              | 实现 MAX Unity SDK 的 `IAdsProvider`。         |
+| Google AdMob / Google Ad Manager | 已使用 Google 广告、Firebase 或 GAM 报表 | 封装 AdMob Unity SDK 及当前支持的 Unity Ads 网络适配器。 |
+| Digital Turbine FairBid 等        | 已有该提供方的合同或运营工具                  | 使用相同接口封装其 Unity SDK。                       |
+
+适配器可用性、竞价支持、最低 Android/iOS SDK 和隐私/ATT 要求会频繁变动。接入前请确认所选中介当前的
+Unity Ads 适配器和平台要求。
+
+```csharp
+var ads = AdsManager.Create(new MyLevelPlayAdsProvider());
+```
+
+`IAdsProvider` 仅定义初始化、加载/展示和隐藏横幅。适配器必须将回调映射为
+`AdsLoadResult`/`AdsShowResult`，并且只有激励广告完整结束时才返回 `Completed`。同一应用会话中不要同时
+初始化 Unity Ads Legacy 和 LevelPlay。
+
+## API
+
+| 成员                                                                      | 说明                     |
+| ----------------------------------------------------------------------- | ---------------------- |
+| `Configure(configuration)`                                              | 在初始化前设置游戏 ID 和广告单元 ID。 |
+| `Initialize()`                                                          | 使用当前平台游戏 ID 初始化提供方。    |
+| `LoadInterstitialAsync()` / `LoadRewardedAsync()` / `LoadBannerAsync()` | 加载可展示的广告。              |
+| `ShowInterstitialAsync()` / `ShowRewardedAsync()` / `ShowBannerAsync()` | 展示已加载广告并返回结果。          |
+| `HideBanner()`                                                          | 隐藏当前横幅。                |
+| `IsLoaded(placement)`                                                   | 查询广告位是否可展示。            |
+| `AdsShowResult.ShouldGrantReward`                                       | 仅在激励广告完整结束时为 `true`。   |
+
+
+
+---
+url: /AchEngine/zh/usage/managers/audio.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# AudioManager
+
+`AudioManager` 管理 BGM、SFX、淡入淡出、静音和空间音频，是 `SoundManager` 的替代品。
+
+```csharp
+builder.Register<AudioManager>();
+var audio = ServiceLocator.Resolve<AudioManager>();
+audio.PlayBgm(lobbyBgmClip, fadeDuration: 1f);
+audio.PlaySfx(buttonClickClip);
+audio.PlaySfxAt(explosionClip, explosionObject.transform.position);
+audio.MuteAll(false);
+```
+
+| API                               | 说明               |
+| --------------------------------- | ---------------- |
+| `BgmVolume` / `SfxVolume`         | 0 到 1 的音量        |
+| `PlayBgm` / `StopBgm`             | 播放和停止 BGM，支持淡入淡出 |
+| `SetBgmVolume`                    | 在指定时间内改变音量       |
+| `MuteBgm` / `MuteSfx` / `MuteAll` | 只静音输出并保留原音量      |
+| `PlaySfx`                         | 2D 音效            |
+| `PlaySfxAt`                       | 在世界坐标播放 3D 音效    |
+
+SFX 使用 8 个 `AudioSource` 通道组成的池，全部占用时以轮询方式覆盖最早通道，场景切换后仍保持。
+
+
+
+---
+url: /AchEngine/zh/usage/managers/config.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# ConfigManager
+
+基于 PlayerPrefs 的键值设置存储，可用于音量和语言等简单选项。
+
+```csharp
+var cfg = ServiceLocator.Resolve<ConfigManager>();
+cfg.AddKey("bgmVolume", 1.0f);
+cfg.AddKey("language", "zh");
+float volume = cfg.GetConfig<float>("bgmVolume", fallback: 1f);
+cfg.SetConfig("bgmVolume", 0.5f);
+```
+
+未通过 `AddKey` 注册的键不会执行 `SetConfig`。
+
+
+
+---
+url: /AchEngine/zh/usage/managers/iap.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# IAPManager
+
+`IAPManager` 使用 Unity IAP 5.4.1 `StoreController` 管理商店连接、商品获取、购买、未完成订单重试和恢复。在玩家构建中，只有奖励持久化成功后才确认订单。
+
+```csharp
+var iap = ServiceLocator.Resolve<IAPManager>();
+iap.AddProduct("com.mygame.coins_100", ProductType.Consumable);
+iap.AddProduct("com.mygame.remove_ads", ProductType.NonConsumable);
+iap.ReceiptValidator = new GameReceiptValidator();
+await iap.Initialize();
+```
+
+## 编辑器 Fake Store 测试
+
+在 Unity 编辑器中，`IAPManager` 会明确使用 Unity IAP 的 `fake` 商店。
+仅在编辑器中，即使没有设置 `ReceiptValidator` 和 `PurchaseProcessor`，Fake Store 订单也会自动确认，因此可以在不进行真实支付、不调用后端的情况下测试购买按钮、完成事件和弹窗流程。
+
+此行为仅在 `UNITY_EDITOR` 下编译。Android、iOS 以及其他玩家构建仍必须在开始购买前设置收据验证器或奖励处理器。编辑器 Fake Store 订单不会被当作真实购买奖励处理。
+
+Full Sample 的 `PurchasePopup` 在编辑器中也会在没有验证器时启用购买按钮。实际构建时，请将游戏专用的服务器验证组件连接到 `Receipt Validator` 字段。
+
+在游戏中实现 `IIAPReceiptValidator`，将认证玩家、交易 ID、收据和商品发送到服务器，并使用交易 ID 作为幂等键保存奖励。
+
+```csharp
+var result = await iap.PurchaseAsync("com.mygame.coins_100");
+if (result.IsSuccess)
+    Debug.Log("购买和奖励已确认。");
+```
+
+可处理 `Confirmed`、`Failed`、`Deferred` 和 `PendingFulfillment` 状态。使用 `RetryPendingFulfillmentsAsync()` 重试当前会话的未完成订单，使用 `GetPendingListAsync()` 重新读取商店记录。
+
+Apple 平台通过用户操作调用 `RestoreTransactionsAsync()`，并在 `PurchaseRestored` 中更新拥有状态。
+
+
+
+---
+url: /AchEngine/zh/usage/managers/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 管理器系统
+
+AchEngine 管理器通过 DI 注册常用功能，并可通过 `ServiceLocator` 访问。
+
+| 管理器               | 作用                     |
+| ----------------- | ---------------------- |
+| `ConfigManager`   | PlayerPrefs 设置         |
+| `AudioManager`    | BGM/SFX、淡入淡出、静音和 3D 音频 |
+| `AchSceneManager` | 异步场景切换和 `IScene`       |
+| `TimeManager`     | 网络时间                   |
+| `PoolManager`     | 预制体对象池                 |
+| `PlayerManager`   | 玩家数据容器                 |
+| `SaveManager`     | 通过 `ISaveService` 保存   |
+| `IAPManager`      | Unity IAP 购买、恢复和验证     |
+
+## 快速开始
+
+把 `AchManagerInstaller` 添加到 `AchEngineScope` 的 Installers 数组即可将内置管理器注册为单例。
+
+```csharp
+var config = ServiceLocator.Resolve<ConfigManager>();
+var audio = ServiceLocator.Resolve<AudioManager>();
+```
+
+在场景根节点添加实现 `IScene` 的 MonoBehaviour 后，`AchSceneManager` 会调用 `OnSceneStart` / `OnSceneEnd`。
+
+
+
+---
+url: /AchEngine/zh/usage/managers/player-data.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# PlayerManager 与玩家数据
+
+`PlayerManager` 按类型保存 `PlayerDataContainerBase<TKey, TValue>` 容器。
+
+```csharp
+public class InventoryContainer : PlayerDataContainerBase<int, ItemData>
+{
+    public InventoryContainer()
+    {
+        DataKey = nameof(InventoryContainer);
+        _dataDic = new Dictionary<int, ItemData>();
+    }
+}
+
+var player = ServiceLocator.Resolve<PlayerManager>();
+player.AddContainer(new InventoryContainer());
+var inventory = player.GetContainer<InventoryContainer>();
+inventory.Add(101, new ItemData { Id = 101, Name = "Sword" });
+```
+
+保存和加载由 `SaveManager` 负责。
+
+
+
+---
+url: /AchEngine/zh/usage/managers/pool.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# PoolManager
+
+封装 Unity `ObjectPool<GameObject>`，减少子弹、粒子等反复创建和销毁造成的 GC 压力。
+
+```csharp
+var pool = ServiceLocator.Resolve<PoolManager>();
+pool.RegisterPool("Bullet", bulletPrefab, defaultCapacity: 20, maxSize: 100);
+var bullet = pool.Get<BulletComponent>("Bullet");
+var gameObject = pool.Get("Bullet");
+pool.Release("Bullet", gameObject);
+pool.ClearPool("Bullet");
+pool.ClearAll();
+```
+
+
+
+---
+url: /AchEngine/zh/usage/managers/save.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# SaveManager 与保存系统
+
+`SaveManager` 将保存、加载和删除抽象到 `ISaveService` 后面，因此可以把本地实现替换成 Firestore、AWS 或 Cloudflare D1。
+
+```csharp
+builder.Register<PlayerManager>();
+builder.Register<ISaveService, LocalSaveService>();
+builder.Register<SaveManager>();
+
+var service = ServiceLocator.Resolve<ISaveService>();
+service.Configure(encryptionKey: "myKey12345678!", version: 1);
+var save = ServiceLocator.Resolve<SaveManager>();
+await save.SaveAsync();
+var loaded = await save.LoadAsync();
+await save.DeleteAsync();
+```
+
+`encryptionKey` 至少 16 个字符，`version` 用于迁移。自定义后端实现 `ISaveService` 并替换注册类型。
+
+
+
+---
+url: /AchEngine/zh/usage/managers/scene.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# AchSceneManager
+
+提供异步场景切换，并通过 `IScene` 管理场景生命周期。
+
+```csharp
+public class GameScene : MonoBehaviour, IScene
+{
+    public async Task OnSceneStart() { }
+    public Task OnSceneEnd() => Task.CompletedTask;
+}
+
+var scenes = ServiceLocator.Resolve<AchSceneManager>();
+await scenes.LoadSceneAsync("Lobby");
+await scenes.ReloadSceneAsync();
+await scenes.UnloadSceneAsync("SubScene");
+```
+
+使用 `Ach` 前缀以区别 Unity 的 `SceneManager`。
+
+
+
+---
+url: /AchEngine/zh/usage/mcp/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# Unity MCP 技能 — 概览
+
+AchEngine 随包提供 Unity AI Assistant (MCP) 技能定义，使 Assistant 优先使用已有的 AchEngine 功能，而不是重新实现 Unity 原生 API。
+
+```text
+AchEngine/AIAssistantSkills/
+├── ach-mover-movement/
+├── addressables/
+├── localization/
+└── ...
+```
+
+技能在 Editor 启动和域重载后发现。打开 `Edit > Preferences > AI > Skills`，在 **Package skills** 中将 AchEngine 技能从 `Deny` 改为 `Allow`，然后开始新的 Assistant 对话。
+
+技能覆盖 AchMover、AchTask、ECS、Localization、A\*、Singleton、HttpLink、UI、Timer、Manager、VContainer 和 Addressables。
+
+
+
+---
+url: /AchEngine/zh/usage/mcp/skills.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 技能列表
+
+| 技能                    | 范围                    |
+| --------------------- | --------------------- |
+| `ach-mover-movement`  | AchMover 移动和碰撞        |
+| `ach-task-async`      | AchTask 异步            |
+| `ach-timer`           | AchTimer / UIAchTimer |
+| `addressables`        | AddressableManager    |
+| `ecs-ingame-logic`    | ECS 游戏逻辑              |
+| `httplink-webrequest` | HttpLink HTTP 请求      |
+| `imanager-managers`   | Manager 系统            |
+| `localization`        | LocalizationManager   |
+| `pathfinding-astar`   | A\* 网格寻路              |
+| `singleton`           | Singleton 基类          |
+| `ui-catalog`          | UIView Catalog        |
+| `vcontainer-di`       | DI / VContainer       |
+
+共同规则是“不要重新实现 AchEngine 已有的功能，应直接使用”。准确说明以 `AIAssistantSkills/<skill-name>/SKILL.md` 为准。
+
+
+
+---
+url: /AchEngine/zh/usage/movement.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# AchMover
+
+`AchMover` 是即插即用的 2D 角色移动组件。**不使用 Rigidbody2D**，直接实现碰撞滑动、重力、斜坡、台阶和地面吸附。
+
+## 基本用法
+
+为角色添加 `AchMover` 与 `CapsuleCollider2D`，然后设置输入。
+
+```csharp
+var mover = GetComponent<AchMover>();
+mover.SetMoveInput(new Vector2(horizontal, vertical));
+mover.Jump();
+bool grounded = mover.IsGrounded;
+```
+
+通过 `MaxSlopeAngle` 和 `StepHeight` 配置可行走斜坡与自动上台阶。每帧执行速度计算、最多四次 Move-and-Slide、台阶处理、地面检测、吸附和穿透修正。
+
+```csharp
+mover.Move(Vector2.right);
+mover.AddImpulse(knockbackDirection * 8f);
+```
+
+由其他系统负责垂直移动时禁用 `UseGravity`。
+
+## `AchFollower` 与 `AchProjectile`
+
+`AchFollower` 是独立的目标跟随组件，不依赖 `AchMover`。`AchProjectile` 不使用 Rigidbody2D，支持直线和追踪投射物。
+
+```csharp
+GetComponent<AchFollower>().SetTarget(playerTransform);
+projectile.Launch(direction);
+projectile.SetTarget(target);
+```
+
+在碰撞或触发回调中由监听器处理伤害等游戏逻辑。
+
+
+
+---
+url: /AchEngine/zh/usage/pathfinding.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# A* 寻路
+
+`AStarPathfinder` 使用基于网格的 A\*，支持四方向和八方向对角移动。
+
+## 快速开始
+
+在空 GameObject 上添加 \*_A_ Grid Baker\*\*，设置网格大小和障碍物层。
+
+```csharp
+var baker = GetComponent<AStarGridBaker>();
+var start = baker.WorldToCell(player.position);
+var end = baker.WorldToCell(targetPosition);
+var path = AStarPathfinder.FindPath(baker.Grid, start, end, diagonal: true);
+foreach (var cell in path)
+    MoveTo(baker.CellToWorld(cell));
+```
+
+找不到路径时返回空的 `List<Vector2Int>`。也可以通过 `new AStarGrid(20, 20)` 创建网格，并用 `SetWalkable` 和 `SetCost` 设置障碍物与地形成本。
+
+## 设置与 API
+
+配置 `Width` / `Height`、`CellSize`、`Origin`、`ObstacleLayer`、`DetectionRadius`、`CostZones` 和 `DrawGizmos`。动态障碍改变后调用 `baker.Bake()`。
+
+```csharp
+var grid = new AStarGrid(20, 20);
+grid.SetWalkable(5, 3, false);
+grid.SetCost(4, 4, 3f);
+var path = AStarPathfinder.FindPath(grid, new Vector2Int(0, 0), new Vector2Int(10, 10), true);
+```
+
+返回路径不包含起点但包含终点。对角移动可能穿过墙角，如不需要请关闭对角移动或检查相邻单元格。
+
+
+
+---
+url: /AchEngine/zh/usage/singleton/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 单例
+
+## `Singleton<T>` — 纯 C# 单例
+
+用于不需要 Unity 生命周期的服务。
+
+```csharp
+public sealed class GameRules : Singleton<GameRules> { }
+var rules = GameRules.Instance;
+```
+
+## `MonoSingleton<T>` — 场景内单例
+
+```csharp
+public class ObjectTouchManager : MonoSingleton<ObjectTouchManager> { }
+```
+
+## `PersistentMonoSingleton<T>` — 持久单例
+
+```csharp
+public class AudioRoot : PersistentMonoSingleton<AudioRoot> { }
+```
+
+需要跨场景保留的组件使用 `PersistentMonoSingleton<T>`。
+
+
+
+---
+url: /AchEngine/zh/usage/table/codegen.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 代码生成与运行时
+
+根据 CSV 生成类型安全的 C# 数据类。
+
+```text
+Id,Name,Price,IsActive
+101,Iron Sword,500,TRUE
+```
+
+```csharp
+[MemoryPackable]
+public partial class ItemData : ITableData
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int Price { get; set; }
+    public bool IsActive { get; set; }
+}
+```
+
+在 Table Loader 窗口或 Project Settings 执行 **Generate Code**。有 MemoryPack 时生成 `.bytes`，否则生成 `.json`，并将文件放在 `Resources/` 下。
+
+```csharp
+var table = TableManager.Get<ItemTable>();
+var item = table.Get(101);
+foreach (var row in table.All)
+    Debug.Log(row.Name);
+```
+
+注册 `ITableService` 后即可通过 DI 注入表服务。
+
+
+
+---
+url: /AchEngine/zh/usage/table/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# Table Loader — 概览
+
+Table Loader 下载 Google Sheets 数据，生成 C# 类型并烘焙运行时数据。
+
+
+> **可选包**
+> 
+> 安装 `com.cysharp.memorypack` 时使用 `.bytes`，否则使用 JSON。
+> 
+
+
+```mermaid
+flowchart LR
+A[Google Sheets] --> B[Download CSV]
+B --> C[Generate C#]
+C --> D[Bake data]
+D --> E[Resources]
+E --> F[TableManager]
+```
+
+主要设置包括 Spreadsheet ID、CSV/代码/二进制输出路径、工作表名称/GID/类名以及自动化选项。
+
+## 下一步
+
+- [设置与下载](/AchEngine/zh/usage/table/setup.md)
+- [JSON → CSV](/AchEngine/zh/usage/table/json-to-csv.md)
+- [代码生成与运行时](/AchEngine/zh/usage/table/codegen.md)
+
+
+
+---
+url: /AchEngine/zh/usage/table/json-to-csv.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# JSON → CSV 导出
+
+打开 **AchEngine › Table JSON to CSV**。支持 JSON 数组或包含 `items` 等数组属性的对象。
+
+```json
+[
+  { "Id": 101, "Name": "Iron Sword", "Price": 500 },
+  { "Id": 102, "Name": "Magic Wand", "Price": 1200 }
+]
+```
+
+```csv
+Id,Name,Price
+101,Iron Sword,500
+102,Magic Wand,1200
+```
+
+通过 **Select JSON** 和 **Select CSV Location** 转换单个文件；文件夹转换时选择输入/输出文件夹，必要时启用 **Include Subfolders** 后点击 **Convert Folder**。
+
+
+
+---
+url: /AchEngine/zh/usage/table/setup.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 设置与下载
+
+在 **Project Settings › AchEngine › Table Loader** 设置 Spreadsheet ID、CSV/代码/二进制输出路径，以及工作表名称、GID 和类名，然后点击 **Save Settings**。
+
+将 Google Sheets 分享设置为 **知道链接的任何人 → 查看者**，复制 URL 中的 Spreadsheet ID 和各工作表的 `gid=`。
+
+```text
+| Id  | Name       | Price | IsActive |
+|-----|------------|-------|----------|
+| 101 | Iron Sword | 500   | TRUE     |
+| 102 | Magic Wand | 1200  | TRUE     |
+```
+
+支持 `int`、`float`、`bool`、`string`、`long`；名为 `Id` 的列作为默认键。
+
+启用自动生成代码和自动烘焙即可一键执行 **Download → Generate → Bake**。
+
+
+
+---
+url: /AchEngine/zh/usage/timer.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# AchTimer
+
+`AchTimer` 是基于 async/await 的等待与进度跟踪工具。
+
+```csharp
+await AchTimer.Wait(3f);
+await AchTimer.WaitRealtime(3f);
+
+var timer = AchTimer.Start(5f);
+await timer;
+```
+
+`Wait` 使用游戏时间，`WaitRealtime` 使用不受 timeScale 影响的真实时间。`AchTimerHandle` 提供 `Duration`、`Elapsed`、`Remaining`、`Progress`、`IsDone`、`IsCancelled` 和 `Task`。
+
+```csharp
+var cts = new CancellationTokenSource();
+var castTimer = AchTimer.Start(2f, cancellationToken: cts.Token);
+castBar.Bind(castTimer);
+try { await castTimer; FireSkill(); }
+catch (TaskCanceledException) { ShowCancelMessage(); }
+```
+
+使用 `useUnscaledTime: true` 运行真实时间计时器，通过 `UIAchTimer.Bind(handle)` 将进度显示在 Text 和 Slider 上。
+
+## 相关文档
+
+- [UI 系统](/AchEngine/zh/usage/ui.md)
+- [按钮扩展](/AchEngine/zh/usage/ui/button-extras.md)
+
+
+
+---
+url: /AchEngine/zh/usage/ui/binding.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# UIBindingManager *(ACHENGINE_R3)*
+
+基于 R3 `Subject<T>` 的类型安全 pub/sub 总线，只有安装 `com.cysharp.r3` 时启用。
+
+```csharp
+public struct GoldChangedMessage { public int Amount; }
+UIBindingManager.Publish(new GoldChangedMessage { Amount = 500 });
+
+private IDisposable _subscription;
+private void OnEnable()
+    => _subscription = UIBindingManager.Subscribe<GoldChangedMessage>(m => goldLabel.text = m.Amount.ToString());
+private void OnDisable() => _subscription?.Dispose();
+```
+
+使用 `Contains<T>()` 检查 Subject，使用 `ClearAll()` 清除所有 Subject。
+
+
+
+---
+url: /AchEngine/zh/usage/ui/button-extras.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 按钮扩展组件
+
+`AchButtonCooldown` 和 `AchButtonHold` 添加在普通 `Button` 的同一 GameObject 上。
+
+## `AchButtonCooldown`
+
+点击后禁用按钮，经过指定时间重新启用。可配置 `Cooldown`、倒计时文本以及开始/结束 UnityEvent。
+
+```csharp
+var cooldown = GetComponent<AchButtonCooldown>();
+cooldown.StartCooldown();
+cooldown.ResetCooldown();
+bool ready = !cooldown.IsCoolingDown;
+```
+
+## `AchButtonHold`
+
+长按期间按固定间隔重复触发 `On Hold Fire`。可配置 `Initial Delay` 和 `Repeat Interval`，通过 `IsHolding` 查询状态。
+
+```csharp
+public void IncreaseVolume()
+    => AudioManager.Volume = Mathf.Clamp01(AudioManager.Volume + 0.05f);
+```
+
+## 同时使用
+
+两个组件可以添加到同一个 Button。
+
+相关文档：[UI 系统](/AchEngine/zh/usage/ui.md)、[AchTimer](/AchEngine/zh/usage/timer.md)
+
+
+
+---
+url: /AchEngine/zh/usage/ui/draggable.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# Draggable 与触摸对象
+
+## `Draggable`
+
+继承 `Draggable` 后可以使用鼠标或触摸拖动对象。缺少 `Physics2DRaycaster` 时会自动添加到主摄像机。
+
+```csharp
+public class CardView : Draggable
+{
+    protected override void Start()
+    {
+        base.Start();
+        OnTouchDown += () => Debug.Log("Picked up");
+        OnTouching += position => Debug.Log(position);
+        OnTouchUp += hits => Debug.Log(hits.Length);
+    }
+}
+```
+
+使用 `OnTouchDown`、`OnTouching`、`OnTouchUp` 事件，`originalPos` 保存拖动开始时的位置。
+
+## `TouchableObject` / `ObjectTouchManager`
+
+重写 `TouchableObject.OnTouched()` 处理点击。在场景中放置一个 `ObjectTouchManager`，它会用 2D 射线检测触摸对象。
+
+
+
+---
+url: /AchEngine/zh/usage/ui/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# UI 系统 — 概览
+
+AchEngine UI 提供分层 View 管理、对象池、过渡动画、绑定和编辑器工具。
+
+| 组件                               | 作用               |
+| -------------------------------- | ---------------- |
+| `UIRoot`                         | 管理 UI 层和 Catalog |
+| `UIView`                         | 屏幕与弹窗基类          |
+| `UIViewCatalog`                  | View ID 与预制体配置映射 |
+| `UIBootstrapper`                 | 场景开始时打开 View     |
+| `UIOpenButton` / `UICloseButton` | Inspector 导航     |
+| `UISafeAreaFitter`               | 避开刘海和打孔区域        |
+
+```mermaid
+flowchart TB
+Root[UIRoot] --> Background
+Root --> Screen
+Root --> Popup
+Root --> Tooltip
+Root --> Overlay
+```
+
+```csharp
+var ui = ServiceLocator.Resolve<IUIService>();
+ui.Show<MainMenuView>();
+ui.Show("SettingsPopup");
+ui.Close<MainMenuView>();
+ui.CloseAll();
+```
+
+## 下一步
+
+- [UIView 与生命周期](/AchEngine/zh/usage/ui/views.md)
+- [UI Workspace](/AchEngine/zh/usage/ui/workspace.md)
+
+
+
+---
+url: /AchEngine/zh/usage/ui/red-dot.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# RedDot 系统
+
+`RedDot` 是通知徽标的静态门面。使用 `/` 分隔的键形成层级，子节点数量会汇总到父节点。
+
+```csharp
+RedDot.Set("Shop/New", 3);
+RedDot.Add("Quest/Daily", 1);
+int count = RedDot.Get("Shop");
+bool visible = RedDot.HasDot("Shop");
+RedDot.Clear("Quest/Daily");
+RedDot.ClearAll();
+```
+
+在 UI 上添加 `RedDotBadge`，设置 `Key`、`Dot`、可选 `Count Label`、`Button` 和 `Clear On Click`。组件会在 `OnEnable` 订阅、在 `OnDisable` 取消订阅。
+
+```csharp
+private void OnEnable() => RedDot.Subscribe("Shop", OnShopChanged);
+private void OnDisable() => RedDot.Unsubscribe("Shop", OnShopChanged);
+```
+
+即使 Enter Play Mode 关闭 Domain Reload，也会通过 `SubsystemRegistration` 重置静态状态。
+
+
+
+---
+url: /AchEngine/zh/usage/ui/views.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# UIView 与生命周期
+
+`UIView` 是 AchEngine UI 系统中所有屏幕的基类。
+
+## 生命周期
+
+```mermaid
+stateDiagram-v2
+direction TB
+[*] --> Unborn
+Unborn --> Initializing : 首次创建
+Initializing --> Idle : OnInitialize()
+Pool --> Idle : 从对象池取出
+Idle --> Opening : Show()
+Opening --> Visible : OnOpened()
+Visible --> Closing : Close()
+Closing --> Idle : OnClosed()
+Idle --> Pool : Pool Size > 0
+Idle --> [*] : Pool Size = 0
+```
+
+```csharp
+public class ItemDetailView : UIView
+{
+    protected override void OnInitialize()
+        => _closeButton.onClick.AddListener(CloseSelf);
+
+    protected override void OnOpened(object payload)
+        => _nameText.text = _item.Name;
+
+    protected override void OnClosed() => _item = null;
+}
+```
+
+在 Catalog 启用 **Single Instance** 可保证同一 View 只有一个实例；将 **Pool Size** 设为 1 以上即可复用关闭的 View。
+
+预制体通常包含 `Canvas Group`、`UIView` 和 UI 元素，注册到 `UIViewCatalog` 后分配给 `UIRoot`。可使用 `UICloseButton`、`UIOpenButton`、`UISafeAreaFitter` 和 `UIBootstrapper`，并在 `OnBeforeOpen(object payload)` / `OnBeforeClose()` 中启动自定义过渡。
+
+
+
+---
+url: /AchEngine/zh/usage/ui/workspace.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# UI Workspace 使用方法
+
+## 初始设置
+
+1. 在 **Project Settings › AchEngine › UI Workspace** 点击 **Create UI Root**，或放置 `UIRoot` 预制体。
+2. 通过 **Create › Achieve › UI View Catalog** 创建 Catalog，并分配给 `UIRoot`。
+3. 注册 View 预制体的 ID、层、Pool Size 和 Single Instance。
+
+```csharp
+var ui = ServiceLocator.Resolve<IUIService>();
+ui.Show<MainMenuView>();
+ui.Show("SettingsPopup");
+ui.Close<MainMenuView>();
+ui.CloseAll();
+```
+
+在 `UIBootstrapper` 的 Auto Open Views 中配置场景开始时自动打开的 View。Unity 6 Scene Navigator 会显示 Build Settings 场景、检查未保存修改，并在 Play Mode 中禁用跳转。
+
+Workspace 窗口可以查看已注册 View、在 Editor Play Mode 中强制打开/关闭、按层查看状态，以及警告未注册的 UIView。
+
+
+
+---
+url: /AchEngine/zh/usage/web-request.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# HttpLink
+
+`HttpLink` 用 Builder 封装 UnityWebRequest，简化 GET/POST、JSON、请求头和超时设置。
+
+```csharp
+var result = await new HttpLink.Builder()
+    .SetUrl("https://api.example.com/users/1")
+    .AddHeader("Authorization", "Bearer token123")
+    .SetTimeout(10)
+    .GetAsync<UserData>();
+
+bool success = await new HttpLink.Builder()
+    .SetUrl("https://api.example.com/login")
+    .SetJsonBody(json)
+    .PostAsync();
+```
+
+使用 `Build().SendAsync()` 可以直接检查 `Success`、`Result`、`ReceiveDataString`、`ReceiveData`、`DownloadSize` 和 `DownloadProgress`。`SetMethod` 仅支持 GET 和 POST，JSON 使用 Newtonsoft.Json。
+
+

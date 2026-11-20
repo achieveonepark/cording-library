@@ -1,0 +1,59 @@
+> For AI agents: the complete documentation index is available at /infinity-value/llms.txt, the full documentation bundle is available at /infinity-value/llms-full.txt.
+
+# 단위 이름
+
+`InfinityValueUnitNames`는 인스턴스 객체입니다. 기존의 전역 설정 방식을 대체하여, 각 콘텐츠 시스템이 자체 접미사 테이블을 소유할 수 있게 합니다.
+
+## 기본 단위
+
+기본 테이블은 빈 기본 단위로 시작해 `A`, `B`, `C` ... `CZ`까지 이어집니다.
+
+```csharp
+InfinityValue value = new InfinityValue(1_500_000L);
+Debug.Log(value); // 1.50B
+```
+
+## 커스텀 단위
+
+인덱스 0은 기본 수 단위를 나타내므로 반드시 빈 문자열이어야 합니다.
+
+```csharp
+var units = new InfinityValueUnitNames(new[]
+{
+    "", "K", "M", "B", "T", "Qa", "Qi", "Sx"
+});
+
+InfinityValue value = new InfinityValue(5_300_000_000L, units);
+Debug.Log(value); // 5.30B
+```
+
+## 여러 콘텐츠 테이블
+
+콘텐츠마다 전역 상태를 건드리지 않고 서로 다른 이름을 유지할 수 있습니다.
+
+```csharp
+var currencyUnits = new InfinityValueUnitNames(new[] { "", "K", "M", "B" });
+var damageUnits = new InfinityValueUnitNames(new[] { "", "a", "b", "c" });
+
+InfinityValue gold = new InfinityValue("12K", currencyUnits);
+InfinityValue damage = new InfinityValue("12a", damageUnits);
+```
+
+## 파싱
+
+저장된 문자열은 항상 그것을 만든 단위 테이블과 동일한 테이블로 파싱하세요.
+
+```csharp
+if (InfinityValue.TryParse("42M", currencyUnits, out var value))
+    Debug.Log(value);
+```
+
+## 검증
+
+`InfinityValueUnitNames`는 다음의 경우 예외를 던집니다.
+
+- 이름 목록이 null인 경우
+- 목록이 비어 있는 경우
+- 인덱스 0이 빈 문자열이 아닌 경우
+- 단위 이름이 null인 경우
+- 단위 이름이 중복되는 경우

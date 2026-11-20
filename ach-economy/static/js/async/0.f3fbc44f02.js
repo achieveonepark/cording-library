@@ -1,0 +1,1 @@
+"use strict";(self.rspackChunkach_economy_docs=self.rspackChunkach_economy_docs||[]).push([[0],{Gs(){}}]);

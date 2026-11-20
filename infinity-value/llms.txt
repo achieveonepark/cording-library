@@ -1,0 +1,14 @@
+# Infinity Value
+
+> Large-number values for Unity idle and incremental games.
+
+## Others
+
+- [API 레퍼런스](/infinity-value/api/index.md): InfinityValue 주요 타입, 생성자, 연산자, 변환
+- [인스펙터와 정밀 직렬화](/infinity-value/api/inspector.md): SerializableInfinityValue와 손실 없는 ToExactString/TryParseExact
+- [JSON](/infinity-value/api/json.md): Newtonsoft.Json 컨버터로 InfinityValue 직렬화
+- [수학 헬퍼](/infinity-value/api/math.md): 비용 곡선, 진행률, 최대/최소/제한을 위한 InfinityValue 수학 함수
+- [단위 이름](/infinity-value/api/unit-names.md): InfinityValueUnitNames로 콘텐츠별 단위 접미사 관리
+- [변경 내역](/infinity-value/changelog.md): Infinity Value 버전별 변경 내역
+- [시작하기](/infinity-value/getting-started.md): Infinity Value 설치와 값 생성·연산·파싱·저장
+- [사용법](/infinity-value/usage.md): Unity Package Manager로 임포트할 수 있는 샘플

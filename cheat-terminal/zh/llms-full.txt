@@ -1,0 +1,875 @@
+---
+url: /cheat-terminal/zh/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/zh/llms.txt, the full documentation bundle is available at /cheat-terminal/zh/llms-full.txt.
+
+# 开始使用
+
+## 安装
+
+在 Unity Package Manager 中选择 **Add package from git URL**:
+
+```
+https://github.com/achieveonepark/cheat-terminal.git
+```
+
+## 打开控制台
+
+在编辑器和开发构建中，场景加载后会自动初始化。右上角工具栏中的滑块图标打开 Cheat Library，终端图标打开 Terminal。拖动手柄或图标即可在安全区域内移动工具栏。
+
+```csharp
+// Release 构建不会自动创建控制台，因此需要调用一次。
+Achieve.CheatTerminal.TerminalBehaviour.Bootstrap();
+```
+
+| 操作                       | 方法                                          | 编辑器 / 桌面      |
+| ------------------------ | ------------------------------------------- | ------------- |
+| 显示 / 隐藏右上角 `Terminal` 手柄 | **四指同时点按 3 次**                              | `F9`          |
+| 打开 / 关闭作弊 HUD            | **三指同时点按 3 次**                              | `F1`, `F10`   |
+| 打开 / 关闭控制台               | 点击 `Terminal` 手柄，或面板右上角 `Close`             | `F2`, `` ` `` |
+| 执行命令                     | 输入后按 Enter                                  |               |
+| 上一条 / 下一条历史              | 上 / 下方向键                                    |               |
+| 帮助                       | `help`, `help <category>`, `help <command>` |               |
+
+再次做同样的手势即可关闭。详情参见 [作弊 HUD](/cheat-terminal/zh/usage/cheat-hud.md)。
+
+## 在编辑器中使用
+
+`F1` 开关 Cheat Library，`F2` 开关 Terminal。`F10` 也可打开作弊 UI，`F9` 切换工具栏显示。反引号仅打开 Terminal，Escape 关闭当前界面。
+
+当 Game 视图没有焦点时按键无法传到游戏，这时请使用菜单：
+
+```
+Tools > Cheat Terminal > Toggle Console
+                       > Toggle Cheat HUD
+                       > Toggle Corner Handle
+                       > Pause Game While Open
+```
+
+:::info
+没有 `EventSystem` 时 UI 无法点击。场景中若不存在，终端会自动创建；
+在仅使用 Input System 的项目中会附带 `InputSystemUIInputModule`。
+:::
+
+## 通过代码控制
+
+```csharp
+using Achieve.CheatTerminal;
+
+TerminalBehaviour.Open();        // 打开
+TerminalBehaviour.Toggle();      // 切换
+TerminalBehaviour.Execute("gold 100000"); // 直接执行命令
+
+TerminalBehaviour.ToggleCheatHud();      // 切换作弊 HUD
+TerminalBehaviour.HandleVisible = true;  // 显示右上角手柄
+
+// 打开 / 关闭监听（控制台与作弊 HUD 合并）
+TerminalBehaviour.VisibilityChanged += open => Time.timeScale = open ? 0.2f : 1f;
+TerminalBehaviour.PauseGameWhileOpen = true; // 同样的处理，一行搞定
+```
+
+## 参数输入与执行
+
+参数输入框始终可见。只需输入值，无需输入命令名称，然后按 Run 或 Enter 执行。`<amount>` 为必填，`[amount]` 为可选，`<x> <y> <z>` 会生成独立的坐标输入框，`<on|off>` 还会提供选项按钮。必填项必须填写，可选项只能从末尾开始省略。`[args]` 和 `<text...>` 接受以空格分隔的多个参数；一个值中包含空格时需用引号括起。
+
+使用分类按钮和搜索查找命令。筛选、调整屏幕大小或重新打开后，输入值仍会保留。结果和错误显示在卡片、底部状态栏和终端输出中。切换界面时会关闭之前的界面。
+
+下一步: [添加命令](/cheat-terminal/zh/usage/adding-commands.md)
+
+
+
+---
+url: /cheat-terminal/zh/usage/adding-commands.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/zh/llms.txt, the full documentation bundle is available at /cheat-terminal/zh/llms-full.txt.
+
+# 添加命令
+
+命令通过 `RegisterCommand(...)` 显式注册。没有自动扫描，执行路径也不是 reflection 调用，而是固定的 `CommandContext` delegate。
+
+> **usage 字符串规则** — `usage` 决定该作弊命令在作弊 HUD 中的执行方式。
+> 无参数时不要写括号（`god`），必填参数用 `<amount>`，可选参数用 `[amount]`。
+> HUD 会生成各参数的输入框和 Run 按钮，无需输入命令名称。 → [作弊 HUD](/cheat-terminal/zh/usage/cheat-hud.md)
+
+## 基本注册
+
+```csharp
+using System.Globalization;
+using Achieve.CheatTerminal;
+using UnityEngine;
+
+public class PlayerCheats : MonoBehaviour
+{
+    private int _gold;
+
+    private void Start()
+    {
+        TerminalBehaviour.RegisterCommand(
+            "gold",
+            AddGold,
+            "添加金币",
+            "Cheats",
+            "gold <amount>");
+
+        TerminalBehaviour.RegisterCommand(
+            "god",
+            ctx => ctx.Output.WriteLine("god toggled", LogLevel.Success),
+            "切换无敌",
+            "Cheats",
+            "god");
+    }
+
+    private void AddGold(CommandContext ctx)
+    {
+        if (!ctx.Has(0) ||
+            !int.TryParse(ctx.Args[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int amount))
+        {
+            ctx.Output.WriteLine("Usage: gold <amount>", LogLevel.Error);
+            return;
+        }
+
+        _gold += amount;
+        ctx.Output.WriteLine($"Gold is now {_gold}", LogLevel.Success);
+    }
+}
+```
+
+在控制台运行 `gold 100000` 或 `god`。`help Cheats` 会显示该分类下的命令和说明。
+
+## static 命令
+
+static 方法也不会自动收集。请在需要时显式注册。
+
+```csharp
+public static class DebugCheats
+{
+    public static void Register(Terminal terminal)
+    {
+        terminal.RegisterCommand("ping", Ping, "Print pong", "Debug", "ping");
+        terminal.RegisterCommand("timescale", SetTimeScale, "Set Time.timeScale", "Debug", "timescale <scale>");
+    }
+
+    private static void Ping(CommandContext ctx)
+        => ctx.Output.WriteLine("pong", LogLevel.Success);
+
+    private static void SetTimeScale(CommandContext ctx)
+    {
+        if (!ctx.Has(0) || !float.TryParse(ctx.Args[0], NumberStyles.Float,
+                CultureInfo.InvariantCulture, out float scale))
+        {
+            ctx.Output.WriteLine("Usage: timescale <scale>", LogLevel.Error);
+            return;
+        }
+
+        Time.timeScale = scale;
+    }
+}
+```
+
+注册:
+
+```csharp
+DebugCheats.Register(TerminalBehaviour.Current);
+```
+
+## 参数
+
+从 `CommandContext` 读取参数。
+
+- `ctx.Args`: 原始参数列表
+- `ctx.Has(index)`: 参数是否存在
+- `ctx.GetString/GetInt/GetFloat/GetBool`: 带 fallback 的简易 getter
+- 需要严格校验时，请直接使用 `TryParse(..., CultureInfo.InvariantCulture, ...)`。
+
+## 添加补全候选
+
+注册命令时可以附加 command-specific suggestions。
+
+```csharp
+TerminalBehaviour.RegisterCommand(
+    "difficulty",
+    ctx => SetDifficulty(ctx.GetString(0, "normal")),
+    "Set difficulty",
+    "Cheats",
+    "difficulty <easy|normal|hard>",
+    (ctx, results) =>
+    {
+        if (ctx.ArgumentIndex != 0) return;
+        foreach (var value in new[] { "easy", "normal", "hard" })
+        {
+            if (value.StartsWith(ctx.CurrentToken, System.StringComparison.OrdinalIgnoreCase))
+                results.Add(new CompletionItem(value, value, "difficulty value", "Cheats"));
+        }
+    });
+```
+
+像 `<easy|normal|hard>` 这样的 usage token 也会作为默认 keyword suggestions 被缓存。
+
+## 注册数据表
+
+注册后的 table 会显示在 `data` command、input suggestions 和 `Data` tab 中。
+
+```csharp
+TerminalBehaviour.RegisterDataTable("items", "Items", () => new[]
+{
+    new DataTableRow("sword_001", "Bronze Sword"),
+    new DataTableRow("potion_hp", "Health Potion"),
+});
+```
+
+## 输出
+
+使用 `CommandContext.Output` 输出不同级别的消息。
+
+```csharp
+TerminalBehaviour.RegisterCommand("save", ctx =>
+{
+    ctx.Output.WriteLine("Saved", LogLevel.Success); // Info/Success/Warning/Error/System
+}, "Save game", "System", "save");
+```
+
+## 高级: ITerminalModule
+
+:::info
+**适合谁使用?**
+
+当你想把一组相关命令作为可复用包分发时使用。
+
+游戏内作弊和调试命令通常只需要 `RegisterCommand(...)`。
+
+:::
+
+实现 `ITerminalModule` 后，可以通过 `InstallModule()` 一次性注册命令组。
+
+```csharp
+using Achieve.CheatTerminal;
+
+public class NetworkDebugModule : ITerminalModule
+{
+    public string Name => "NetworkDebug";
+
+    public void Install(Terminal terminal)
+    {
+        terminal.RegisterCommand(
+            "net",
+            Run,
+            "Network debug tools",
+            "Network",
+            "net <ping|status>");
+    }
+
+    private static void Run(CommandContext ctx)
+    {
+        string sub = ctx.GetString(0, "status");
+        switch (sub)
+        {
+            case "ping":   ctx.Output.WriteLine("pong", LogLevel.Success); break;
+            case "status": ctx.Output.WriteLine("connected", LogLevel.Info); break;
+            default:       ctx.Output.WriteLine($"Unknown: {sub}", LogLevel.Error); break;
+        }
+    }
+}
+```
+
+bootstrap 后注册:
+
+```csharp
+TerminalBehaviour.Instance.InstallModule(new NetworkDebugModule());
+```
+
+下一步: [命令参考](/cheat-terminal/zh/usage/commands.md)
+
+
+
+---
+url: /cheat-terminal/zh/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/zh/llms.txt, the full documentation bundle is available at /cheat-terminal/zh/llms-full.txt.
+
+# 更新日志
+
+这里记录包的主要变更。本项目遵循 [Semantic Versioning](https://semver.org/)。
+
+每个版本的背景与设计变化整理在[开发历程](/cheat-terminal/zh/history.md)中。
+
+## 1.1.0 - 2026-10-17
+
+### 新增
+
+- 默认显示的开发者工具栏，可在安全区域内拖动，分别打开作弊库与 Terminal。
+- 根据 usage 生成必填、可选、选项、坐标和多个参数输入框，并验证及保留输入值。
+- 分类筛选、卡片执行结果及错误。Terminal 新增 Run、Tab 补全、历史记录操作及安全区域布局。
+- 本地作弊命令编写技能，以及 Unity 核心与 UI 测试。
+
+### 变更与修复
+
+- `F1`: Cheat Library，`F2`: Terminal，`F10`: 作弊 UI，`F9`: 工具栏，Escape: 关闭。
+- 使用 Run 按钮执行命令，切换界面时关闭之前的界面，并保留暂停状态。
+- 保留参数中的空格、引号、反斜杠和空字符串，并显示执行错误。
+- 为工具栏图标和面板背景创建所需的 CanvasRenderer。没有主题资源时也保留输入框的最小高度，避免与 Run 按钮重叠。
+- 将之前的版本记录整理为 `1.0.0` 至 `1.0.4`，本次 UI 更新设为 `1.1.0`。
+
+## 1.0.4 - 2026-08-29
+
+### Changed
+
+- 作弊 HUD 由从左侧滑出的面板改为**覆盖整个屏幕**。行的尺寸满足点按需求（最小 104px），内容按 `Screen.safeArea` 内缩，宽屏会自动分成 2\~3 列，底部还有一个大号 `CLOSE` 按钮。仍需旧面板时可用 `TerminalBehaviour.CheatHudFullScreen = false` 与 `CheatHudView.WidthPercent`。
+
+### Added
+
+- 打开 / 关闭监听: `TerminalBehaviour.VisibilityChanged`（控制台与 HUD 合并）、`ConsoleVisibilityChanged`、`CheatHudVisibilityChanged`。视图也会直接触发 `OnOpened` / `OnClosed` / `OnVisibilityChanged`。
+- `TerminalBehaviour.PauseGameWhileOpen` / `PausedTimeScale`: 打开期间固定 `Time.timeScale`，关闭时恢复原值。
+- 面向编辑器和桌面的控制台快捷键: `F1` 开关，反引号 `` ` `` 只负责打开（输入命令时不会误触）。作弊 HUD 除 `F10` 外也支持 `F2`。
+- 播放模式下的 `Tools > Cheat Terminal` 编辑器菜单（开关控制台 / HUD / 手柄，Pause Game While Open，手动 Bootstrap）。
+- `TerminalShortcutKey` 新增 `F1`\~`F4`、`F11`、`F12`、`BackQuote`、`Escape`; `MultiFingerTapGesture` 支持第二个按键 `AlternateKey`。
+
+### Fixed
+
+- 仅使用 Input System 的项目不会创建 `EventSystem`，导致控制台和作弊 HUD 的按钮全部失效。现在会附带 `InputSystemUIInputModule` 创建。
+
+### Documentation
+
+- 新增根据提交记录整理的[开发历程](/cheat-terminal/zh/history.md)页面 (ko / en / ja / zh)。
+
+## 1.0.3 - 2026-08-17
+
+### Changed
+
+- 右上角的 `>_` 手柄默认隐藏。在屏幕任意位置**四指连点 3 次**即可显示，再做一次同样的手势则隐藏。代码中可通过 `TerminalCornerTrigger.Visible` / `TerminalBehaviour.HandleVisible` 控制（`TerminalCornerTrigger.Enabled` 保留为别名）。
+
+### Added
+
+- 作弊 HUD (`CheatHudView`): 从左侧滑入的 UI Toolkit 面板，按分类列出所有已注册命令。通过**三指连点 3 次**（桌面为 F10）或 `TerminalBehaviour.Open/Close/ToggleCheatHud()` 切换。无参数的命令点按一次即可执行，带 `<...>` / `[...]` 参数的命令会展开内联输入框。面板包含搜索框、最近执行状态栏，以及打开控制台的 `>_` 按钮。
+- `MultiFingerTapGesture`: 可复用的“N 指 M 连点”检测组件。仅在手指数量完全一致时成立，因此三指与四指手势不会互相触发。提供编辑器 / 桌面的键盘回退（F9 / F10）。
+- `TerminalInput`: 同时支持旧版 Input Manager 与 Input System 包的免反射输入抽象。
+- 新增说明作弊命令编写规范的 `AGENT.md`。
+
+## 1.0.2 - 2026-06-27
+
+### Changed (breaking)
+
+- 移除了基于 reflection 的 `[Terminal]` 方法发现和调用。命令现在通过 `RegisterCommand(...)` 显式注册。
+- 从默认 runtime 中移除了基于 reflection 的 Object Inspector module。
+- EventSystem fallback 不再通过 reflection 探测 optional Input System 类型。Input System-only 项目应自行提供带 `InputSystemUIInputModule` 的 EventSystem。
+
+### Fixed
+
+- Terminal input 现在只会在显式 submit 时执行，不会在 focus loss 时执行。
+- Terminal output 在包裹 color tag 前会 escape rich text-sensitive 字符。
+- Unity component commands 现在使用 invariant-culture 数字解析、严格 bool 解析，并在适当场景下包含 inactive GameObject lookup。
+- Logs / Performance module 创建的 runtime helper GameObject 会随 terminal bootstrap 一起 dispose。
+
+### Added
+
+- 添加了 command name、usage keyword 和 command-specific provider 的 cached completion items。
+- 添加了 built-in command 的 context-aware completions，包括 scenes、logs、GameObjects、component targets 和 boolean values。
+- 添加了用于 reflection-free data lookup 的 `data [table] [id|text]` command 和 `RegisterDataTable(...)`。
+- 添加了可查看 Console、registered Commands 和 registered Data tables 的 Terminal UI tabs。
+
+## 1.0.1 - 2026-05-30
+
+### 变更
+
+- 将命名空间从 `UniTerminal` 改为 `Achieve.CheatTerminal`。
+
+### 新增
+
+- 操作 Unity 组件的命令：`transform`、`rb`、`cam`、`light`、`audio`、`time`、`go`。
+- 韩语、英语、日语、中文文档，以及高级模块用法。
+
+## 1.0.0 - 2026-05-29
+
+### Changed (breaking)
+
+- 移除了内部协作接口 (`ICommandRegistry`, `ICommandParser`, `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`, `ITerminalTrigger`, `ITerminal`) 和 `TerminalBuilder`。core `Terminal` 现在是拥有 concrete collaborators 的 concrete class。真正保留的扩展点只有 `ICommand`, `ICommandOutput`, `ITerminalView`, `ITerminalModule`。
+- 不再使用 command marker interface，`[Terminal]` attribute 是唯一 marker。
+- `Terminal.ScanStaticCommands()` 会扫描 user assemblies 并自动注册所有 static `[Terminal]` methods。bootstrap 会在启动时通过 `TerminalBehaviour.AutoScanStaticCommands` 执行它。instance commands 仍然使用 `Register(this)`。
+
+### Added
+
+- Runtime Logs module: 将 `Debug.Log` output 收集到 ring buffer，并通过 `logs [n | error | warning | info | <text> | find <text> | clear | export]` 操作。export 会写入 `Application.persistentDataPath`，方便从 device 取回 logs。
+- input field 支持用 Up/Down arrow 召回上一条/下一条 command history。它通过 uGUI `IMoveHandler` 实现，因此兼容 legacy Input Manager 和 Input System package。
+- `help <category>` 会列出某个 category 中的 commands 及 descriptions。`help` 现在会提示 `help <command>` / `help <category>`。
+
+### Fixed
+
+- 当 Input System package 启用时，EventSystem 会通过 reflection 创建 `InputSystemUIInputModule`，避免每 frame 出现 `InvalidOperationException`。
+- top-right corner trigger 现在是可见的 `>_` handle，并且 single tap 即可打开。
+
+## 0.1.0 - 2026-05-29
+
+### Added
+
+- Core command system: `ICommandRegistry`, quote-aware `ICommandParser`, `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`, 以及带 default implementation 的 `ICommandOutput`。
+- `[Terminal("name {0}")]` attribute 和 reflection-based `AttributeCommand` binding，包括 positional binding、optional parameters 和 `CommandContext` injection。
+- 通过 `TerminalBuilder` 组装的 interface-driven `Terminal` core。
+- uGUI overlay view (`UGuiTerminalView`) 在 closed 时停用，实现 zero idle cost。
+- top-right corner open gesture (`TerminalCornerTrigger`，default 是 double-tap)。
+- 带 static convenience API 的 `TerminalBehaviour` bootstrap，在 editor 和 development build 中 auto-bootstrap。
+- built-in commands: `help`, `clear`, `history`, `echo`, `alias`。
+- module system (`ITerminalModule`)，在 bootstrap 上提供 `InstallModule` / `GetModule<T>`。
+- Scene Tools module: `scene list | load <name> [additive] | unload <name>`。
+- Object Inspector module: `find`, `inspect`, `set <name>.<member> <value>`, `call`，并支持 explicit object registration (`ObjectInspectorModule.RegisterObject`)。
+- Performance Monitor module: `perf` (FPS, frame ms, memory, GC, render stats via `ProfilerRecorder`)。
+- Basic Usage sample。
+
+
+
+---
+url: /cheat-terminal/zh/history.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/zh/llms.txt, the full documentation bundle is available at /cheat-terminal/zh/llms-full.txt.
+
+# 开发历程
+
+根据提交记录整理的版本演进。每个版本"改了什么"记录在[变更记录](/cheat-terminal/zh/changelog.md)中，
+"为什么这么改"记录在本页。
+
+## 概览
+
+| 版本    | 日期         | 核心变化                                    |
+| ----- | ---------- | --------------------------------------- |
+| 1.1.0 | 2026-10-17 | 参数表单、可移动工具栏、F1/F2 快捷键与执行反馈              |
+| 1.0.4 | 2026-08-29 | 全屏作弊 HUD、显示状态事件与编辑器支持                   |
+| 1.0.3 | 2026-08-17 | 用多点触控手势唤出 UI，新增 UI Toolkit 作弊 HUD       |
+| 1.0.2 | 2026-06-27 | 彻底移除反射、上下文感知补全、数据表                      |
+| 1.0.1 | 2026-05-30 | 命名空间 `Achieve.CheatTerminal`、Unity 组件命令 |
+| 1.0.0 | 2026-05-29 | 围绕具体核心重写，新增 Logs 模块                     |
+| 0.1.0 | 2026-05-29 | 最初的核心 / uGUI 视图 / 模块系统                  |
+
+## 三个转折点
+
+1. **反射 → 显式注册。** 0.1.0 通过 `[Terminal("name {0}")]` 特性和反射绑定查找命令，
+   1.0.0 又加上了 static 方法的自动扫描。为了让 IL2CPP/AOT 构建下的行为可预测，
+   1.0.2 移除了特性、自动扫描和所有反射调用路径，只保留 `RegisterCommand(...)` 显式注册。
+2. **接口拆分 → 具体核心。** 0.1.0 中的协作者接口（`ICommandRegistry`、`ICommandParser`、
+   `IAutoCompleteProvider` 等）和 `TerminalBuilder` 在 1.0.0 中被删除，`Terminal` 直接持有
+   具体协作者。扩展点只剩 `ICommand`、`ICommandOutput`、`ITerminalView`、`ITerminalModule` 四个。
+3. **常驻 UI → 手势唤出 UI。** 0.1.0 中隐形的右上角双击区域在 1.0.0 变成可见的 `>_` 手柄
+   （单击打开），而在 1.0.3 中该手柄本身也默认隐藏，只能通过多点触控手势唤出。
+
+## 1.0.3 — 手势与作弊 HUD
+
+- 右上角 `>_` 手柄默认隐藏，**四指连点 3 次**可显示 / 隐藏。
+- 新增从左侧滑入的 **UI Toolkit 作弊 HUD**。所有已注册命令会按分类自动列出，
+  无参数的命令点按一次即可执行。**三指连点 3 次**开关面板。 → [作弊 HUD](/cheat-terminal/zh/usage/cheat-hud.md)
+- 手势由 `MultiFingerTapGesture` 负责，只有手指数量完全一致时才成立，
+  因此三指与四指手势不会互相触发。
+- 触摸输入通过 `TerminalInput` 抽象层，免反射地同时支持旧版 Input Manager 与 Input System 包
+  （后者是通过版本定义解析的可选依赖）。
+- 在仓库根目录新增了说明作弊命令编写规范的 `AGENT.md`。
+
+## 1.0.2 — 移除反射、强化补全
+
+- 删除了 `TerminalAttribute`、`AttributeCommand` 以及基于反射的 Object Inspector 模块。
+  原先通过特性注册的命令需要改为 `RegisterCommand(...)`。
+- 补全会缓存命令名、`usage` 关键字和命令自定义候选，并针对场景、日志、GameObject、
+  组件目标、布尔值等提供上下文候选（引入 `ICommandCompletionProvider`、
+  `CommandCompletionContext`、`CompletionItem`）。
+- `RegisterDataTable(...)` 与 `data [table] [id|text]` 命令让游戏数据表免反射可查。
+- 终端 UI 新增 `Console / Commands / Data` 标签页。
+- 修复: 仅在显式 submit 时执行而非失焦时执行、输出前转义富文本敏感字符、
+  Unity 组件命令使用不变文化解析、Logs 与 Performance 模块创建的辅助 GameObject 随
+  bootstrap 一同销毁。
+- 同期将文档站点从 Docusaurus 迁移到 **Fumadocs + Next.js**，统一目录名为 `docs~`，
+  确定 Introduction / Getting started / Usage / Changelog 结构，并新增韩语 `CHANGELOG.ko.md`。
+
+## 1.0.1 — 命名空间与 Unity 组件命令
+
+- 命名空间由 `UniTerminal` 改为 `Achieve.CheatTerminal`（破坏性变更）。
+- 新增直接操作 Unity 内置组件的命令: `transform`、`rb`、`cam`、`light`、`audio`、`time`、`go`。
+  → [Unity 组件命令](/cheat-terminal/zh/usage/unity-components.md)
+- 文档本地化为 ko / en / ja / zh 四种语言，新增 `ITerminalModule` 进阶章节并引入 `CHANGELOG`。
+
+## 1.0.0 — 围绕具体核心重写
+
+- 移除协作者接口与 `TerminalBuilder`，`Terminal` 改为具体类。
+- `Terminal.ScanStaticCommands()` 自动注册 static `[Terminal]` 方法（该功能在 1.0.2 中被移除）。
+- **Runtime Logs 模块**: 将 `Debug.Log` 收集到环形缓冲区，通过
+  `logs [n | error | warning | info | <text> | find <text> | clear | export]` 查询。
+  `export` 会写入 `Application.persistentDataPath`，因此可以从真机取回日志。
+- 输入框支持上下方向键回溯历史，并新增 `help <category>`。
+- 修复 EventSystem 输入模块问题，把右上角触发区改为可见的 `>_` 手柄（单击打开），
+  补齐 Unity `.meta` 文件，并确定包名 `com.achieve.cheat-terminal`。
+- 接入文档站点（Docusaurus）与自动部署到 GitHub Pages 的 CI。
+
+## 0.1.0 — 首个版本
+
+- 由支持引号的解析器、历史记录、别名、参数转换、补全和输出缓冲组成的核心。
+- 基于 `[Terminal]` 特性的反射绑定，通过 `TerminalBuilder` 组装。
+- 关闭时完全停用的 uGUI 覆盖视图，以及右上角双击触发区。
+- 内置命令 `help` / `clear` / `history` / `echo` / `alias`。
+- 模块系统（`ITerminalModule`）与 Scene Tools / Object Inspector / Performance 模块，
+  以及 Basic Usage 示例。
+
+## 升级速查
+
+| 过去                              | 现在                                               |
+| ------------------------------- | ------------------------------------------------ |
+| `[Terminal]` 特性 / static 自动扫描   | `TerminalBehaviour.RegisterCommand(...)`         |
+| `UniTerminal` 命名空间              | `Achieve.CheatTerminal`                          |
+| 用 `TerminalBuilder` 组装          | `new Terminal()` + `AttachView(...)`             |
+| Object Inspector 模块             | `RegisterDataTable(...)` 与 `data` 命令             |
+| 常驻显示的右上角手柄                      | 四指连点 3 次（`TerminalBehaviour.HandleVisible`）      |
+| `TerminalCornerTrigger.Enabled` | `TerminalCornerTrigger.Visible`（`Enabled` 保留为别名） |
+
+
+
+---
+url: /cheat-terminal/zh/index.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/zh/llms.txt, the full documentation bundle is available at /cheat-terminal/zh/llms-full.txt.
+
+# 介绍
+
+Cheat Terminal 是 Unity 运行时开发者控制台，用于作弊命令、调试、日志查看和运行时状态控制。
+
+命令通过 `RegisterCommand(...)` 显式注册。默认运行路径不进行自动程序集扫描，也不使用 reflection 调用，因此在 IL2CPP/AOT 构建中更可预测。控制台关闭时以 uGUI 覆盖层运行，**空闲成本为 0**。
+
+```csharp
+TerminalBehaviour.RegisterCommand(
+    "gold",
+    ctx => ctx.Output.WriteLine("gold added", LogLevel.Success),
+    "添加金币",
+    "Cheats",
+    "gold <amount>");
+```
+
+## 特性
+
+- **显式注册** - 使用 `RegisterCommand("name", ctx => ...)` 注册命令；没有隐藏的 reflection 扫描。
+- **Runtime IntelliSense** - 显示 command、keyword、data table、row suggestions 及说明。
+- **性能优先** - 关闭时禁用 Canvas，输出使用 capped ring buffer，历史导航使用通用的 `TerminalInput`。
+- **模块化** - 默认安装 Scene / Data / Performance / Logs / Unity Components 模块。
+- **Tab UI** - Console / Commands / Data tab 显示输出、已注册命令和已注册数据。
+- **移动端友好** - 通过多点触控手势（三指 / 四指连点 3 次）唤出，并可将设备日志 export 为文件。
+- **作弊 HUD** - 在全屏 UI Toolkit 面板中填写参数并点击 Run 执行已注册命令；开关监听可控制 `Time.timeScale`。
+
+## 要求
+
+- Unity 6 (6000.x)
+- `com.unity.ugui` (默认包含)
+
+下一步: [入门](/cheat-terminal/zh/getting-started.md)
+
+
+
+---
+url: /cheat-terminal/zh/usage/cheat-hud.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/zh/llms.txt, the full documentation bundle is available at /cheat-terminal/zh/llms-full.txt.
+
+# 作弊 HUD
+
+注册到终端的作弊命令都可以在**覆盖整个屏幕的 UI Toolkit HUD** 中直接执行。
+只要注册命令，HUD 就会自动收录并显示，无需额外工作。
+
+## 打开方式
+
+| 手势             | 操作                            | 编辑器 / 桌面       |
+| -------------- | ----------------------------- | -------------- |
+| **三指同时点按 3 次** | 打开 / 关闭作弊 HUD                 | `F1` / `F10`   |
+| **四指同时点按 3 次** | 显示 / 隐藏右上角 `Terminal / F2` 手柄 | `F9`           |
+| 点按手柄           | 打开 / 关闭控制台                    | `F2` / `` ` `` |
+
+在编辑器中也可以用 `Tools > Cheat Terminal` 菜单打开。当 Game 视图没有焦点、按键无法传到游戏时
+特别有用。
+
+```csharp
+using Achieve.CheatTerminal;
+
+TerminalBehaviour.OpenCheatHud();
+TerminalBehaviour.CloseCheatHud();
+TerminalBehaviour.ToggleCheatHud();
+```
+
+## 布局
+
+- HUD 默认覆盖**整个屏幕**。每一行都是便于手指点按的大小（最小 104px），文字也随之放大。
+- 内容按 `Screen.safeArea` 内缩，刘海和home指示条不会挡住任何一行。
+- 屏幕较宽时（横屏、平板、编辑器 Game 视图）列表会自动分成 2\~3 列。
+- 底部状态栏带有一个大号 `CLOSE` 按钮，适合在长屏手机上够不到顶部 `X` 的情况。
+- 如果仍然需要以前那种从左侧滑出的窄面板，关闭全屏即可。
+
+```csharp
+TerminalBehaviour.CheatHudFullScreen = false;           // 回到滑出面板
+TerminalBehaviour.Instance.CheatHud.WidthPercent = 42f; // 此时的宽度(%)
+```
+
+## 打开 / 关闭监听
+
+打开 HUD 或控制台时游戏仍在运行。订阅开关状态即可降低 `Time.timeScale`、屏蔽输入等。
+
+```csharp
+// 控制台或作弊 HUD 打开时为 true，两者都关闭后为 false
+TerminalBehaviour.VisibilityChanged += open => Time.timeScale = open ? 0.2f : 1f;
+
+// 也可以分别订阅
+TerminalBehaviour.CheatHudVisibilityChanged += open => { /* ... */ };
+TerminalBehaviour.ConsoleVisibilityChanged  += open => { /* ... */ };
+```
+
+只想暂停时间的话一行就够。打开时的 `Time.timeScale` 会被保存，关闭时原样恢复。
+
+```csharp
+TerminalBehaviour.PauseGameWhileOpen = true; // 打开期间固定 timeScale
+TerminalBehaviour.PausedTimeScale = 0f;      // 默认 0（完全暂停）
+```
+
+:::info
+用 `-=` 取消订阅。也可以直接从视图接收：`CheatHudView.OnOpened` / `OnClosed` /
+`OnVisibilityChanged`，以及 `UGuiTerminalView` 上的同名事件。
+:::
+
+## 显示规则
+
+- 命令按 `category` 分组显示，内置的 `System` 分类始终排在最后。
+- 顶部搜索框可按名称 / 描述 / 分类过滤。
+- `usage` 字符串决定执行方式。
+
+| usage           | HUD 行为               |
+| --------------- | -------------------- |
+| `god`（无参数）      | 点击 Run 执行            |
+| `gold <amount>` | 输入 amount 后点击 Run    |
+| `heal [amount]` | 省略或输入 amount 后点击 Run |
+
+```csharp
+// 一键作弊: usage 中不要写 <> 或 []。
+TerminalBehaviour.RegisterCommand("god", ToggleGod, "切换无敌", "Cheats", "god");
+
+// 带参数的作弊
+TerminalBehaviour.RegisterCommand("gold", AddGold, "增加金币", "Cheats", "gold <amount>");
+```
+
+## 运行机制
+
+- HUD 订阅了 `Terminal.Registry.Changed`，运行时增删命令都会立即刷新列表。
+- 执行结果会同时输出到终端控制台和 HUD 底部的状态栏。
+- 关闭时面板为 `display: none`，没有渲染和布局开销；根元素也不会拦截输入，不影响游戏操作。
+- 点击标题栏的 `Terminal / F2` 按钮可以打开完整的终端控制台。
+
+## 浮动工具栏与快捷键
+
+在编辑器和开发构建中，场景加载后会自动初始化。右上角工具栏中的滑块图标打开 Cheat Library，终端图标打开 Terminal。拖动手柄或图标即可在安全区域内移动工具栏。
+
+`F1` 开关 Cheat Library，`F2` 开关 Terminal。`F10` 也可打开作弊 UI，`F9` 切换工具栏显示。反引号仅打开 Terminal，Escape 关闭当前界面。
+
+## 参数输入与执行
+
+参数输入框始终可见。只需输入值，无需输入命令名称，然后按 Run 或 Enter 执行。`<amount>` 为必填，`[amount]` 为可选，`<x> <y> <z>` 会生成独立的坐标输入框，`<on|off>` 还会提供选项按钮。必填项必须填写，可选项只能从末尾开始省略。`[args]` 和 `<text...>` 接受以空格分隔的多个参数；一个值中包含空格时需用引号括起。
+
+使用分类按钮和搜索查找命令。筛选、调整屏幕大小或重新打开后，输入值仍会保留。结果和错误显示在卡片、底部状态栏和终端输出中。切换界面时会关闭之前的界面。
+
+
+
+---
+url: /cheat-terminal/zh/usage/commands.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/zh/llms.txt, the full documentation bundle is available at /cheat-terminal/zh/llms-full.txt.
+
+# 命令参考
+
+## 内置命令
+
+| 命令                         | 说明                                         |
+| -------------------------- | ------------------------------------------ |
+| `help [command\|category]` | 命令列表 / 详情                                  |
+| `clear`                    | 清空输出                                       |
+| `history`                  | 输入历史                                       |
+| `echo <text>`              | 输出文本                                       |
+| `alias <name> <expansion>` | 注册别名 (`alias remove <name>`, `alias` 查看列表) |
+
+## 模块
+
+默认 bootstrap 会自动安装以下模块。
+
+### Scene
+
+```bash
+scene list                 # 已加载场景 + build settings 场景
+scene load Lobby           # 单场景加载
+scene load InGame additive # additive 加载
+scene unload InGame
+```
+
+### Data
+
+查看已注册的数据表 ID 和 row 名称。
+
+```bash
+data                 # table ID / name / row count
+data items           # items 表的 row ID / name
+data items sword     # 搜索 ID、name、summary 并输出 fields
+```
+
+### Performance
+
+```bash
+perf   # FPS / frame ms / memory / Mono / GC / draw calls, batches, triangles when available
+```
+
+### Logs
+
+将 `Debug.Log` 输出收集到 capped ring buffer。
+
+```bash
+logs                 # 最近 30 条
+logs 100             # 最近 100 条
+logs error           # 级别过滤 (error / warning / info)
+logs network         # 文本包含过滤
+logs find <text>     # 显式搜索
+logs clear           # 清空
+logs export          # 保存到文件 (persistentDataPath)
+```
+
+### Unity Components
+
+从终端直接控制 Unity 内置组件。完整说明见 [Unity 组件命令](/cheat-terminal/zh/usage/unity-components.md)。
+
+| 命令          | 说明                                 |
+| ----------- | ---------------------------------- |
+| `transform` | 读取或修改 position / rotation / scale  |
+| `rb`        | Rigidbody 属性控制                     |
+| `cam`       | Camera 设置 (FOV, 背景色等)              |
+| `light`     | Light 属性控制                         |
+| `audio`     | AudioListener 音量、静音、暂停             |
+| `time`      | Time.timeScale 和 fixedDeltaTime 控制 |
+| `go`        | GameObject active / tag / list     |
+
+## 别名和宏
+
+常用组合可以注册为别名:
+
+```bash
+alias rich gold 999999
+rich            # -> gold 999999
+```
+
+
+
+---
+url: /cheat-terminal/zh/usage/unity-components.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/zh/llms.txt, the full documentation bundle is available at /cheat-terminal/zh/llms-full.txt.
+
+# Unity 组件命令
+
+`UnityComponentsModule` 提供 7 个命令，覆盖 Unity 中最常用的内置组件，无需修改代码即可从终端直接控制。\
+在编辑器和开发构建中自动安装，无需额外配置。
+
+***
+
+## `transform` — Transform 操作
+
+```bash
+transform get   <name>                   # 输出位置、旋转和缩放
+transform pos   <name> [x y z]           # 获取或设置世界坐标位置
+transform rot   <name> [x y z]           # 获取或设置欧拉角旋转
+transform scale <name> [x y z]           # 获取或设置本地缩放
+transform reset <name>                   # 重置 position/rotation/scale 为默认值
+```
+
+### 示例
+
+```bash
+transform get   Player
+transform pos   Player 0 1 0
+transform rot   Enemy  0 90 0
+transform scale Boss   2 2 2
+transform reset Cube
+```
+
+***
+
+## `rb` — Rigidbody 控制
+
+```bash
+rb get       <name>           # 输出所有 Rigidbody 属性
+rb velocity  <name> [x y z]  # 获取或设置线速度
+rb gravity   <name> [on|off] # 获取或设置 useGravity
+rb kinematic <name> [on|off] # 获取或设置 isKinematic
+rb mass      <name> [value]  # 获取或设置质量
+rb drag      <name> [value]  # 获取或设置线性阻尼 (drag)
+```
+
+***
+
+## `cam` — Camera 设置
+
+默认操作 `Camera.main`。
+
+```bash
+cam list                          # 列出场景中所有摄像机
+cam fov  [value]                  # 获取或设置 fieldOfView (1–179°)
+cam bg   [r g b [a]]              # 获取或设置 backgroundColor (0–1)
+cam ortho [on|off]                # 切换透视/正交模式
+cam size  [value]                 # 获取或设置 orthographicSize
+cam clip  [near far]              # 获取或设置近/远裁剪面
+```
+
+***
+
+## `light` — Light 控制
+
+```bash
+light list                        # 列出场景中所有 Light
+light intensity <name> [value]    # 获取或设置亮度
+light color     <name> [r g b]    # 获取或设置颜色 (0–1)
+light range     <name> [value]    # 获取或设置范围
+light shadow    <name> [on|off]   # 开关软阴影
+```
+
+***
+
+## `audio` — AudioListener 控制
+
+```bash
+audio volume [value]   # 获取或设置主音量 (0–1)
+audio mute   [on|off]  # 静音开关
+audio pause            # 暂停所有音频
+audio resume           # 恢复所有音频
+```
+
+***
+
+## `time` — Time 控制
+
+```bash
+time get            # 输出 timeScale, fixedDeltaTime, time, frameCount
+time scale [value]  # 获取或设置 Time.timeScale (≥ 0)
+time fixed [value]  # 获取或设置 Time.fixedDeltaTime
+```
+
+### 示例
+
+```bash
+time scale 0.5     # 慢动作
+time scale 0       # 暂停
+time scale 1       # 恢复正常速度
+```
+
+***
+
+## `go` — GameObject 工具
+
+```bash
+go list   [tag]             # 列出 GameObject（最多 40 个，可按标签过滤）
+go active <name> <on|off>   # 调用 SetActive
+go tag    <name> [tag]      # 获取或设置标签
+```
+
+***
+
+## 分类
+
+所有命令属于 `Components` 类别。运行 `help Components` 可查看完整列表。
+
+

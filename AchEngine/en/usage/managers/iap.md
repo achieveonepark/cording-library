@@ -1,0 +1,122 @@
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# IAPManager
+
+`IAPManager` uses Unity IAP 5.4.1 `StoreController` APIs for store connection, product lookup, purchase, pending-order retry, and restoration. In player builds, it confirms an order only after its reward has been persisted.
+
+`com.unity.purchasing` 5.4.1 is an AchEngine dependency, and `AchManagerInstaller` registers `IAPManager` automatically.
+
+## Quick setup
+
+Product IDs must exactly match Google Play Console or App Store Connect. For player builds, configure products and a receipt validator before initialization.
+
+```csharp
+var iap = ServiceLocator.Resolve<IAPManager>();
+
+iap.AddProduct("com.mygame.coins_100", ProductType.Consumable);
+iap.AddProduct("com.mygame.remove_ads", ProductType.NonConsumable);
+iap.ReceiptValidator = new GameReceiptValidator();
+
+await iap.Initialize();
+```
+
+## Editor Fake Store testing
+
+In the Unity Editor, `IAPManager` explicitly selects Unity IAP's `fake` store.
+Only in the Editor, a Fake Store order is automatically confirmed when both
+`ReceiptValidator` and `PurchaseProcessor` are unset. This lets you test purchase
+buttons, completion events, and popup flow without making a real payment or
+calling a backend.
+
+This behavior is compiled only under `UNITY_EDITOR`. Android, iOS, and other
+player builds still require a receipt validator or fulfillment processor before
+a purchase can start. The editor fake order is not granted as a real purchase.
+
+The Full Sample `PurchasePopup` also enables its purchase buttons without a
+validator in the Editor. Assign the game-specific server validator to the
+`Receipt Validator` field for real builds.
+
+Implement `IIAPReceiptValidator` in the game project. Authenticate the player, send platform transaction data to the backend, and persist rewards idempotently on the server.
+
+```csharp
+public sealed class GameReceiptValidator : IIAPReceiptValidator
+{
+    public async Task<IAPReceiptValidationResult> ValidateAndFulfillAsync(IAPPurchase purchase)
+    {
+        var response = await SendToGameServerAsync(purchase);
+        return response.IsSuccess
+            ? IAPReceiptValidationResult.Succeeded()
+            : IAPReceiptValidationResult.Failed(response.Message);
+    }
+}
+```
+
+## Purchase requests
+
+`PurchaseAsync` returns only after store purchase, server fulfillment, and order confirmation are complete. In player builds, without a validator or processor, it does not open the purchase dialog. The Editor uses the Fake Store flow described above.
+
+```csharp
+var result = await iap.PurchaseAsync("com.mygame.coins_100");
+if (result.IsSuccess)
+    Debug.Log("Purchase and fulfillment confirmed.");
+else
+    Debug.LogWarning($"Purchase state: {result.Status}, {result.Message}");
+```
+
+| Status               | Meaning                                                            |
+| -------------------- | ------------------------------------------------------------------ |
+| `Confirmed`          | Receipt validated, reward persisted, and store order confirmed     |
+| `Failed`             | User canceled or the store purchase failed                         |
+| `Deferred`           | Purchase is waiting for approval                                   |
+| `PendingFulfillment` | Validation or reward persistence failed; order remains unconfirmed |
+
+## Server receipt validation
+
+Send the transaction ID, Unity receipt, Apple StoreKit 2 JWS, app-account token, and product list to the server. The server should use the transaction ID as an idempotency key and return matching `transactionId`, `isValid`, and `isFulfilled` values.
+
+```json
+{
+  "transactionId": "store transaction ID",
+  "receipt": "Unity IAP receipt",
+  "appleJwsRepresentation": "StoreKit 2 JWS or empty string",
+  "appleAppAccountToken": "app account token or empty string",
+  "products": [{ "productId": "com.mygame.coins_100", "productType": "Consumable", "quantity": 1 }]
+}
+```
+
+Retry unfulfilled orders in the current session or re-read the store purchase list:
+
+```csharp
+await iap.RetryPendingFulfillmentsAsync();
+await iap.GetPendingListAsync();
+```
+
+## Restore and events
+
+`Initialize()` reads existing purchases after product discovery. Update non-consumable and subscription ownership from `PurchaseRestored`. Apple apps should expose a user-facing restore button:
+
+```csharp
+iap.PurchaseRestored += purchase =>
+{
+    foreach (var item in purchase.Items)
+        Debug.Log($"Restored: {item.ProductId}");
+};
+
+var restore = await iap.RestoreTransactionsAsync();
+```
+
+## API
+
+| Member                            | Description                                              |
+| --------------------------------- | -------------------------------------------------------- |
+| `AddProduct(id, type)`            | Registers a product before initialization                |
+| `ReceiptValidator`                | Server validator and idempotent fulfillment hook         |
+| `PurchaseProcessor`               | Custom async processor when no server validator is used  |
+| `Initialize()`                    | Connects, fetches products, and reads existing purchases |
+| `PurchaseAsync(id)`               | Starts a purchase and returns `IAPPurchaseResult`        |
+| `RetryPendingFulfillmentsAsync()` | Retries pending orders held in the current session       |
+| `GetPendingListAsync()`           | Reads existing purchases and retries pending orders      |
+| `RestoreTransactionsAsync()`      | Starts the Apple manual-restore flow                     |
+| `TryGetProduct(id, out product)`  | Retrieves a fetched Unity IAP `Product`                  |
+
+Always make fulfillment idempotent by transaction ID. A validator or processor failure leaves the order unconfirmed so it can be retried.

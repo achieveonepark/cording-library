@@ -1,0 +1,84 @@
+> For AI agents: the complete documentation index is available at /AchReactive/zh/llms.txt, the full documentation bundle is available at /AchReactive/zh/llms-full.txt.
+
+# 响应与基础动作
+
+## 执行流程
+
+```csharp
+var engine = new ReactionEngine();
+engine.Run("on_use", skillData, ctx);
+```
+
+`Run(trigger, data, ctx)` 会遍历 `data.reactions`，并对每个响应作如下处理。
+
+```
+1. trigger 通道名称是否匹配？          (不匹配则 skip)
+2. 触发器守卫是否通过？                (TriggerRegistry，没有则视为通过)
+3. 所有条件（AND）是否通过？           (ConditionRegistry)
+4. 按顺序执行各个效果                  (EffectRegistry)
+```
+
+返回值是实际执行的响应数量。
+
+## ReactionContext
+
+```csharp
+var ctx = new ReactionContext
+{
+    Source  = caster,     // 主体
+    Target  = target,     // 单一目标
+    Targets = targets,    // 范围目标（存在时优先）
+    World   = world,      // 生成/查询边界
+};
+```
+
+effect 通过 `ctx.Params` 读取自身参数。引擎会为每个项目注入。
+
+## 基础 Effect
+
+| type              | 说明                                | params                                |
+| ----------------- | --------------------------------- | ------------------------------------- |
+| `damage`          | 按 `atk*power + flat - def` 减少 hp  | `power`, `flat`                       |
+| `heal`            | 恢复 `atk*power + flat`（上限为 hp_max） | `power`, `flat`                       |
+| `set_stat`        | 设置属性基础值                           | `stat`, `value`                       |
+| `add_stat`        | 增减属性基础值                           | `stat`, `delta`                       |
+| `add_modifier`    | 添加属性修正器（增益的基本形态）                  | `stat`, `modifier`, `value`, `source` |
+| `remove_modifier` | 移除 source 令牌的修正器                  | `source`                              |
+| `spawn`           | 通过 World 生成实体                     | `entityId`                            |
+| `log`             | 调试日志                              | `message`                             |
+
+`modifier` 的取值为 `flat` / `percent_add` / `percent_mul`。目标在 `Targets` 存在时
+为全部，否则为 `Target`。
+
+## 基础 Condition
+
+| type                        | 说明      | params          |
+| --------------------------- | ------- | --------------- |
+| `always`                    | 始终为真    | —               |
+| `alive` / `dead`            | 目标存活/死亡 | —               |
+| `chance`                    | 按概率通过   | `value` (0\~1)  |
+| `hp_below` / `hp_above`     | HP 比例比较 | `value` (0\~1)  |
+| `stat_above` / `stat_below` | 属性值比较   | `stat`, `value` |
+
+条件在未另行指定时，评估 `Target`（不存在则为 `Source`）。
+
+## 基础 Trigger 守卫
+
+大多数触发器（`on_use`、`on_hit`、`on_equip` 等）仅凭通道名称即可发动，因此没有守卫。
+只有需要阈值比较的触发器才设有守卫。
+
+| type          | 说明                              | triggerParams      |
+| ------------- | ------------------------------- | ------------------ |
+| `on_hp_below` | 仅当 Source HP 比例 ≤ threshold 时发动 | `threshold` (0\~1) |
+
+## 属性约定
+
+基础 effect/condition 使用以下键（`StatKeys`）。若要使用其他体系，直接注册 effect
+覆盖即可。
+
+| 键        | 含义             |
+| -------- | -------------- |
+| `hp`     | 当前生命值（资源）      |
+| `hp_max` | 最大生命值（比例条件的分母） |
+| `atk`    | 攻击力（应用修正器）     |
+| `def`    | 防御力（应用修正器）     |

@@ -1,0 +1,645 @@
+---
+url: /quick-save/zh/api/builder.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/zh/llms.txt, the full documentation bundle is available at /quick-save/zh/llms-full.txt.
+
+# Builder
+
+`QuickSave<T>.Builder` 是用于创建 `QuickSave<T>` 实例的构建者类。
+
+```csharp
+var save = new QuickSave<T>.Builder()
+    /* 选项方法 */
+    .Build();
+```
+
+## 方法
+
+### Build()
+
+```csharp
+public QuickSave<T> Build()
+```
+
+应用配置并返回 `QuickSave<T>` 实例。此时如果保存目录不存在会自动创建。
+
+### UseEncryption(string encryptionKey)
+
+```csharp
+public Builder UseEncryption(string encryptionKey)
+```
+
+
+> **Info**
+> 
+> 仅在定义了 `USE_ENCRYPT` 符号时可用（需要安装 DataProtector）。
+> 
+
+
+启用保存时加密、读取时解密。
+
+| 参数              | 类型       | 说明         |
+| --------------- | -------- | ---------- |
+| `encryptionKey` | `string` | 用于加密/解密的密钥 |
+
+```csharp
+new QuickSave<PlayerData>.Builder()
+    .UseEncryption("your-secret-key")
+    .Build();
+```
+
+### UseVersion(int version)
+
+```csharp
+public Builder UseVersion(int version)
+```
+
+
+> **Info**
+> 
+> 仅在定义了 `USE_ENCRYPT` 符号时可用。
+> 
+
+
+在存档文件名中包含版本号。默认值为 `0`。
+
+| 参数        | 类型    | 说明         |
+| --------- | ----- | ---------- |
+| `version` | `int` | 附加到文件名的版本号 |
+
+```csharp
+new QuickSave<PlayerData>.Builder()
+    .UseEncryption("your-secret-key")
+    .UseVersion(2)
+    .Build();
+// → PlayerData_2.acqs
+```
+
+
+
+---
+url: /quick-save/zh/api/methods.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/zh/llms.txt, the full documentation bundle is available at /quick-save/zh/llms-full.txt.
+
+# QuickSave<T> 方法
+
+`QuickSave<T>` 的公开方法参考。
+
+
+> **Info**
+> 
+> 泛型约束：`where T : class`
+> 
+
+
+## SaveData
+
+```csharp
+public void SaveData(T data)
+```
+
+将 `data` 用 MemoryPack 序列化并保存到文件。启用加密时，序列化后会进行加密。
+
+| 参数     | 类型  | 说明     |
+| ------ | --- | ------ |
+| `data` | `T` | 要保存的对象 |
+
+```csharp
+save.SaveData(player);
+```
+
+## SaveDataAsync
+
+```csharp
+public Task SaveDataAsync(T data)
+```
+
+`SaveData` 的异步版本。不阻塞主线程。
+
+```csharp
+await save.SaveDataAsync(player);
+```
+
+## LoadData
+
+```csharp
+public T LoadData()
+```
+
+读取存档文件并返回反序列化后的对象。
+
+| 返回值                       | 条件          |
+| ------------------------- | ----------- |
+| `T` 实例                    | 正常读取        |
+| `null`                    | 文件不存在       |
+| 抛出 `InvalidDataException` | 文件存在但反序列化失败 |
+
+```csharp
+try
+{
+    var data = save.LoadData();
+    if (data == null) { /* 文件不存在 */ }
+}
+catch (InvalidDataException e)
+{
+    Debug.LogError(e.Message); // 文件损坏
+}
+```
+
+## LoadDataAsync
+
+```csharp
+public Task<T> LoadDataAsync()
+```
+
+`LoadData` 的异步版本。
+
+```csharp
+var data = await save.LoadDataAsync();
+```
+
+## HasSaveData
+
+```csharp
+public bool HasSaveData()
+```
+
+存档文件存在时返回 `true`，否则返回 `false`。用于在 `LoadData` 之前确认文件是否存在。
+
+```csharp
+if (save.HasSaveData())
+{
+    var data = save.LoadData();
+}
+```
+
+## DeleteData
+
+```csharp
+public void DeleteData()
+```
+
+删除存档文件。文件不存在时不执行任何操作。
+
+```csharp
+save.DeleteData();
+```
+
+
+
+---
+url: /quick-save/zh/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/zh/llms.txt, the full documentation bundle is available at /quick-save/zh/llms-full.txt.
+
+# 更新日志
+
+## \[1.0.3] `最新` — 2026-05-23
+
+### 新增
+
+- **`SaveDataAsync(T data)`** — 异步保存方法。基于 `File.WriteAllBytesAsync`，不阻塞主线程。
+- **`LoadDataAsync()`** — 异步读取方法。在大容量存档或慢速存储环境（移动端）中防止掉帧。
+- **`HasSaveData()`** — 在尝试读取前确认存档文件是否存在的方法。此前需要检查 `LoadData()` 返回值是否为 `null`。
+
+### 修复
+
+- **`Builder.UseVersion()` 被忽略的 Bug** — 修复了调用 `UseVersion(n)` 时设置的版本值在内部始终固定为 `0` 的问题。同时使用加密 + 版本管理时，存档文件路径会与预期不符。
+- **`SaveData<T>` 类型参数遮蔽** — 修复了可以序列化与 `QuickSave<T>` 类泛型 `T` 不同类型的结构性 Bug。
+- **改进 `LoadData()` 的错误区分** — 文件不存在时返回 `null`，反序列化失败时抛出 `InvalidDataException`，从而明确区分两种情况。
+
+### 性能
+
+- **保存目录创建优化** — 改进了每次调用都执行 `Directory.Exists` 的结构。现在仅在 `Build()` 时检查并创建一次目录，之后缓存文件路径。
+
+## \[1.0.2] — 2026-05-16
+
+### 新增
+
+- **`DeleteData()`** — 在运行时直接删除存档文件（`.acqs`）的方法。文件不存在时也不会抛出异常。
+- **编辑器菜单 `Achieve > Delete Save`** — 一次性删除 `quicksave/` 目录中所有 `.acqs` 文件的工具。删除前会显示确认对话框。
+
+## \[1.0.0] — 2024-01-01
+
+### 新增
+
+- 包首次发布
+- **`SaveData(T data)`** — 基于 MemoryPack 的二进制序列化保存
+- **`LoadData()`** — 二进制文件的反序列化读取
+- 保存到 `Application.persistentDataPath/quicksave/`，扩展名为 `.acqs`
+- **加密选项** — 通过 `USE_ENCRYPT` define 与 DataProtector 联动支持 AES 加密
+- **版本管理** — 用 `UseVersion(int)` 在文件名中附加版本号
+- **Builder 模式** — 用 `QuickSave<T>.Builder` 构建实例
+
+
+
+---
+url: /quick-save/zh/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/zh/llms.txt, the full documentation bundle is available at /quick-save/zh/llms-full.txt.
+
+# 快速开始
+
+## 前置准备：安装 MemoryPack
+
+Quick Save 依赖 MemoryPack。请先通过 [NuGetForUnity](https://github.com/GlitchEnzo/NuGetForUnity) 安装 MemoryPack。
+
+1. 在项目中安装 NuGetForUnity。
+2. 在 Unity 菜单中打开 **NuGet > Manage NuGet Packages**。
+3. 搜索 `MemoryPack` 并安装。
+
+## 安装
+
+### Unity Package Manager (UPM) — 推荐
+
+1. 打开 **Window > Package Manager**。
+2. 点击左上角的 `+` 按钮 → 选择 **Add package from git URL...**。
+3. 输入下面的 URL 并点击 **Add**。
+
+```
+https://github.com/achieveonepark/QuickSave.git#1.0.3
+```
+
+### 直接编辑 manifest.json
+
+在 `Packages/manifest.json` 的 `dependencies` 中添加。
+
+```json
+{
+  "dependencies": {
+    "com.achieve.quick-save": "https://github.com/achieveonepark/QuickSave.git#1.0.3"
+  }
+}
+```
+
+
+> **Info**
+> 
+> 如果需要加密，请额外安装 [DataProtector](https://github.com/achieveonepark/DataProtector) 包。当存在 DataProtector 时，会自动定义 `USE_ENCRYPT` 符号，从而启用 `UseEncryption()`、`UseVersion()` 方法。详情请参阅 [使用方法 › 加密与版本管理](/quick-save/zh/usage/encryption.md)。
+> 
+
+
+## 快速上手
+
+### 1. 定义要保存的数据类
+
+为要用 MemoryPack 序列化的类添加 `[MemoryPackable]` 特性和 `partial` 关键字。
+
+```csharp
+using MemoryPack;
+
+[MemoryPackable]
+public partial class PlayerData
+{
+    public string Name;
+    public int Level;
+    public float HP;
+    public long Gold;
+}
+```
+
+### 2. 创建 QuickSave 实例
+
+用 `Builder` 模式创建实例。创建时会一并准备保存目录（`persistentDataPath/quicksave/`）。
+
+```csharp
+using Achieve.QuickSave;
+
+var save = new QuickSave<PlayerData>.Builder().Build();
+```
+
+### 3. 保存、读取、删除
+
+```csharp
+var player = new PlayerData { Name = "Hero", Level = 1, HP = 100f, Gold = 0 };
+
+save.SaveData(player);                 // 保存
+
+if (save.HasSaveData())                // 检查是否存在
+{
+    PlayerData loaded = save.LoadData(); // 读取
+    Debug.Log(loaded.Name);            // "Hero"
+}
+
+save.DeleteData();                     // 删除
+```
+
+## 后续步骤
+
+- [使用方法 › 基本用法](/quick-save/zh/usage/basic.md)
+- [API › QuickSave\<T> 方法](/quick-save/zh/api/methods.md)
+
+
+
+---
+url: /quick-save/zh/index.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/zh/llms.txt, the full documentation bundle is available at /quick-save/zh/llms-full.txt.
+
+# 简介
+
+**Unity 的轻量存档系统。**
+基于 MemoryPack 的二进制序列化，快速、安全地保存游戏数据。
+
+## 特性
+
+- ⚡ **高性能序列化** — 使用 Cysharp 的 MemoryPack 进行高速二进制序列化/反序列化。
+- 🔒 **支持加密** — 对存档数据加密，防止篡改和查看。
+- 🧩 **简洁的 API** — 用构建者模式一目了然地组织保存/读取流程。
+
+## 快速链接
+
+- [快速开始](/quick-save/zh/getting-started.md)
+- [使用方法](/quick-save/zh/usage/basic.md)
+- [API 参考](/quick-save/zh/api/methods.md)
+- [GitHub](https://github.com/achieveonepark/quick-save)
+
+
+
+---
+url: /quick-save/zh/usage/async.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/zh/llms.txt, the full documentation bundle is available at /quick-save/zh/llms-full.txt.
+
+# 异步保存 / 读取
+
+## 为什么需要异步
+
+`SaveData` / `LoadData` 内部使用 `File.WriteAllBytes` / `File.ReadAllBytes`。当存档文件较大或存储设备较慢（尤其是移动端）时，可能会暂时阻塞主线程。
+
+`SaveDataAsync` / `LoadDataAsync` 使用 `File.WriteAllBytesAsync` / `File.ReadAllBytesAsync`，在不阻塞主线程的情况下工作。
+
+## SaveDataAsync
+
+```csharp
+await save.SaveDataAsync(playerData);
+```
+
+## LoadDataAsync
+
+```csharp
+PlayerData loaded = await save.LoadDataAsync();
+
+if (loaded == null)
+{
+    // 没有存档文件
+}
+```
+
+## 完整示例 (async/await)
+
+```csharp
+using Achieve.QuickSave;
+using UnityEngine;
+
+public class SaveManager : MonoBehaviour
+{
+    private QuickSave<PlayerData> _save;
+
+    void Awake()
+    {
+        _save = new QuickSave<PlayerData>.Builder().Build();
+    }
+
+    public async void OnSaveButtonClicked(PlayerData player)
+    {
+        await _save.SaveDataAsync(player);
+        Debug.Log("保存完成");
+    }
+
+    public async void OnLoadButtonClicked()
+    {
+        try
+        {
+            PlayerData data = await _save.LoadDataAsync();
+            if (data == null)
+                Debug.Log("没有存档数据");
+            else
+                Debug.Log($"读取完成: {data.Name}");
+        }
+        catch (System.IO.InvalidDataException e)
+        {
+            Debug.LogError($"存档文件损坏: {e.Message}");
+        }
+    }
+}
+```
+
+## 与 UniTask 配合使用
+
+如果项目中有 UniTask，可以把 `Task` 转换为 `UniTask` 使用。
+
+```csharp
+using Cysharp.Threading.Tasks;
+
+public async UniTaskVoid SaveAsync(PlayerData player)
+{
+    await _save.SaveDataAsync(player).AsUniTask();
+}
+```
+
+
+
+---
+url: /quick-save/zh/usage/basic.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/zh/llms.txt, the full documentation bundle is available at /quick-save/zh/llms-full.txt.
+
+# 基本用法
+
+## 准备数据类
+
+Quick Save 使用 `MemoryPack` 进行序列化，因此要保存的类需要满足两个条件。
+
+- `[MemoryPackable]` 特性
+- `partial` 关键字
+
+```csharp
+using MemoryPack;
+
+[MemoryPackable]
+public partial class InventoryData
+{
+    public List<string> Items;
+    public int Capacity;
+}
+```
+
+
+> **Info**
+> 
+> `QuickSave<T>` 的泛型约束是 `where T : class`。不支持结构体（struct）。
+> 
+
+
+## 用 Builder 创建实例
+
+```csharp
+var save = new QuickSave<InventoryData>.Builder().Build();
+```
+
+调用 `Build()` 时，如果保存目录（`persistentDataPath/quicksave/`）不存在会自动创建。之后调用 `SaveData` / `LoadData` 时不会再产生目录检查开销。
+
+## SaveData
+
+```csharp
+var inventory = new InventoryData
+{
+    Items = new List<string> { "Sword", "Shield" },
+    Capacity = 20
+};
+
+save.SaveData(inventory);
+```
+
+文件会保存到 `{persistentDataPath}/quicksave/InventoryData.acqs`。
+
+## HasSaveData
+
+在读取前确认文件是否存在。
+
+```csharp
+if (save.HasSaveData())
+{
+    // 仅在文件存在时读取
+}
+```
+
+## LoadData
+
+```csharp
+InventoryData loaded = save.LoadData();
+```
+
+- 文件不存在时返回 `null`。
+- 文件存在但反序列化失败时会抛出 `InvalidDataException`。可以区分“文件不存在”和“文件损坏”分别处理。
+
+```csharp
+try
+{
+    var data = save.LoadData();
+    if (data == null)
+    {
+        // 没有存档文件 → 使用默认值
+    }
+}
+catch (InvalidDataException e)
+{
+    Debug.LogError($"存档文件损坏: {e.Message}");
+    save.DeleteData(); // 删除损坏文件后重新开始
+}
+```
+
+## DeleteData
+
+```csharp
+save.DeleteData();
+```
+
+文件不存在时不执行任何操作。（无异常）
+
+## 在编辑器中删除存档文件
+
+使用 Unity 编辑器菜单 **Achieve > Delete Save**，可以删除 `quicksave/` 目录中所有 `.acqs` 文件。删除前会显示确认对话框。
+
+
+
+---
+url: /quick-save/zh/usage/encryption.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/zh/llms.txt, the full documentation bundle is available at /quick-save/zh/llms-full.txt.
+
+# 加密与版本管理
+
+## 前置准备
+
+加密功能仅在安装了 [DataProtector](https://github.com/achieveonepark/DataProtector) 包时才会启用。
+
+安装 DataProtector 后，Assembly Definition 会自动定义 `USE_ENCRYPT` 符号，Builder 的 `UseEncryption()`、`UseVersion()` 方法会被纳入编译。
+
+## UseEncryption
+
+```csharp
+var save = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-secret-key-32chars")
+    .Build();
+```
+
+- 调用 `SaveData` / `SaveDataAsync` 时，先把序列化后的二进制加密再保存。
+- 调用 `LoadData` / `LoadDataAsync` 时，先解密文件再反序列化。
+
+
+> **Warning**
+> 
+> 请把加密密钥保存在安全的地方。密钥改变后将无法读取已有的存档文件。
+> 
+
+
+## UseVersion
+
+指定版本后，文件名会包含版本号。游戏更新时可以把旧版本与新版本的存档文件分开管理。
+
+```csharp
+var saveV1 = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(1)
+    .Build();
+
+var saveV2 = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(2)
+    .Build();
+```
+
+存档文件路径：
+
+```
+{persistentDataPath}/quicksave/PlayerData_1.acqs   ← v1
+{persistentDataPath}/quicksave/PlayerData_2.acqs   ← v2
+```
+
+## 迁移模式
+
+将旧版本存档迁移到新版本的示例。
+
+```csharp
+var oldSave = new QuickSave<PlayerDataV1>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(1)
+    .Build();
+
+var newSave = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(2)
+    .Build();
+
+if (oldSave.HasSaveData() && !newSave.HasSaveData())
+{
+    PlayerDataV1 legacy = oldSave.LoadData();
+    PlayerData migrated = Migrate(legacy);
+    newSave.SaveData(migrated);
+    oldSave.DeleteData();
+}
+```
+
+## 不带版本，仅使用加密
+
+如果不调用 `UseVersion`，版本会按默认值 `0` 处理，文件名为 `TypeName_0.acqs`。
+
+```csharp
+var save = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    // 未调用 UseVersion → _0.acqs
+    .Build();
+```
+
+

@@ -1,0 +1,1 @@
+"use strict";(self.rspackChunkachengine_docs=self.rspackChunkachengine_docs||[]).push([["p"],{nu(e,c,r){var s=r.r("vaN");r.r("Wl"),r.d(c,{createArchitectureServices:()=>s.S})}}]);

@@ -1,0 +1,35 @@
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 감시 폴더 & 그룹
+
+감시 폴더를 등록하면 해당 폴더의 에셋이 지정한 Addressables 그룹에 자동으로 추가됩니다.
+
+**Project Settings › AchEngine › Addressables › 감시 폴더** 섹션에서
+**+ 폴더 추가** 버튼을 눌러 항목을 추가합니다.
+
+## 감시 폴더 항목 구성
+
+| 항목           | 설명                                            |
+| ------------ | --------------------------------------------- |
+| **폴더 경로**    | `Assets/`로 시작하는 상대 경로 (예: `Assets/Art/Icons`) |
+| **그룹 이름**    | Addressables 그룹 이름 (없으면 자동 생성)                |
+| **주소 생성 방식** | 파일명 / 감시 폴더 기준 상대 경로 / 전체 경로 중 선택             |
+| **하위 폴더 포함** | 재귀적으로 하위 폴더 스캔 여부                             |
+| **라벨**       | 쉼표로 구분된 Addressables 라벨 목록                    |
+
+## 주소 생성 방식 (AddressNamingMode)
+
+| 값                  | 생성되는 주소 예시                               |
+| ------------------ | ---------------------------------------- |
+| `FilenameOnly`     | `icon_sword`                             |
+| `RelativeToFolder` | `Icons/icon_sword` (`Assets/Art`를 감시할 때) |
+| `FullPath`         | `Assets/Art/Icons/icon_sword`            |
+
+`FilenameOnly`는 서로 다른 폴더에 같은 파일명이 있으면 주소가 충돌할 수 있습니다. 여러 폴더를 운영한다면 `RelativeToFolder`를 권장합니다.
+
+
+> **자동 스캔**
+> 
+> 에셋을 추가·이동·삭제하면 Unity의 AssetPostprocessor가 감시 폴더를 반영합니다. 기존 에셋은 **Rescan** 또는 **AchEngine › Addressables › Re-scan Watched Folders** 메뉴로 한 번에 등록할 수 있습니다.
+> 
+

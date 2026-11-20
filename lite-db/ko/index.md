@@ -1,0 +1,22 @@
+> For AI agents: the complete documentation index is available at /lite-db/ko/llms.txt, the full documentation bundle is available at /lite-db/ko/llms-full.txt.
+
+# 소개
+
+LiteDB는 Unity 프로젝트에서 SQLite 데이터베이스를 읽기 전용 테이블 데이터 저장소처럼 다루기 위한 경량 패키지입니다. 게임 밸런스 데이터, 퀘스트, 아이템, 지역화 텍스트처럼 빌드에 포함되는 정적 데이터를 C# 모델로 매핑해서 조회할 수 있습니다.
+
+이 패키지는 sqlite-net 또는 SQLite Asset 패키지를 래핑하지 않습니다. `SQLiteConnection`, `[Table]`, `[PrimaryKey]`처럼 기존 사용부와 비슷한 인터페이스를 제공하되 내부에서는 네이티브 SQLite C API를 직접 호출합니다.
+
+## 제공 기능
+
+- StreamingAssets에 포함된 DB 파일을 런타임 저장소로 복사하고 초기화
+- Primary Key 기반 단일 데이터 조회
+- Id 범위 조회, 존재 여부 확인, 안전한 조회
+- Editor CSV Importer를 통한 CSV 테이블 삽입
+- CSV 헤더 기반 데이터 모델 코드 생성
+- Localization 헬퍼
+
+## 다음 단계
+
+- [시작하기](/lite-db/ko/getting-started.md) — 설치부터 첫 데이터 조회까지
+- [사용법](/lite-db/ko/usage.md) — 데이터 모델, CSV Importer, 지역화
+- [API](/lite-db/ko/api.md) — 런타임 API 레퍼런스

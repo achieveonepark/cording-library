@@ -1,0 +1,301 @@
+---
+url: /ach-economy/zh/api.md
+---
+
+> For AI agents: the complete documentation index is available at /ach-economy/zh/llms.txt, the full documentation bundle is available at /ach-economy/zh/llms-full.txt.
+
+# API
+
+## EconomyConfig
+
+承载所有调参值的值类型。从 `EconomyConfig.Default` 出发只覆盖你需要的字段。
+
+| 字段                        | 默认值    | 说明                                   |
+| ------------------------- | ------ | ------------------------------------ |
+| `TickInterval`            | `1`    | 一次长期 tick 运行的模拟时间(秒)                 |
+| `PriceInertia`            | `0.15` | 长期价格收敛到目标的速度(0\~1)。**对称惯性**          |
+| `DemandWeight`            | `1`    | 价格公式中需求项的权重                          |
+| `ShortTermResponse`       | `0.5`  | 单笔交易拉动短期价格的强度(0\~1)                  |
+| `ShortTermDecay`          | `0.25` | 短期价格向长期价格均值回归的强度(0\~1)               |
+| `InflationSensitivity`    | `0.1`  | source/sink 压力影响通胀乘数的灵敏度。0 表示关闭      |
+| `MinPriceMultiplier`      | `0.25` | 最终价格乘数下限                             |
+| `MaxPriceMultiplier`      | `4`    | 最终价格乘数上限                             |
+| `InflationAlertThreshold` | `0.2`  | 超过此绝对压力时触发 `OnInflationAlert`        |
+| `TradeFlowRate`           | `0.1`  | 每个 tick 从盈余→短缺节点移动的库存比例(0\~1)。0 表示关闭 |
+
+## Economy
+
+动态经济的唯一入口(外观)。
+
+### 构造
+
+```csharp
+Economy(EconomyConfig config, bool autoTick = false)
+```
+
+当 `autoTick` 为 true 时，一个隐藏运行器每帧调用 `Tick`。关闭时需调用 `Dispose()`。
+
+### 注册
+
+| 方法                                                         | 说明                        |
+| ---------------------------------------------------------- | ------------------------- |
+| `AddCommodity(id, basePrice, targetStock, baseDemand = 0)` | 注册商品定义                    |
+| `AddMarket(id, initialStock = null)`                       | 注册市场(节点)。可指定初始库存          |
+| `AddRecipe(marketId, inputs, outputs, throughput = 1)`     | 生产/消费配方。`outputs` 为空则为纯消费 |
+| `AddTradeRoute(marketA, marketB)`                          | 用贸易路线连接两个节点               |
+
+### 交易(通胀中立)
+
+| 方法                                      | 返回            | 说明             |
+| --------------------------------------- | ------------- | -------------- |
+| `Buy(marketId, commodityId, quantity)`  | `TradeResult` | 玩家买入。库存不足时部分成交 |
+| `Sell(marketId, commodityId, quantity)` | `TradeResult` | 玩家卖出           |
+
+### source / sink(引发通胀)
+
+| 方法                                         | 说明                          |
+| ------------------------------------------ | --------------------------- |
+| `Inject(commodityId, amount, tag = null)`  | 物资从无中生成(faucet)。`tag` 是遥测标签 |
+| `Consume(commodityId, amount, tag = null)` | 物资被永久移除(sink)               |
+
+### 查询
+
+| 方法                                    | 返回      | 说明                             |
+| ------------------------------------- | ------- | ------------------------------ |
+| `GetPrice(marketId, commodityId)`     | `float` | 当前单价(已反映供需与通胀乘数)               |
+| `GetStock(marketId, commodityId)`     | `float` | 当前库存                           |
+| `GetInflationMultiplier(commodityId)` | `float` | 全局通胀乘数(1=中性，\<1 过剩，>1 稀缺)      |
+| `GetSinkFaucetRatio(commodityId)`     | `float` | sink/faucet 比率。大于 1 表示 sink 占优 |
+
+### Tick
+
+```csharp
+void Tick(float deltaTime)
+```
+
+每当累积时间达到 `TickInterval`，运行一次长期 tick(生产 → 贸易 → 价格收敛 → 通胀更新)。
+
+### 事件
+
+| 事件                 | 签名                              | 触发时机         |
+| ------------------ | ------------------------------- | ------------ |
+| `OnPriceChanged`   | `(market, commodity, newPrice)` | 单价更新         |
+| `OnStockChanged`   | `(market, commodity, newStock)` | 库存变动         |
+| `OnTradeExecuted`  | `(TradeResult)`                 | 交易成交         |
+| `OnInflationAlert` | `(commodity, pressure)`         | 压力超过阈值       |
+| `OnDailyTick`      | `()`                            | 一次长期 tick 完成 |
+
+## TradeResult
+
+`Buy`/`Sell` 的结果。失败也不抛异常，而是以 `Success == false` 返回。
+
+| 字段                     | 类型       | 说明             |
+| ---------------------- | -------- | -------------- |
+| `Success`              | `bool`   | 是否成交           |
+| `Market` / `Commodity` | `string` | 目标节点/商品 id     |
+| `Quantity`             | `float`  | 实际成交数量         |
+| `UnitPrice`            | `float`  | 成交单价           |
+| `TotalCost`            | `float`  | 总额             |
+| `StockAfter`           | `float`  | 交易后库存          |
+| `Reason`               | `string` | 失败原因(成功时为空字符串) |
+
+## 价格公式
+
+```text
+平衡乘数 = (目标库存 + 需求 + 1) / (当前库存 + 需求 + 1)
+最终价格 = 基准价 × clamp(短期乘数 × 通胀乘数, Min, Max)
+```
+
+- **短期乘数**：每笔交易按 `ShortTermResponse` 即时移向平衡值
+- **长期乘数**：每个 tick 按 `PriceInertia` 对称收敛到平衡值，短期向长期均值回归
+- **通胀乘数**：由 source/sink 净压力更新 —— 净生成则小于 1(更便宜)，净消除则大于 1(更贵)
+
+
+
+---
+url: /ach-economy/zh/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /ach-economy/zh/llms.txt, the full documentation bundle is available at /ach-economy/zh/llms-full.txt.
+
+# 更新日志
+
+本文件记录项目的主要变更。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
+
+## \[1.0.0] - 2026-06-21
+
+### Added
+
+- `Economy` 外观：把价格决定、贸易、生产、通胀统一到一个入口
+- `EconomyConfig` struct：把所有调参值外部化为一个值类型
+- 供需价格决定 —— 短期/长期分离，对称惯性阻止套利漏洞
+- 节点间贸易流 —— 基于贸易路线的库存均衡
+- 生产消费循环 —— 用配方把输入转为输出
+- source/sink 通胀计量 —— `Inject`/`Consume`、通胀乘数与告警
+- 可选的自动 tick 运行器(`autoTick: true`)
+- EditMode 测试(价格公式确定性、对称惯性、通胀压力)
+- 最小使用示例(`Samples~/Basic Usage`)
+
+
+
+---
+url: /ach-economy/zh/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /ach-economy/zh/llms.txt, the full documentation bundle is available at /ach-economy/zh/llms-full.txt.
+
+# 快速开始
+
+## 1. 创建经济
+
+你需要打交道的类型只有 `EconomyConfig`(struct)和 `Economy`(class)两个。
+
+```csharp
+using AchEconomy;
+
+// 从默认值出发，只覆盖你需要的字段。
+var config = EconomyConfig.Default;
+config.TickInterval = 2f;   // 每 2 秒一次长期 tick
+config.PriceInertia = 0.2f;
+
+var economy = new Economy(config);
+```
+
+## 2. 注册商品与市场
+
+```csharp
+economy.AddCommodity("wheat", basePrice: 10f, targetStock: 100f, baseDemand: 5f);
+economy.AddCommodity("cloth", basePrice: 40f, targetStock: 30f);
+
+economy.AddMarket("village", new() { ["wheat"] = 250f });
+economy.AddMarket("town",    new() { ["wheat"] = 20f, ["cloth"] = 40f });
+```
+
+`basePrice` 是库存与 `targetStock` 平衡时的价格。库存低于目标则更贵，高于目标则更便宜。
+
+## 3. 交易
+
+交易是 **物资的移动**，因此对通胀中立。
+
+```csharp
+var r = economy.Buy("town", "cloth", 5f);
+// r.UnitPrice, r.TotalCost, r.StockAfter, r.Success
+
+float price = economy.GetPrice("town", "cloth");  // 库存减少后略有上涨的值
+```
+
+:::info
+若库存不足，会 **部分成交** 而非抛出异常。用 `r.Success` 和 `r.Quantity` 确认实际成交量。
+:::
+
+## 4. 生产消费循环
+
+配方在每个长期 tick 把输入商品转为输出商品。输出为空时则作为纯消费(例如人口吃掉食物)。
+
+```csharp
+// 城镇消耗 3 小麦生产 1 布，每 tick 运行 2 次
+economy.AddRecipe("town",
+    inputs:  new[] { ("wheat", 3f) },
+    outputs: new[] { ("cloth", 1f) },
+    throughput: 2f);
+```
+
+## 5. 节点间贸易
+
+通过贸易路线连接的节点之间库存会均衡，从盈余节点流向短缺节点——模拟 AI 商队的套利。
+
+```csharp
+economy.AddTradeRoute("village", "town");
+// 切断路线(不连接)则节点间价格会分化 —— 有意为之的因果
+```
+
+## 6. 通胀管理(source / sink)
+
+只需告诉它物资何时 **从无中生成**(faucet)或 **被永久移除**(sink)，通胀校正会在内部自动进行。
+
+```csharp
+economy.Inject("wheat", 100f, tag: "daily_quest"); // 任务奖励 = faucet
+economy.Consume("wheat", 30f, tag: "crafting");    // 制作消耗 = sink
+
+// 仅在你关心时订阅(可忽略)
+economy.OnInflationAlert += (commodity, pressure) =>
+    Debug.Log($"{commodity} 通胀压力 {pressure:P0}");
+```
+
+## 7. 推进时间
+
+```csharp
+void Update() => economy.Tick(Time.deltaTime);
+```
+
+:::warning
+若在多人(锁步 / Quantum 等)中需要确定性，请使用 **手动 `Tick` + 方程式** 的方式。`Tick` 对相同输入产生相同结果。
+:::
+
+若觉得自动 tick 更方便，`new Economy(config, autoTick: true)` 会让一个隐藏运行器每帧调用 `Tick`。这种情况下请在关闭时调用 `economy.Dispose()` 清理它。
+
+完整 API 请参阅 [API 参考](/ach-economy/zh/api.md)。
+
+
+
+---
+url: /ach-economy/zh/index.md
+---
+
+> For AI agents: the complete documentation index is available at /ach-economy/zh/llms.txt, the full documentation bundle is available at /ach-economy/zh/llms-full.txt.
+
+# 简介
+
+## 什么是 Ach Economy
+
+**Ach Economy** 把一个活的经济——商店价格与库存不是固定值，而是随生产、消费、玩家交易而波动——封装成可复用的 Unity 包。
+
+只需传入一个 `EconomyConfig`，`Economy` 类内部就会自动运行 **价格决定、节点间贸易、生产消费、通胀计量**。无需 ScriptableObject，也无需挂在场景上的组件。
+
+```csharp
+var economy = new Economy(EconomyConfig.Default);
+economy.AddCommodity("wheat", basePrice: 10f, targetStock: 100f);
+economy.AddMarket("town_a", new() { ["wheat"] = 200f });
+
+var r = economy.Buy("town_a", "wheat", 10);   // 库存 ↓ → 价格 ↑
+```
+
+## 两个层次
+
+动态经济分为性质不同的两个层次。混为一谈会让设计纠缠不清。
+
+### [微观 — 价格决定](/ach-economy/zh/getting-started.md)
+
+单一市场的供需驱动价格与库存。贸易与商店内容的核心。
+
+### [宏观 — 通胀](/ach-economy/zh/api.md)
+
+多少货币/物资进入(source)与离开(sink)整个经济。直播服务的核心。
+
+Ach Economy 把这两者藏在一个 `Economy` 外观之后，只向你暴露两样东西：**`EconomyConfig` struct 与 `Economy` class**。
+
+## 核心特性
+
+| 特性                 | 说明                                          |
+| ------------------ | ------------------------------------------- |
+| **短期/长期价格分离**      | 短期价格随每笔交易反应，长期价格每个 tick 以对称惯性收敛             |
+| **对称惯性**           | 上涨与下跌同速 → 阻止「抛售后次日买入」的套利漏洞                  |
+| **节点间贸易**          | 通过贸易路线连接的节点之间库存均衡(自动模拟套利)                   |
+| **生产消费循环**         | 配方把输入转为输出，填充供需数值                            |
+| **source/sink 计量** | 用 `Inject`/`Consume` 记录 faucet/drain，推导通胀压力 |
+
+## 安装
+
+在 Unity Package Manager 中选择 **Add package from git URL...**，输入下面的地址。
+
+```text
+https://github.com/achieveonepark/ach-economy.git
+```
+
+:::info
+若要锁定特定版本，推送一个发布标签后像 `...ach-economy.git#1.0.0` 这样附上标签即可。OpenUPM 注册尚未进行。
+:::
+
+接下来前往 [快速开始](/ach-economy/zh/getting-started.md) 构建你的第一个经济。
+
+

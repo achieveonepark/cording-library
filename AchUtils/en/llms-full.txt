@@ -1,0 +1,2417 @@
+---
+url: /AchUtils/en/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# Changelog
+
+﻿# Changelog
+
+## v1.0.0 (2026-05)
+
+**Initial release**
+
+### Added Systems
+
+- Tutorial System - ScriptableObject-based nodes with save and restore support
+- Condition Graph - AND / OR / NOT condition trees
+- Stat Modifier - Flat / PercentAdd / PercentMultiply calculation pipeline
+- Formula System - Recursive descent parser for designer-editable formulas
+- Curve Data - AnimationCurve-based balance tables
+- Sequence System - Declarative presentation step chains
+- Camera Director - Zoom / Shake / Move camera action sequences
+- Buff / Debuff - Automatic duration, stack, and tick management
+- Quest System - Event-driven Kill / Talk / Collect steps
+- Spawn System - Weighted random spawning with alive-count limits
+- Action Replay - Timestamped InputFrame recording and playback
+- Time Rewind - IRewindable snapshot history
+
+
+
+---
+url: /AchUtils/en/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# Getting Started
+
+## Install With Package Manager (Local)
+
+Open your Unity project's `Packages/manifest.json` and add the package:
+
+```json
+{
+  "dependencies": {
+    "com.achieve.utils": "file:../Packages/AchUtils"
+  }
+}
+```
+
+You can also use **Package Manager -> Add package from disk** and select `Packages/AchUtils/package.json`.
+
+## Install With Git URL
+
+```json
+{
+  "dependencies": {
+    "com.achieve.utils": "https://github.com/achieveonepark/AchUtils.git"
+  }
+}
+```
+
+## Verify
+
+The package is installed when `AchUtils.Runtime` and `AchUtils.Extensions` appear in Unity's Assembly Browser.
+
+```csharp
+using AchUtils.Tutorial;
+using AchUtils.Buff;
+using AchUtils;
+// Use only the systems you need.
+```
+
+## Requirements
+
+| Item              | Requirement                                         |
+| ----------------- | --------------------------------------------------- |
+| Unity             | 2021.3 LTS or newer                                 |
+| .NET              | Standard 2.1                                        |
+| Platforms         | iOS, Android, PC, WebGL, Console                    |
+| External packages | `com.unity.ugui`, `com.unity.nuget.newtonsoft-json` |
+
+## Import the Sample
+
+Select the AchUtils package in Package Manager, then choose **Samples -> Basic Usage -> Import** to add the instance-based usage example to your project.
+
+
+> **TextMeshPro**
+> 
+> `DialogueStep` uses `UnityEngine.UI.Text` by default. If your project uses TMP, replace the `Text` component reference in `DialogueStep.cs` with `TextMeshProUGUI`.
+> 
+
+
+
+
+---
+url: /AchUtils/en/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# Introduction
+
+**AchUtils** is a collection of reusable systems for the repetitive parts of Unity game development.
+
+Tutorials, condition graphs, stat modifiers, and the other systems are designed to work independently, so you can install the package once and use only the pieces your game needs.
+
+## Highlights
+
+- **Independent instances** - Most runtime systems are pure C# instances; components are kept only where coroutines, Transform access, or Instantiate/Destroy are needed.
+- **ScriptableObject-first data** - Data and runtime logic are separated so designers can adjust assets without code changes.
+- **`[SerializeReference]` polymorphism** - Nodes, effects, and steps can be composed as inspector-editable data.
+- **Less repeated code** - Runtime systems ship alongside collection, Unity object, UI, and string extension helpers.
+
+## Assembly
+
+| Item                  | Value                                               |
+| --------------------- | --------------------------------------------------- |
+| Package name          | `com.achieve.utils`                                 |
+| Assembly              | `AchUtils.Runtime`, `AchUtils.Extensions`           |
+| Root namespace        | `AchUtils`                                          |
+| Minimum Unity version | **2021.3 LTS**                                      |
+| Package dependencies  | `com.unity.ugui`, `com.unity.nuget.newtonsoft-json` |
+
+## Next Steps
+
+- [Installation](/AchUtils/en/getting-started.md)
+- [Extension Methods](/AchUtils/en/usage/extensions.md)
+- [First system: Tutorial](/AchUtils/en/usage/tutorial.md)
+
+
+
+---
+url: /AchUtils/en/usage/ach.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# ach
+
+﻿# Ach — Shared Variables & Events
+
+A system for sharing values and signals through **ScriptableObject assets**, so components can communicate without referencing each other directly.
+
+> Turn player health into a `PlayerHP` **asset file**, and the health bar UI, hit sound, and game-over manager can all watch the same asset. No inspector wires between them — when the value changes, everything stays in sync automatically.
+
+## Why use it?
+
+```
+Conventional approach                 Ach approach
+─────────────────────────            ─────────────────────────
+UI references Player directly         UI and Player share a PlayerHP asset
+Reference breaks across scenes        Asset survives scene changes
+Polls player.Hp every frame           Callback only when the value changes
+Hard to trace who mutates the value   Event flow is explicit
+```
+
+## Five building blocks
+
+| Block          | One-liner                                                       | Example class                  |
+| -------------- | --------------------------------------------------------------- | ------------------------------ |
+| **Variable**   | An asset holding a single value                                 | `IntVariable`, `FloatVariable` |
+| **Event**      | A signal asset carrying a value                                 | `IntEvent`, `VoidEvent`        |
+| **Listener**   | Component that turns an event into a UnityEvent                 | `IntEventListener`             |
+| **Reference**  | Toggle between a constant and a variable asset in the inspector | `IntReference`                 |
+| **Collection** | A runtime-shared list asset                                     | `GameObjectCollection`         |
+
+Built-in types: **Int / Float / Bool / String / Vector2 / Vector3 / Color / GameObject** (plus signal-only **Void**).
+
+## Create assets with right-click
+
+In the Project view, **right-click → Create → AchUtils → Ach**.
+
+```
+Create ▸ AchUtils ▸ Ach ▸ Variables    ▸ Int / Float / Bool / String / Vector2 / Vector3 / Color / GameObject Variable
+                        ▸ Events       ▸ Void / Int / Float / ... Event
+                        ▸ Collections  ▸ GameObject Collection
+```
+
+Listeners are components — **Add Component → AchUtils → Ach → Int Event Listener**.
+
+## Quick start
+
+### 1. Variable — share a value as an asset
+
+Create `PlayerHP` via **Create → AchUtils/Ach/Variables/Int Variable**.
+
+```csharp
+using AchUtils.Ach;
+using UnityEngine;
+
+public class Player : MonoBehaviour
+{
+    [SerializeField] IntVariable hp;     // drag in the PlayerHP asset
+
+    public void TakeDamage(int amount)
+    {
+        hp.Value -= amount;              // subscribers are notified automatically
+    }
+}
+
+public class HealthBar : MonoBehaviour
+{
+    [SerializeField] IntVariable hp;     // same PlayerHP asset as Player
+    [SerializeField] UnityEngine.UI.Slider slider;
+
+    void OnEnable()  => hp.OnChanged += Refresh;   // called only when it changes
+    void OnDisable() => hp.OnChanged -= Refresh;
+
+    void Refresh(int value) => slider.value = value;
+}
+```
+
+`Player` and `HealthBar` know nothing about each other — they connect through the `PlayerHP` asset.
+
+### 2. Event — send a signal
+
+Use a **Void Event** for value-less notifications, or a typed event to carry data.
+
+```csharp
+[SerializeField] VoidEvent onPlayerDied;
+[SerializeField] IntEvent  onGoldChanged;
+
+void Die()            => onPlayerDied.Raise();
+void AddGold(int now) => onGoldChanged.Raise(now);
+```
+
+### 3. Listener — wire reactions without code
+
+Add **AchUtils/Ach/Int Event Listener** to the reacting object, then in the inspector drag `onGoldChanged` into `Event` and your method into `Response`. Designers can hook up sounds and effects without writing code.
+
+### 4. Reference — switch between constant and variable
+
+Pick whether a value is a hard-coded constant or a shared variable asset with one checkbox.
+
+```csharp
+[SerializeField] FloatReference moveSpeed;   // Use Constant on = constant, off = variable asset
+
+void Update()
+{
+    transform.position += dir * moveSpeed.Value * Time.deltaTime;
+}
+```
+
+Prototype fast with constants, then share one variable asset across many places during balancing — **without touching code**.
+
+### 5. Collection — share a runtime list
+
+Create `AliveEnemies` via **Create → AchUtils/Ach/Collections/GameObject Collection**.
+
+```csharp
+[SerializeField] GameObjectCollection aliveEnemies;
+
+void OnEnable()  => aliveEnemies.Add(gameObject);
+void OnDisable() => aliveEnemies.Remove(gameObject);
+
+// Elsewhere: wave is cleared when no enemies remain
+if (aliveEnemies.Count == 0) WaveCleared();
+```
+
+## API
+
+### AchVariable\<T>
+
+```csharp
+T    Value                          // assigning raises OnChanged if it actually changed
+T    InitialValue                   // value applied when play starts
+void SetValue(T value)              // ignored if equal
+void SetValueAndForceRaise(T value) // raises even if equal
+void ResetToInitialValue()
+
+event Action<T>    OnChanged             // (newValue)
+event Action<T, T> OnChangedWithHistory  // (oldValue, newValue)
+```
+
+### AchEvent\<T> / VoidEvent
+
+```csharp
+void Raise(T value)                 // VoidEvent uses Raise()
+void Register(Action<T> handler)
+void Unregister(Action<T> handler)
+T    LastValue                      // last value raised (debug)
+```
+
+### AchReference\<T, TVariable>
+
+```csharp
+T          Value                    // constant if UseConstant, otherwise the variable's value
+bool       UseConstant
+T          ConstantValue
+TVariable  Variable
+// implicit operator T — usable directly as a plain value
+```
+
+### AchCollection\<T>
+
+```csharp
+int  Count
+T    this[int index]
+void Add(T item)
+bool AddIfMissing(T item)
+bool Remove(T item)
+bool Contains(T item)
+void Clear()
+
+event Action<T> OnAdded
+event Action<T> OnRemoved
+event Action    OnCleared
+```
+
+## Editor conveniences
+
+- **Variable inspector** — shows the live value during play, with a `Reset To Initial Value` button.
+- **VoidEvent inspector** — a `Raise` button during play lets you fire the event manually to test listener wiring.
+- **Auto reset** — variables and collections revert to their initial/empty state when entering play mode, so every run starts clean even with domain reload disabled.
+
+## Adding a new type
+
+Need a value beyond the built-ins (e.g. `Quaternion`)? Just write one-line subclasses.
+
+```csharp
+using UnityEngine;
+using AchUtils.Ach;
+
+[CreateAssetMenu(menuName = "AchUtils/Ach/Variables/Quaternion Variable")]
+public class QuaternionVariable : AchVariable<Quaternion> { }
+
+[CreateAssetMenu(menuName = "AchUtils/Ach/Events/Quaternion Event")]
+public class QuaternionEvent : AchEvent<Quaternion> { }
+
+[System.Serializable]
+public class QuaternionUnityEvent : UnityEngine.Events.UnityEvent<Quaternion> { }
+
+public class QuaternionEventListener
+    : AchEventListener<Quaternion, QuaternionEvent, QuaternionUnityEvent> { }
+```
+
+
+> **When to use it**
+> 
+> It shines when you need to share values or signals across scene and prefab boundaries. For a value used only inside a single GameObject, a plain field is simpler.
+> 
+
+
+
+
+---
+url: /AchUtils/en/usage/action-replay.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# action-replay
+
+﻿# Action Replay System
+
+Record player input as **timestamped frames** and replay it at any speed. Use it for ghost racing, replays, AI training data, QA reproduction, or highlight clips.
+
+## Structure
+
+```text
+ActionRecorder (pure C# instance)
+  - Adds InputFrame entries to ReplayData when input occurs
+
+ActionPlayer (pure C# instance)
+  - Plays ReplayData through Tick(deltaTime) and emits OnFrame events
+
+InputFrame (struct)
+  - Timestamp, ActionKey, Axis, IsPressed
+
+ReplayData (class)
+  - TotalDuration + List<InputFrame>
+```
+
+## Quick Start
+
+### 1. Record
+
+```csharp
+using AchUtils.ActionReplay;
+
+private readonly ActionRecorder recorder = new();
+
+recorder.StartRecording();
+
+public void OnJumpPressed()
+{
+    recorder.RecordButton("Jump", pressed: true);
+    // Run real jump logic...
+}
+
+public void OnMove(Vector2 axis)
+{
+    recorder.RecordAxis("Move", axis);
+}
+
+ReplayData data = recorder.StopRecording();
+SaveReplay(data);
+```
+
+### 2. Replay
+
+```csharp
+private readonly ActionPlayer player = new();
+
+void Update()
+{
+    player.Tick(Time.deltaTime);
+}
+
+void PlayGhost(ReplayData data)
+{
+    player.OnFrame += HandleFrame;
+    player.Play(data, speed: 1f);
+}
+
+void HandleFrame(InputFrame frame)
+{
+    switch (frame.ActionKey)
+    {
+        case "Jump":  ghost.Jump();           break;
+        case "Move":  ghost.Move(frame.Axis); break;
+        case "Attack": ghost.Attack();        break;
+    }
+}
+
+player.OnCompleted += () =>
+{
+    Debug.Log("Replay completed");
+    player.OnFrame -= HandleFrame;
+};
+```
+
+## API
+
+### ActionRecorder
+
+```csharp
+bool        IsRecording
+ReplayData  LastRecording
+
+void        StartRecording()
+ReplayData  StopRecording()
+
+void RecordButton(string key, bool pressed)
+void RecordAxis(string key, Vector2 axis)
+void Record(string key, Vector2 axis = default, bool pressed = true)
+```
+
+### ActionPlayer
+
+```csharp
+bool IsPlaying
+
+void Play(ReplayData data, float speed = 1f)
+void Stop()
+void Tick(float deltaTime)
+
+event Action<InputFrame> OnFrame
+event Action             OnCompleted
+event Action             OnStopped
+```
+
+### InputFrame
+
+```csharp
+float   Timestamp
+string  ActionKey
+Vector2 Axis
+bool    IsPressed
+```
+
+## Playback Speed
+
+```csharp
+player.Play(data, speed: 0.5f);  // Slow motion
+player.Play(data, speed: 2.0f);  // Double speed
+```
+
+## Serialization
+
+`ReplayData` is `[Serializable]`, so it can be saved as JSON.
+
+```csharp
+string json = JsonUtility.ToJson(data);
+File.WriteAllText("replay.json", json);
+
+string json = File.ReadAllText("replay.json");
+ReplayData data = JsonUtility.FromJson<ReplayData>(json);
+```
+
+## Use Cases
+
+| Use case         | Description                               |
+| ---------------- | ----------------------------------------- |
+| Ghost racing     | Replay a best run as a translucent object |
+| Replay system    | Watch the moments before death            |
+| AI training data | Use human input for imitation learning    |
+| Bug reproduction | Reproduce QA input exactly                |
+| Video clips      | Auto-cut highlight moments                |
+
+
+> **Networking**
+> 
+> Multiplayer replay sync requires a deterministic game loop. Physics-heavy games should drive physics manually, for example with `Physics.simulationMode = Script`.
+> 
+
+
+
+
+---
+url: /AchUtils/en/usage/buff-debuff.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# buff-debuff
+
+﻿# Buff / Debuff System
+
+A general-purpose buff pipeline for duration, stacks, ticks, and priority. Poison, stun, attack-speed boosts, and custom gameplay effects can be implemented by inheriting from `BuffEffect`.
+
+## Structure
+
+```text
+BuffSystem (pure C# instance)
+  - Updates timers, ticks, and expiration for active buffs
+
+BuffDefinition (ScriptableObject)
+  - Name, icon, duration, tick, and stack settings
+  [SerializeReference] List<BuffEffect>
+
+BuffInstance (runtime)
+  - Runtime state for a buff applied to a target
+
+BuffEffect (abstract, [Serializable])
+  ├── DamageOverTimeEffect   - Damage on each tick
+  ├── StunEffect             - Disable movement or input
+  └── StatModifyEffect       - Add/remove stat modifiers automatically
+```
+
+## Quick Start
+
+### 1. Create a BuffDefinition
+
+**Create -> AchUtils/Buff/Buff Definition**
+
+```text
+BuffId          : "Poison"
+DisplayName     : "Poison"
+Duration        : 8
+TickInterval    : 1
+MaxStacks       : 3
+RefreshOnReapply: true
+
+Effects:
+  [0] DamageOverTimeEffect
+        DamagePerTick: 15
+```
+
+### 2. Create a BuffSystem Instance
+
+`BuffSystem` is not a `MonoBehaviour`. Create it from the owner that needs it, then call `Tick` every frame to update durations and ticks.
+
+### 3. Apply and Remove Buffs
+
+```csharp
+using AchUtils.Buff;
+
+private readonly BuffSystem buffSystem = new();
+
+[SerializeField] BuffDefinition poisonDef;
+[SerializeField] GameObject target;
+
+void Update()
+{
+    buffSystem.Tick(Time.deltaTime);
+}
+
+buffSystem.Apply(poisonDef, target);
+
+buffSystem.Remove("Poison", target);
+
+bool hasPoisoned = buffSystem.Has("Poison", target);
+
+buffSystem.RemoveAll(target);
+```
+
+## API
+
+### BuffSystem
+
+```csharp
+BuffInstance Apply(BuffDefinition definition, GameObject target)
+bool         Remove(string buffId, GameObject target)
+void         RemoveAll(GameObject target)
+bool         Has(string buffId, GameObject target)
+List<BuffInstance> GetBuffs(GameObject target)
+
+void Tick(float deltaTime)
+
+event Action<BuffInstance> OnBuffApplied
+event Action<BuffInstance> OnBuffRemoved
+```
+
+### BuffDefinition Inspector
+
+| Field                      | Description                                  |
+| -------------------------- | -------------------------------------------- |
+| `BuffId`                   | Unique identifier                            |
+| `Duration`                 | Duration in seconds. `-1` means permanent    |
+| `TickInterval`             | Tick interval in seconds. `0` disables ticks |
+| `MaxStacks`                | Maximum stack count                          |
+| `RefreshDurationOnReapply` | Whether reapply refreshes the duration       |
+
+### BuffInstance
+
+```csharp
+BuffDefinition  Definition
+GameObject      Target
+int             Stacks
+float           RemainingDuration
+bool            IsPermanent
+bool            IsExpired
+```
+
+## Built-In Effects
+
+### DamageOverTimeEffect
+
+```csharp
+float DamagePerTick   // Damage per tick, multiplied by stacks
+```
+
+The target must implement `IDamageable`.
+
+```csharp
+public class Player : MonoBehaviour, IDamageable
+{
+    public void TakeDamage(float amount)
+    {
+        hp -= amount;
+    }
+}
+```
+
+### StunEffect
+
+The target must implement `IStunnable`.
+
+```csharp
+public class PlayerController : MonoBehaviour, IStunnable
+{
+    private int _stunCount;
+
+    public void ApplyStun()  => _stunCount++;
+    public void RemoveStun() => _stunCount--;
+
+    void Update()
+    {
+        if (_stunCount > 0) return;
+        // Movement...
+    }
+}
+```
+
+### StatModifyEffect
+
+Adds and removes a stat modifier through `StatSheetComponent`.
+
+```text
+StatKey      : "Attack"
+ModifierType : PercentAdd
+Value        : 0.3
+```
+
+## Custom Effects
+
+```csharp
+[Serializable]
+public class FreezeEffect : BuffEffect
+{
+    public float SlowRatio = 0.5f;
+
+    public override void OnApply(BuffInstance buff, GameObject target)
+    {
+        var rb = target.GetComponent<Rigidbody>();
+        if (rb) rb.velocity *= (1f - SlowRatio);
+    }
+
+    public override void OnTick(BuffInstance buff, GameObject target)
+    {
+        // Keep suppressing speed on each tick.
+    }
+}
+```
+
+## Examples
+
+```text
+Poison
+  Duration: 8s, TickInterval: 1s, MaxStacks: 3
+  DamageOverTimeEffect: 15 x stacks
+
+Freeze
+  Duration: 2s, MaxStacks: 1
+  StunEffect
+
+Berserk
+  Duration: 10s
+  StatModifyEffect: Attack PercentAdd +0.5
+
+Curse
+  Duration: -1 (permanent), MaxStacks: 1
+  StatModifyEffect: Defense Flat -20
+```
+
+
+> **Stat integration**
+> 
+> `StatModifyEffect` integrates with [Stat Modifier](/AchUtils/en/usage/stat-modifier.md). The target needs `StatSheetComponent`.
+> 
+
+
+
+
+---
+url: /AchUtils/en/usage/camera-director.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# camera-director
+
+﻿# Camera Director
+
+Compose **camera presentation chains** around gameplay events. It is intentionally simpler than Cinemachine and focused on event-driven camera moves.
+
+## Structure
+
+```text
+CameraDirector (MonoBehaviour runner for coroutines)
+  - Holds the Camera reference and runs action sequences
+
+CameraAction (abstract, [Serializable])
+  ├── ZoomCameraAction    - Changes field of view
+  ├── ShakeCameraAction   - Camera shake
+  ├── MoveCameraAction    - Position movement
+  └── WaitCameraAction    - Wait
+```
+
+## Quick Start
+
+### 1. Add CameraDirector
+
+Add `CameraDirector` to a scene object. If the `Camera` field is empty, it uses `Camera.main`.
+
+### 2. Play One Action
+
+```csharp
+using AchUtils.Camera;
+
+[SerializeField] CameraDirector cameraDirector;
+
+cameraDirector.Play(new ShakeCameraAction
+{
+    Duration  = 0.5f,
+    Intensity = 0.3f,
+    Frequency = 30f
+});
+```
+
+### 3. Play a Sequence
+
+```csharp
+[SerializeField] CameraDirector cameraDirector;
+
+cameraDirector.PlaySequence(new CameraAction[]
+{
+    new MoveCameraAction
+    {
+        FollowTarget = boss.transform,
+        Duration     = 1.5f,
+        Ease         = AnimationCurve.EaseInOut(0,0,1,1)
+    },
+    new ZoomCameraAction  { TargetFOV = 35f,   Duration = 0.8f },
+    new WaitCameraAction  { Duration  = 2.0f },
+    new ShakeCameraAction { Duration  = 0.5f,  Intensity = 0.4f },
+    new ZoomCameraAction  { TargetFOV = 60f,   Duration = 1.0f },
+});
+```
+
+## API
+
+### CameraDirector
+
+```csharp
+CameraDirector cameraDirector
+
+Camera Camera
+
+void Play(CameraAction action)
+void PlaySequence(IEnumerable<CameraAction> actions)
+void Stop()
+
+bool IsPlaying
+
+event Action OnSequenceCompleted
+```
+
+### ZoomCameraAction
+
+```csharp
+float          TargetFOV
+float          Duration
+AnimationCurve Ease
+```
+
+### ShakeCameraAction
+
+```csharp
+float          Duration
+float          Intensity
+float          Frequency
+AnimationCurve AttenuationCurve
+```
+
+### MoveCameraAction
+
+```csharp
+Vector3        Destination
+Transform      FollowTarget
+float          Duration
+AnimationCurve Ease
+```
+
+### WaitCameraAction
+
+```csharp
+float Duration
+```
+
+## Completion Callback
+
+```csharp
+cameraDirector.OnSequenceCompleted += () =>
+{
+    player.EnableControl();
+    UI.ShowBossHealthBar();
+};
+
+cameraDirector.PlaySequence(bossIntroActions);
+```
+
+## Custom Actions
+
+```csharp
+[Serializable]
+public class RotateCameraAction : CameraAction
+{
+    public Vector3 TargetAngle;
+    public float   Duration;
+
+    public override IEnumerator Execute(CameraDirector director)
+    {
+        var cam = director.Camera.transform;
+        Quaternion startRot = cam.rotation;
+        Quaternion endRot   = Quaternion.Euler(TargetAngle);
+        float elapsed = 0f;
+
+        while (elapsed < Duration)
+        {
+            elapsed += Time.deltaTime;
+            cam.rotation = Quaternion.Lerp(startRot, endRot, elapsed / Duration);
+            yield return null;
+        }
+
+        cam.rotation = endRot;
+    }
+}
+```
+
+## Boss Intro Example
+
+```text
+Boss trigger
+  ↓
+MoveCameraAction   Move toward boss for 1.5s
+  ↓
+ZoomCameraAction   FOV 60 -> 35 for 0.8s
+  ↓
+WaitCameraAction   Wait 2s
+  ↓
+ShakeCameraAction  Shake for 0.5s
+  ↓
+ZoomCameraAction   FOV 35 -> 60 for 1s
+  ↓
+OnSequenceCompleted -> Show UI
+```
+
+
+> **With SequenceRunner**
+> 
+> Use `CallbackStep` in `SequenceRunner` to start a camera sequence at a precise point in a presentation flow.
+> 
+
+
+
+
+---
+url: /AchUtils/en/usage/condition-graph.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# condition-graph
+
+﻿# Condition Graph
+
+Represent complex game conditions as **AND / OR / NOT node trees**. This keeps condition logic out of nested `if` blocks and lets designers configure gates in the inspector.
+
+## Structure
+
+```text
+ConditionGraph (ScriptableObject)
+  └── Root: ConditionNode  [SerializeReference]
+              ├── AndConditionNode
+              │     ├── CompareConditionNode  Level >= 10
+              │     ├── CompareConditionNode  VIP >= 3
+              │     └── CompareConditionNode  Tutorial == 1
+              └── OrConditionNode
+                    ├── CompareConditionNode  HasItem == 1
+                    └── ...
+```
+
+## Quick Start
+
+### 1. Create a ConditionGraph Asset
+
+**Create -> AchUtils/Condition/Condition Graph**
+
+Add nodes to `Root` in the inspector.
+
+### 2. Evaluate Conditions
+
+```csharp
+using AchUtils.Condition;
+
+var ctx = new ConditionContext();
+ctx.Set("Level", player.Level);
+ctx.Set("VIP", player.VipGrade);
+ctx.Set("Tutorial", tutorialDone ? 1f : 0f);
+
+bool canOpen = shopConditionGraph.Evaluate(ctx);
+shopPanel.SetActive(canOpen);
+```
+
+## Node Types
+
+### CompareConditionNode
+
+Compares numeric values.
+
+| Field   | Type      | Description         |
+| ------- | --------- | ------------------- |
+| `Key`   | string    | Context key         |
+| `Op`    | CompareOp | Comparison operator |
+| `Value` | float     | Comparison value    |
+
+```csharp
+public enum CompareOp
+{
+    Equal, NotEqual,
+    Greater, GreaterOrEqual,
+    Less, LessOrEqual
+}
+```
+
+### AndConditionNode
+
+Returns true only when **all** children evaluate to true.
+
+```text
+AND
+├ Level >= 10   true
+├ VIP >= 3      true
+└ Tutorial == 1 true
+-> true
+```
+
+### OrConditionNode
+
+Returns true when **any** child evaluates to true.
+
+```text
+OR
+├ HasFreeItem == 1   true
+└ HasDiscount == 1   false
+-> true
+```
+
+### NotConditionNode
+
+Inverts the child result.
+
+```text
+NOT
+└ IsBanned == 1   false
+-> true
+```
+
+## ConditionContext API
+
+```csharp
+var ctx = new ConditionContext();
+
+ctx.Set("Level", 15f);
+ctx.Get("Level");       // 15f
+ctx.Has("Level");       // true
+ctx.Remove("Level");
+ctx.Clear();
+```
+
+
+> **Reuse contexts**
+> 
+> Avoid allocating a new `ConditionContext` every frame. Keep one instance and update values with `Set`.
+> 
+
+
+## Use Cases
+
+```csharp
+shopGraph.Evaluate(ctx)        // Shop visibility
+eventGraph.Evaluate(ctx)       // Event availability
+achievementGraph.Evaluate(ctx) // Achievement completion
+adGraph.Evaluate(ctx)          // Ad placement rules
+```
+
+## Custom Nodes
+
+```csharp
+[Serializable]
+public class DateRangeConditionNode : ConditionNode
+{
+    public string StartDate;  // "2024-12-25"
+    public string EndDate;
+
+    public override bool Evaluate(ConditionContext context)
+    {
+        var now = DateTime.Now;
+        return now >= DateTime.Parse(StartDate)
+            && now <= DateTime.Parse(EndDate);
+    }
+}
+```
+
+Add `[Serializable]` to make the node available through `[SerializeReference]` fields in the inspector.
+
+
+
+---
+url: /AchUtils/en/usage/curve-data.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# curve-data
+
+﻿# Curve Data System
+
+Use `AnimationCurve` assets to define level-based values, experience tables, stat growth, rewards, and other balance data. Designers can adjust the curve in the inspector without code changes.
+
+## Structure
+
+```text
+CurveDataAsset (ScriptableObject)
+  Curve       : AnimationCurve   - Normalized 0..1 -> 0..1 curve
+  MinInput    : float            - Input range start
+  MaxInput    : float            - Input range end
+  MinOutput   : float            - Output range start
+  MaxOutput   : float            - Output range end
+
+CurveDataTable (ScriptableObject)
+  List<Entry { Key, CurveDataAsset }>
+```
+
+## Quick Start
+
+### 1. Create a CurveDataAsset
+
+**Create -> AchUtils/Curve/Curve Data Asset**
+
+```text
+Curve    : Edit in the curve editor
+MinInput : 1      MaxInput : 100
+MinOutput: 100    MaxOutput: 50000
+```
+
+### 2. Use It in Code
+
+```csharp
+using AchUtils.Curve;
+
+[SerializeField] CurveDataAsset hpCurve;
+[SerializeField] CurveDataAsset expCurve;
+
+float hp = hpCurve.Evaluate(player.Level);
+float exp = expCurve.Evaluate(10f);
+```
+
+### 3. Group Curves With CurveDataTable
+
+**Create -> AchUtils/Curve/Curve Data Table**
+
+```csharp
+[SerializeField] CurveDataTable statTable;
+
+float hp     = statTable.Evaluate("HP",     level);
+float attack = statTable.Evaluate("Attack", level);
+float def    = statTable.Evaluate("Defense", level);
+```
+
+## API
+
+### CurveDataAsset
+
+```csharp
+float Evaluate(float input)
+float EvaluateNormalized(float t)
+```
+
+`Evaluate` maps `MinInput..MaxInput` into normalized curve space, then maps the result into `MinOutput..MaxOutput`.
+
+### CurveDataTable
+
+```csharp
+float Evaluate(string key, float input)
+bool  TryGetCurve(string key, out CurveDataAsset curve)
+```
+
+## Curve Shapes
+
+```text
+Linear growth       HP scaling
+                    -> AnimationCurve.Linear(0,0,1,1)
+
+Exponential growth  EXP requirements
+                    -> Curve rises sharply near the end
+
+Logarithmic growth  Early-fast, late-slow attack growth
+                    -> Curve rises sharply near the start
+
+Step curve          Grade-based rewards
+                    -> Repeating horizontal and vertical segments
+```
+
+## Compared to Hardcoding
+
+```csharp
+// Before: hardcoded, requires a code change
+float hp = level * 100 + level * level * 5;
+
+// After: editable in the inspector
+float hp = hpCurve.Evaluate(level);
+```
+
+
+> **Editor preview**
+> 
+> You can add an editor script that previews evaluated values while editing `CurveDataAsset` in the inspector.
+> 
+
+
+
+
+---
+url: /AchUtils/en/usage/extensions.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# Extension Methods
+
+`AchUtils.Extensions` contains the Unity runtime extension methods and small utility classes migrated from AchEngine.
+All public APIs now use the `AchUtils` namespace, so add `using AchUtils;` in scripts that consume them.
+
+## Package Info
+
+| Item                      | Value                                               |
+| ------------------------- | --------------------------------------------------- |
+| Assembly                  | `AchUtils.Extensions`                               |
+| Root namespace            | `AchUtils`                                          |
+| Folder                    | `Runtime/Extensions`                                |
+| Additional Unity packages | `com.unity.ugui`, `com.unity.nuget.newtonsoft-json` |
+
+## Included Areas
+
+### Collections
+
+| Class                                           | Purpose                                        |
+| ----------------------------------------------- | ---------------------------------------------- |
+| `ArrayExt`, `ListExt`                           | Array and list helpers                         |
+| `DictionaryExt`, `MultiDictionary<TKey,TValue>` | Dictionary helpers and multi-value keys        |
+| `IEnumerableExt`, `IListExt`, `LinqE`           | LINQ helpers, shuffling, filtering, conversion |
+
+### Unity Types
+
+| Class                                 | Purpose                                                   |
+| ------------------------------------- | --------------------------------------------------------- |
+| `GameObjectExt`, `ComponentExt`       | Component lookup, add/remove helpers, hierarchy traversal |
+| `Vector2Ext`, `Vector3Ext`, `RectExt` | Coordinate, size, and bounds helpers                      |
+| `ColorExt`, `ColorUtils`              | Color conversion and hex helpers                          |
+| `SpriteRendererExt`, `SpriteAtlasExt` | Sprite renderer and atlas helpers                         |
+
+### UI
+
+| Class                                              | Purpose                                 |
+| -------------------------------------------------- | --------------------------------------- |
+| `RectTransformExt`                                 | UI layout coordinate and anchor helpers |
+| `ImageExt`, `RawImageExt`, `GraphicExt`, `TextExt` | uGUI component helpers                  |
+| `ButtonClickedEventExt`                            | Button click event wrappers             |
+
+### Primitive Types and Utilities
+
+| Class                                                            | Purpose                                              |
+| ---------------------------------------------------------------- | ---------------------------------------------------- |
+| `StringExt`, `StringParseExt`, `StringBuilderExt`                | String checks, parsing, and composition              |
+| `IntExt`, `UintExt`, `FloatExt`, `BoolExt`, `ByteExt`, `EnumExt` | Primitive conversion and checks                      |
+| `ActionExt`, `FuncExt`, `DelegateExt`, `UnityEventExt`           | Callback and event helpers                           |
+| `Selectable<T>`, `SelectableList<T>`, `SelectableBool`           | Observable value wrappers                            |
+| `SingleTask`, `MultiTask`, `StringAppender`                      | Repeated task and string assembly helpers            |
+| `PlayerPrefsExt`, `IJsonExt`, `IncomingWebhooks`                 | JSON persistence, serialization, and webhook sending |
+
+## Usage
+
+```csharp
+using AchUtils;
+using UnityEngine;
+
+public class ExtensionSample : MonoBehaviour
+{
+    private void Awake()
+    {
+        var rb = gameObject.GetOrAddComponent<Rigidbody>();
+        gameObject.SetActiveIfNotNull(true);
+
+        var hp = new Selectable<int>(100);
+        hp.mChanged += () => Debug.Log($"HP changed: {hp.Value}");
+        hp.Value = 80;
+
+        var skills = new MultiDictionary<string, string>();
+        skills.Add("warrior", "Slash");
+        skills.Add("warrior", "Block");
+    }
+}
+```
+
+## Migration
+
+Code that previously used AchEngine only needs a namespace update.
+
+```csharp
+- using AchEngine;
++ using AchUtils;
+```
+
+The former `AchEngine.Extensions.ReflectionE` and `AchEngine.Extensions.ZciencE` namespaces are now `AchUtils.Extensions.ReflectionE` and `AchUtils.Extensions.ZciencE`.
+
+
+
+---
+url: /AchUtils/en/usage/formula.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# formula
+
+﻿# Formula System
+
+Define formulas as **ScriptableObject strings** so designers can tune skill damage, experience, rewards, and balance numbers without changing code.
+
+## Overview
+
+```text
+FormulaAsset (ScriptableObject)
+  Expression: "Attack * SkillMultiplier - Defense + Random(0, 10)"
+
+FormulaContext   - Variable container (key -> float)
+FormulaEvaluator - Runtime recursive descent parser
+```
+
+## Quick Start
+
+### 1. Create a FormulaAsset
+
+**Create -> AchUtils/Formula/Formula Asset**
+
+Enter an expression in the inspector:
+
+```text
+Attack * SkillMultiplier - Defense + Random(0, 10)
+```
+
+### 2. Evaluate at Runtime
+
+```csharp
+using AchUtils.Formula;
+
+var ctx = new FormulaContext();
+ctx.Set("Attack",          sheet.GetFinal("Attack"));
+ctx.Set("SkillMultiplier", skill.Multiplier);
+ctx.Set("Defense",         target.GetFinal("Defense"));
+
+float damage = damageFormula.Evaluate(ctx);
+target.TakeDamage(damage);
+```
+
+## Supported Syntax
+
+### Operators
+
+| Operator  | Description       | Example                    |
+| --------- | ----------------- | -------------------------- |
+| `+` `-`   | Add / subtract    | `Attack + 50`              |
+| `*` `/`   | Multiply / divide | `Attack * 1.5`             |
+| `( )`     | Priority grouping | `(Attack + Defense) * 0.5` |
+| unary `-` | Negation          | `-Defense`                 |
+
+### Built-In Functions
+
+| Function             | Description     |
+| -------------------- | --------------- |
+| `Random(min, max)`   | Random float    |
+| `Min(a, b)`          | Minimum         |
+| `Max(a, b)`          | Maximum         |
+| `Abs(x)`             | Absolute value  |
+| `Clamp(x, min, max)` | Clamp to range  |
+| `Floor(x)`           | Round down      |
+| `Ceil(x)`            | Round up        |
+| `Round(x)`           | Round           |
+| `Sqrt(x)`            | Square root     |
+| `Pow(x, exp)`        | Power           |
+| `Sign(x)`            | Sign (-1, 0, 1) |
+
+## Examples
+
+```text
+# Skill damage
+Attack * SkillMultiplier - Max(Defense - Penetration, 0)
+
+# Heal amount
+HealPower * 0.3 + Max(0, TargetMissingHP * 0.1)
+
+# Idle-game gold
+BaseGold * Pow(1.15, Floor(Level / 10)) + Random(0, 50)
+
+# Critical damage
+Attack * Clamp(CritMultiplier, 1.5, 3.0)
+```
+
+## API
+
+### FormulaContext
+
+```csharp
+void  Set(string key, float value)
+float Get(string key)
+bool  Has(string key)
+void  Clear()
+```
+
+### FormulaAsset
+
+```csharp
+[TextArea] string Expression
+
+float Evaluate(FormulaContext context)
+```
+
+### FormulaEvaluator
+
+```csharp
+var evaluator = new FormulaEvaluator();
+float result = evaluator.Evaluate("Attack * 2 + 10", ctx);
+```
+
+## Error Handling
+
+Missing variables or invalid syntax throw `System.Exception`.
+
+```csharp
+try
+{
+    float damage = formula.Evaluate(ctx);
+}
+catch (Exception e)
+{
+    Debug.LogError($"[Formula] {formula.name}: {e.Message}");
+    damage = 0f;
+}
+```
+
+
+> **Thread safety**
+> 
+> `FormulaEvaluator` stores parser state in instance fields. Do not use the same evaluator instance concurrently from multiple threads. `FormulaAsset` caches one evaluator internally.
+> 
+
+
+
+
+---
+url: /AchUtils/en/usage/quest.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# quest
+
+﻿# Quest System
+
+A general quest pipeline built from **Kill -> Talk -> Collect** steps. It tracks progress through gameplay events and works for RPGs, casual games, and mission systems.
+
+## Structure
+
+```text
+QuestSystem (pure C# instance)
+  - Manages active quests and routes events
+
+QuestDefinition (ScriptableObject)
+  - Title, description, rewards
+  [SerializeReference] List<QuestStep>
+
+QuestInstance (runtime)
+  - Current step index and completion state
+
+QuestStep (abstract, [Serializable])
+  ├── KillQuestStep     - Kill N enemies of a type
+  ├── TalkQuestStep     - Talk to a specific NPC
+  └── CollectQuestStep  - Collect N items of a type
+```
+
+## Quick Start
+
+### 1. Create a QuestDefinition
+
+**Create -> AchUtils/Quest/Quest Definition**
+
+```text
+QuestId : "MainQuest_01"
+Title   : "Slime Hunt"
+
+Steps:
+  [0] KillQuestStep
+        EnemyType     : "Slime"
+        RequiredCount : 5
+  [1] TalkQuestStep
+        NpcId         : "GuardNPC"
+  [2] CollectQuestStep
+        ItemId        : "SlimeGel"
+        RequiredCount : 3
+
+Rewards:
+  [0] QuestReward { RewardId: "Gold", Amount: 500 }
+  [1] QuestReward { RewardId: "Exp",  Amount: 200 }
+```
+
+### 2. Create a QuestSystem Instance
+
+`QuestSystem` is a pure C# class that only owns quest state. Create it from the object that owns the quest flow.
+
+### 3. Start a Quest
+
+```csharp
+using AchUtils.Quest;
+
+private readonly QuestSystem questSystem = new();
+
+[SerializeField] QuestDefinition mainQuest01;
+
+var instance = questSystem.StartQuest(mainQuest01);
+
+instance.OnStepCompleted += step =>
+    Debug.Log($"Step {step} completed");
+
+instance.OnQuestCompleted += () =>
+    GiveRewards(mainQuest01.Rewards);
+```
+
+### 4. Publish Events
+
+Call `Progress` from anywhere in the game. Every active quest receives the event.
+
+```csharp
+questSystem.Progress("Kill", "Slime");
+questSystem.Progress("Talk", "GuardNPC");
+questSystem.Progress("Collect", "SlimeGel");
+```
+
+## Event Key Rules
+
+| Key         | `data` argument   | Step               |
+| ----------- | ----------------- | ------------------ |
+| `"Kill"`    | Enemy type string | `KillQuestStep`    |
+| `"Talk"`    | NPC ID string     | `TalkQuestStep`    |
+| `"Collect"` | Item ID string    | `CollectQuestStep` |
+
+## API
+
+### QuestSystem
+
+```csharp
+QuestInstance StartQuest(QuestDefinition definition)
+
+void Progress(string eventKey, object data = null)
+
+bool          IsCompleted(string questId)
+bool          IsActive(string questId)
+QuestInstance GetActive(string questId)
+List<QuestInstance> GetAllActive()
+
+event Action<QuestInstance>      OnQuestStarted
+event Action<QuestInstance>      OnQuestCompleted
+event Action<QuestInstance, int> OnQuestStepCompleted
+```
+
+### QuestInstance
+
+```csharp
+QuestDefinition Definition
+int             CurrentStepIndex
+bool            IsCompleted
+QuestStep       CurrentStep
+
+event Action<int> OnStepCompleted
+event Action      OnQuestCompleted
+```
+
+## Custom Steps
+
+```csharp
+[Serializable]
+public class ReachLocationStep : QuestStep
+{
+    public string LocationId;
+    private bool _reached;
+
+    public override bool IsComplete => _reached;
+
+    public override void OnProgress(string eventKey, object data)
+    {
+        if (eventKey == "ReachLocation" && data is string loc && loc == LocationId)
+            _reached = true;
+    }
+
+    public override void OnStart() => _reached = false;
+}
+```
+
+```csharp
+questSystem.Progress("ReachLocation", "DungeonEntrance");
+```
+
+## Duplicate Start Guard
+
+The same `QuestId` cannot be started twice. Completed quests are not started again.
+
+```csharp
+questSystem.StartQuest(mainQuest01);
+questSystem.StartQuest(mainQuest01); // Ignored
+```
+
+
+
+---
+url: /AchUtils/en/usage/sequence.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# sequence
+
+﻿# Sequence System
+
+Build gameplay presentation flows as **declarative step lists** instead of deeply nested coroutines.
+
+## Structure
+
+```text
+SequenceAsset (ScriptableObject)
+  [SerializeReference] List<SequenceStep>
+
+SequenceRunner (MonoBehaviour)
+  - Runs steps in order as coroutines
+
+SequenceStep (abstract, [Serializable])
+  - Base class for custom steps
+```
+
+## Built-In Steps
+
+| Step           | Description                                    |
+| -------------- | ---------------------------------------------- |
+| `WaitStep`     | Waits for N seconds                            |
+| `MoveStep`     | Moves a Transform to a destination with easing |
+| `FadeStep`     | Animates CanvasGroup alpha                     |
+| `ScaleStep`    | Animates Transform scale                       |
+| `SoundStep`    | Plays an AudioClip                             |
+| `CallbackStep` | Invokes a UnityEvent                           |
+
+## Quick Start
+
+### Option A: SequenceAsset
+
+**Create -> AchUtils/Sequence/Sequence Asset**
+
+Add steps in the inspector, then run the asset:
+
+```csharp
+using AchUtils.Sequence;
+
+[SerializeField] SequenceAsset introSequence;
+[SerializeField] SequenceRunner runner;
+
+void PlayIntro()
+{
+    runner.Run(introSequence);
+}
+```
+
+### Option B: Build in Code
+
+```csharp
+var steps = new List<SequenceStep>
+{
+    new FadeStep  { Target = overlay,    TargetAlpha = 1f, Duration = 0.3f },
+    new WaitStep  { Duration = 0.5f },
+    new MoveStep  { Target = boss,       Destination = centerPos, Duration = 1f },
+    new ScaleStep { Target = boss,       TargetScale = Vector3.one * 1.5f, Duration = 0.3f },
+    new SoundStep { Clip = bossRoar },
+    new FadeStep  { Target = overlay,    TargetAlpha = 0f, Duration = 0.5f },
+};
+
+runner.Run(steps);
+```
+
+## API
+
+### SequenceRunner
+
+```csharp
+void Run(SequenceAsset asset)
+void Run(IEnumerable<SequenceStep> steps)
+void Stop()
+
+bool IsRunning
+
+event Action OnCompleted
+event Action OnStopped
+```
+
+### MoveStep
+
+```csharp
+Transform       Target
+Vector3         Destination
+float           Duration
+AnimationCurve  Ease
+bool            UseLocalSpace
+```
+
+### FadeStep
+
+```csharp
+CanvasGroup     Target
+float           TargetAlpha
+float           Duration
+AnimationCurve  Ease
+```
+
+### ScaleStep
+
+```csharp
+Transform       Target
+Vector3         TargetScale
+float           Duration
+AnimationCurve  Ease
+```
+
+### SoundStep
+
+```csharp
+AudioClip       Clip
+float           Volume
+bool            WaitUntilFinished
+```
+
+`SoundStep` plays the clip at the `SequenceRunner` position and does not depend on `Camera.main`.
+
+### CallbackStep
+
+```csharp
+UnityEvent      OnExecute
+```
+
+## Custom Steps
+
+```csharp
+[Serializable]
+public class ShowPanelStep : SequenceStep
+{
+    public GameObject Panel;
+    public float HoldDuration = 2f;
+
+    public override IEnumerator Execute(SequenceRunner runner)
+    {
+        Panel.SetActive(true);
+        yield return new WaitForSeconds(HoldDuration);
+        Panel.SetActive(false);
+    }
+}
+```
+
+Add `[Serializable]` so the type can be selected through `[SerializeReference]`.
+
+## Completion Event
+
+```csharp
+runner.OnCompleted += () =>
+{
+    Debug.Log("Intro sequence completed");
+    StartGameplay();
+};
+
+runner.Run(introSequence);
+```
+
+## Boss Intro Example
+
+```text
+FadeStep     Overlay fade in
+WaitStep     Wait 0.5s
+MoveStep     Boss enters
+ScaleStep    Boss scales up
+SoundStep    Boss roar
+FadeStep     Overlay fade out
+CallbackStep Show UI
+```
+
+
+
+---
+url: /AchUtils/en/usage/spawn.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# spawn
+
+﻿# Spawn System
+
+Configure **weighted random spawning**, alive limits, intervals, and spawn radius with `SpawnGroup` ScriptableObject assets. Multiple `Spawner` instances can run independently in the same scene.
+
+## Structure
+
+```text
+SpawnSystem (pure C# instance)
+  - Registers and controls all Spawner instances in the scene
+
+SpawnGroup (ScriptableObject)
+  - Entry list (Prefab + Weight + Min/MaxCount)
+  - SpawnInterval, MaxAlive, SpawnRadius
+
+Spawner (MonoBehaviour)
+  - Instantiates and despawns objects using a SpawnGroup
+```
+
+## Quick Start
+
+### 1. Create a SpawnGroup
+
+**Create -> AchUtils/Spawn/Spawn Group**
+
+```text
+SpawnInterval : 5
+MaxAlive      : 10
+SpawnRadius   : 8
+
+Entries:
+  [0] Prefab: SlimeBlue    Weight: 70   Min: 1  Max: 2
+  [1] Prefab: SlimeRed     Weight: 25   Min: 1  Max: 1
+  [2] Prefab: SlimeBoss    Weight:  5   Min: 1  Max: 1
+```
+
+### 2. Place a Spawner
+
+Create an empty scene object and add `Spawner`.
+
+| Field        | Description                                 |
+| ------------ | ------------------------------------------- |
+| `Group`      | SpawnGroup asset                            |
+| `Auto Start` | Start spawning automatically on scene start |
+
+### 3. Control Spawning
+
+```csharp
+using AchUtils.Spawn;
+
+[SerializeField] Spawner spawner;
+
+spawner.StartSpawning();
+spawner.StopSpawning();
+spawner.DespawnAll();
+
+spawner.OnSpawned   += obj => Debug.Log($"{obj.name} spawned");
+spawner.OnDespawned += obj => Debug.Log($"{obj.name} despawned");
+```
+
+### 4. Control All Spawners
+
+```csharp
+[SerializeField] Spawner[] spawners;
+
+private SpawnSystem spawnSystem;
+
+void Awake()
+{
+    spawnSystem = new SpawnSystem(spawners);
+}
+
+spawnSystem.StartAll();
+spawnSystem.StopAll();
+spawnSystem.DespawnAll();
+```
+
+## API
+
+### Spawner
+
+```csharp
+bool IsSpawning
+IReadOnlyList<GameObject> AliveObjects
+
+void StartSpawning()
+void StopSpawning()
+void DespawnAll()
+
+event Action<GameObject> OnSpawned
+event Action<GameObject> OnDespawned
+```
+
+### SpawnSystem
+
+```csharp
+SpawnSystem()
+SpawnSystem(IEnumerable<Spawner> spawners)
+
+void RegisterSpawner(Spawner spawner)
+void UnregisterSpawner(Spawner spawner)
+
+void StartAll()
+void StopAll()
+void DespawnAll()
+
+IReadOnlyList<Spawner> Spawners
+```
+
+### SpawnGroup.Entry
+
+```csharp
+GameObject Prefab
+float      Weight
+int        MinCount
+int        MaxCount
+```
+
+## Spawn Logic
+
+1. Run every `SpawnInterval`.
+2. If alive count is below `MaxAlive`, select an entry with `PickRandom()`.
+3. Instantiate `Random.Range(Min, Max + 1)` objects.
+4. Place objects within `SpawnRadius` using `Random.insideUnitCircle`.
+
+```csharp
+SpawnGroup.Entry entry = spawnGroup.PickRandom();
+var obj = Instantiate(entry.Prefab, spawnPos, Quaternion.identity);
+```
+
+## Multiple Spawners
+
+```text
+DungeonSpawner    -> SlimeGroup     (5 alive, 3s)
+BossRoomSpawner   -> EliteGroup     (2 alive, 10s)
+TreasureSpawner   -> ChestGroup     (1 alive, 30s)
+```
+
+Each `Spawner` is independent and can use different groups and settings.
+
+
+> **Object pooling**
+> 
+> For high-frequency spawns, connect this system to an object pool through `Spawner.OnSpawned` and `OnDespawned`.
+> 
+
+
+
+
+---
+url: /AchUtils/en/usage/stat-modifier.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# stat-modifier
+
+﻿# Stat Modifier
+
+AchUtils includes a stat calculation pipeline for RPGs, idle games, strategy games, and any game with additive and percentage modifiers. Final values are calculated in this order: Flat -> PercentAdd -> PercentMultiply.
+
+## Formula
+
+```text
+Final = (Base + sum(Flat)) * (1 + sum(PercentAdd)) * product(PercentMultiply)
+```
+
+Example:
+
+```text
+Base Attack : 100
+Weapon      : +20  (Flat)
+Buff        : +30% (PercentAdd)
+Passive     : x1.15 (PercentMultiply)
+
+Final = (100 + 20) * (1 + 0.30) * 1.15
+      = 179.4
+```
+
+## Structure
+
+```text
+StatSheet               - Stat container (pure C#)
+  └── Dictionary<string, StatValue>
+
+StatValue               - Single stat and modifier list
+  └── List<StatModifier>
+
+StatSheetComponent      - MonoBehaviour wrapper for GameObjects
+```
+
+## Quick Start
+
+```csharp
+using AchUtils.StatModifier;
+
+var sheet = new StatSheet();
+
+sheet.SetBase("Attack", 100f);
+sheet.SetBase("Defense", 50f);
+
+sheet.AddModifier("Attack", new StatModifier("weapon_sword",  ModifierType.Flat,            20f));
+sheet.AddModifier("Attack", new StatModifier("buff_rage",     ModifierType.PercentAdd,       0.3f));
+sheet.AddModifier("Attack", new StatModifier("passive_might", ModifierType.PercentMultiply,  0.15f));
+
+float finalAtk = sheet.GetFinal("Attack");   // 179.4
+```
+
+## StatModifier Constructor
+
+```csharp
+new StatModifier(
+    source:   "weapon_sword",
+    type:     ModifierType.Flat,
+    value:    20f,
+    priority: 0
+)
+```
+
+## API
+
+### StatSheet
+
+```csharp
+void SetBase(string key, float value)
+float GetFinal(string key)
+StatValue GetStat(string key)
+
+void AddModifier(string key, StatModifier modifier)
+void RemoveModifier(string key, string source)
+void RemoveAllModifiers(string key)
+
+bool HasStat(string key)
+event Action<string> OnStatChanged
+```
+
+### StatValue
+
+```csharp
+float BaseValue  { get; set; }
+float FinalValue { get; }
+
+void AddModifier(StatModifier modifier)
+bool RemoveModifier(string source)
+void RemoveAllModifiers()
+
+event Action OnChanged
+```
+
+## Use With MonoBehaviour
+
+```csharp
+var sheetComp = GetComponent<StatSheetComponent>();
+sheetComp.Sheet.SetBase("HP", 500f);
+sheetComp.Sheet.SetBase("Attack", 100f);
+
+sheetComp.Sheet.AddModifier("Attack",
+    new StatModifier("equip_sword", ModifierType.Flat, 35f));
+
+sheetComp.Sheet.RemoveModifier("Attack", "equip_sword");
+```
+
+## Observe Stat Changes
+
+```csharp
+sheet.OnStatChanged += statKey =>
+{
+    if (statKey == "HP") UpdateHPBar(sheet.GetFinal("HP"));
+};
+```
+
+## Source Naming
+
+```text
+"base"          - Base value
+"equip_{id}"    - Equipment
+"buff_{id}"     - Buff system integration
+"passive_{id}"  - Passive skill
+"set_{id}"      - Set effect
+```
+
+
+> **Buff integration**
+> 
+> `StatModifyEffect` updates `StatSheet` automatically when a buff is applied or removed.
+> See [Buff / Debuff](/AchUtils/en/usage/buff-debuff.md).
+> 
+
+
+
+
+---
+url: /AchUtils/en/usage/time-rewind.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# time-rewind
+
+﻿# Time Rewind System
+
+Record snapshots from every object that implements `IRewindable` and restore the world to a previous point in time.
+
+## Structure
+
+```text
+TimeRewindSystem (pure C# instance)
+  - Records snapshots for registered IRewindable objects
+  - Restores a target time with RewindTo(float secondsAgo)
+
+IRewindable (interface)
+  - CaptureState() : returns current state as object
+  - RestoreState() : restores a captured state
+
+RewindableObject (MonoBehaviour)
+  - Default implementation for Transform position, rotation, and scale
+```
+
+## Quick Start
+
+### 1. Create a TimeRewindSystem Instance
+
+`TimeRewindSystem` is a pure C# class. Create it from an owner component and call `Tick` from `Update`.
+
+| Constructor argument | Default | Description                         |
+| -------------------- | ------- | ----------------------------------- |
+| `maxHistorySeconds`  | 5       | Maximum recorded history in seconds |
+| `snapshotsPerSecond` | 10      | Snapshot frequency                  |
+
+### 2. Add RewindableObject
+
+Attach `RewindableObject` to objects you want to restore. Transform state is recorded automatically.
+
+```csharp
+gameObject.AddComponent<RewindableObject>();
+```
+
+### 3. Rewind
+
+```csharp
+using AchUtils.TimeRewind;
+
+[SerializeField] RewindableObject[] rewindables;
+
+private TimeRewindSystem timeRewindSystem;
+
+void Awake()
+{
+    timeRewindSystem = new TimeRewindSystem(maxHistorySeconds: 5f, snapshotsPerSecond: 10);
+    foreach (var rewindable in rewindables)
+        rewindable.Bind(timeRewindSystem);
+}
+
+void Update()
+{
+    timeRewindSystem.Tick(Time.deltaTime);
+}
+
+timeRewindSystem.StartRewind();
+
+timeRewindSystem.RewindTo(secondsAgo: 3f);
+
+timeRewindSystem.StopRewind();
+```
+
+### 4. Skill Example
+
+```csharp
+public class TimeRewindSkill : MonoBehaviour
+{
+    [SerializeField] float rewindSeconds = 3f;
+    private readonly TimeRewindSystem timeRewindSystem = new();
+
+    IEnumerator UseSkill()
+    {
+        var system = timeRewindSystem;
+        system.StartRewind();
+
+        float t = 0f;
+        while (t < rewindSeconds)
+        {
+            t += Time.deltaTime;
+            system.RewindTo(rewindSeconds - t);
+            yield return null;
+        }
+
+        system.StopRewind();
+    }
+}
+```
+
+## API
+
+### TimeRewindSystem
+
+```csharp
+TimeRewindSystem(float maxHistorySeconds = 5f, int snapshotsPerSecond = 10)
+
+void Register(IRewindable target)
+void Unregister(IRewindable target)
+
+void Tick(float deltaTime)
+
+void StartRewind()
+void StopRewind()
+
+void RewindTo(float secondsAgo)
+void StepRewind(float deltaSeconds)
+
+bool  IsRewinding
+float HistoryDuration
+
+event Action OnRewindStart
+event Action OnRewindStop
+```
+
+## Implement IRewindable
+
+Use `IRewindable` directly when you need to capture custom state.
+
+```csharp
+public class EnemyAI : MonoBehaviour, IRewindable
+{
+    private TimeRewindSystem timeRewindSystem;
+
+    private float hp;
+    private Vector3 position;
+    private AIState state;
+
+    private void OnEnable()  => timeRewindSystem?.Register(this);
+    private void OnDisable() => timeRewindSystem?.Unregister(this);
+
+    public object CaptureState()
+    {
+        return (hp, transform.position, state);
+    }
+
+    public void RestoreState(object snapshot)
+    {
+        (hp, position, state) = ((float, Vector3, AIState))snapshot;
+        transform.position = position;
+    }
+}
+```
+
+## Resource Cost
+
+```text
+Snapshot count = MaxHistorySeconds * SnapshotsPerSecond * registered objects
+
+Example: 5s * 10fps * 20 objects = 1000 snapshots
+```
+
+If you have many objects or a long history, reduce `SnapshotsPerSecond` or `MaxHistorySeconds`.
+
+## Use Cases
+
+| Use case          | Description                            |
+| ----------------- | -------------------------------------- |
+| Puzzle undo       | Restore blocks to a previous state     |
+| Time-rewind skill | Braid / Titanfall-style rewind effects |
+| Debugging         | Return to the state before a bug       |
+| Replay preview    | Show the last few seconds before death |
+
+
+> **Physics**
+> 
+> Objects with Rigidbody need velocity and angular velocity captured too. Extend `RewindableObject` and override `CaptureState`.
+> ```csharp
+> public override object CaptureState()
+> {
+>     var rb = GetComponent<Rigidbody>();
+>     return (base.CaptureState(), rb.velocity, rb.angularVelocity);
+> }
+> ```
+> 
+
+
+
+
+---
+url: /AchUtils/en/usage/tutorial.md
+---
+
+> For AI agents: the complete documentation index is available at /AchUtils/en/llms.txt, the full documentation bundle is available at /AchUtils/en/llms-full.txt.
+
+# tutorial
+
+﻿# Tutorial System
+
+Build in-game tutorials as **ScriptableObject-based steps**. Designers can change the flow without hardcoding, and the runtime supports skipping, replaying, saving, and loading completion state.
+
+## Structure
+
+```text
+TutorialSystem          - Pure C# instance. Saves and restores completed tutorials.
+  └── TutorialRunner    - MonoBehaviour that runs tutorial steps as coroutines.
+
+TutorialSequence        - ScriptableObject. Step list and skip settings.
+  └── TutorialStep[]    - ScriptableObject base class for concrete tutorial steps.
+```
+
+## Built-In Steps
+
+| Step                  | Description                                                        |
+| --------------------- | ------------------------------------------------------------------ |
+| `HighlightButtonStep` | Highlights a UI object and optionally waits for an action key      |
+| `WaitForActionStep`   | Waits until a named player action is triggered                     |
+| `DialogueStep`        | Shows a message panel, then auto-advances or waits for click input |
+| `DelayStep`           | Waits for a fixed number of seconds                                |
+
+## Quick Start
+
+### 1. Add TutorialRunner to the Scene
+
+```csharp
+// Only TutorialRunner needs to live on a GameObject because it runs coroutines.
+// TutorialSystem is created from code.
+```
+
+### 2. Create a TutorialSequence Asset
+
+**Project window -> Create -> AchUtils/Tutorial/Tutorial Sequence**
+
+Configure the steps in the inspector:
+
+```text
+SequenceId : "FirstGacha"
+CanSkip    : true
+Steps:
+  [0] HighlightButtonStep  - Highlight GachaButton, wait for "GachaClick"
+  [1] DialogueStep         - "You obtained a character!"
+  [2] HighlightButtonStep  - Highlight EquipButton
+```
+
+### 3. Start the Tutorial
+
+```csharp
+[SerializeField] TutorialRunner tutorialRunner;
+[SerializeField] TutorialSequence gachaSequence;
+
+private TutorialSystem tutorialSystem;
+
+void Awake()
+{
+    tutorialSystem = new TutorialSystem(tutorialRunner);
+}
+
+void OnDestroy()
+{
+    tutorialSystem.Dispose();
+}
+
+// Completed tutorials are skipped automatically.
+tutorialSystem.StartTutorial(gachaSequence);
+
+// Force replay, ignoring completion state.
+tutorialSystem.StartTutorialForce(gachaSequence);
+```
+
+### 4. Trigger Player Actions
+
+Call `TriggerAction` from button handlers or gameplay events.
+
+```csharp
+public void OnGachaButtonClicked()
+{
+    tutorialSystem.TriggerAction("GachaClick");
+    // Continue normal game logic...
+}
+```
+
+## API
+
+### TutorialSystem
+
+```csharp
+TutorialSystem(TutorialRunner runner, bool loadOnCreate = true)
+
+void StartTutorial(TutorialSequence sequence)
+void StartTutorialForce(TutorialSequence sequence)
+void Skip()
+void TriggerAction(string key)
+bool IsCompleted(string sequenceId)
+void Save()
+void Load()
+void ResetAll()
+void Dispose()
+```
+
+### TutorialRunner
+
+```csharp
+bool IsRunning
+int  CurrentStepIndex
+
+event Action      OnCompleted
+event Action      OnSkipped
+event Action<int> OnStepChanged
+```
+
+## Custom Steps
+
+Inherit from `TutorialStep` and implement `Execute`.
+
+```csharp
+[CreateAssetMenu(menuName = "AchUtils/Tutorial/Steps/My Step")]
+public class MyCustomStep : TutorialStep
+{
+    public GameObject TargetPanel;
+
+    public override IEnumerator Execute(TutorialRunner runner)
+    {
+        TargetPanel.SetActive(true);
+
+        while (!runner.HasTriggeredAction("PanelClosed"))
+            yield return null;
+
+        runner.ConsumeAction("PanelClosed");
+        TargetPanel.SetActive(false);
+    }
+}
+```
+
+## Save Format
+
+Completed `SequenceId` values are saved to `PlayerPrefs` as a comma-separated string.
+
+```text
+AchUtils_Tutorial_Completed = "FirstGacha,FirstEquip,FirstDungeon"
+```
+
+
+> **Info**
+> 
+> If `SequenceId` is empty, completion is not saved. You can also disable saving with `SaveProgress = false`.
+> 
+
+
+## Flow Example
+
+```text
+Start
+ ↓
+HighlightButtonStep  "Click the gacha button"
+ ↓
+WaitForActionStep    "GachaClick"
+ ↓
+DialogueStep         "You obtained a character!"
+ ↓
+HighlightButtonStep  "Open the equipment screen"
+ ↓
+End -> MarkCompleted("FirstGacha")
+```
+
+

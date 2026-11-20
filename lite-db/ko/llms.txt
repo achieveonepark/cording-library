@@ -1,0 +1,14 @@
+# LiteDB
+
+> A lightweight package for reading SQLite-based static table data in Unity.
+
+## Others
+
+- [API](/lite-db/ko/api.md): Initialize, Get, GetList, Exist, TryGetValue 등 런타임 API 레퍼런스
+- [변경 내역](/lite-db/ko/changelog.md): LiteDB 버전별 변경 내역
+- [시작하기](/lite-db/ko/getting-started.md): LiteDB 설치부터 첫 데이터 조회까지의 빠른 시작 가이드
+- [CSV Importer](/lite-db/ko/usage/csv-importer.md): Editor에서 CSV를 DB 테이블로 삽입하고 모델 클래스를 생성
+- [데이터 모델](/lite-db/ko/usage/data-models.md): 모델 클래스 규칙, IDataBase, 지원 Attribute와 컬럼 매핑
+- [사용법](/lite-db/ko/usage/index.md): LiteDB의 주요 사용법을 주제별로 살펴봅니다
+- [지역화](/lite-db/ko/usage/localization.md): SQLite 테이블 데이터를 이용한 지역화 헬퍼 사용법
+- [문제 해결](/lite-db/ko/usage/troubleshooting.md): DllNotFoundException, 데이터 조회 실패 등 자주 겪는 문제

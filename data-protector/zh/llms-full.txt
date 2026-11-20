@@ -1,0 +1,134 @@
+---
+url: /data-protector/zh/api.md
+---
+
+> For AI agents: the complete documentation index is available at /data-protector/zh/llms.txt, the full documentation bundle is available at /data-protector/zh/llms-full.txt.
+
+# API
+
+## DataProtector
+
+### Encrypt
+
+返回对数据先压缩再加密后的结果。
+
+```csharp
+byte[] DataProtector.Encrypt(byte[] data, string key);
+```
+
+### Decrypt
+
+返回对数据先解密再解压后的结果。
+
+```csharp
+byte[] DataProtector.Decrypt(byte[] data, string key);
+```
+
+## HashChecker
+
+### ComputeHash
+
+提取加密数据的哈希值。
+
+```csharp
+string HashChecker.ComputeHash(byte[] data);
+```
+
+### ValidateHash
+
+比较两个哈希值。
+
+```csharp
+bool HashChecker.ValidateHash(string hashA, string hashB);
+```
+
+
+
+---
+url: /data-protector/zh/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /data-protector/zh/llms.txt, the full documentation bundle is available at /data-protector/zh/llms-full.txt.
+
+# 更新日志
+
+## 1.0.0 — 2024.09.17
+
+- 🎉 首次发布！
+
+
+
+---
+url: /data-protector/zh/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /data-protector/zh/llms.txt, the full documentation bundle is available at /data-protector/zh/llms-full.txt.
+
+# 快速开始
+
+## 安装
+
+选择以下方法之一。
+
+:::tip
+请检查 GitHub URL 中 `#` 之后的版本。你可以固定到与 Changelog 中最新更改对应的版本。
+:::
+
+### Unity Package Manager (UPM)
+
+1. 打开 UPM，点击左上角的 `+` 按钮。
+2. 选择 `Install package from git URL...`。
+3. 输入 `https://github.com/achieveonepark/DataProtector.git#1.0.0` 并点击 Install。
+
+### 手动添加
+
+打开 Unity 项目的 `Packages/manifest.json`，在 `dependencies` 下添加以下行。
+
+```json
+"com.achieve.data-protector": "https://github.com/achieveonepark/DataProtector.git#1.0.0"
+```
+
+## 基本用法
+
+用 16 字节的密钥对数据进行加密和解密。
+
+```csharp
+using Achieve.DataProtector;
+
+string key = "1234567890123456"; // 16 字节密钥
+
+var encrypted = DataProtector.Encrypt(originalBytes, key);
+var decrypted = DataProtector.Decrypt(encrypted, key);
+```
+
+详细方法请参阅 [API](/data-protector/zh/api.md)。
+
+
+
+---
+url: /data-protector/zh/index.md
+---
+
+> For AI agents: the complete documentation index is available at /data-protector/zh/llms.txt, the full documentation bundle is available at /data-protector/zh/llms-full.txt.
+
+# 简介
+
+Data Protector 在保存之前对 `byte[]` 和 `string` 数据进行压缩和加密，保护其不被外部轻易访问。
+
+## 主要功能
+
+- 对 `byte[]` 和 `string` 数据进行压缩和加密
+- 加密使用由用户提供的 16 字节字符串密钥
+- 通过生成并比较 `SHA256` 哈希值来检测文件是否被修改
+
+## 工作原理
+
+- 使用 `AES-128` 加密保障数据安全。
+- 压缩由 C# 的 `GZipStream` 处理，高效利用存储空间。
+
+## 后续步骤
+
+- [快速开始](/data-protector/zh/getting-started.md) — 安装与基本用法
+- [API](/data-protector/zh/api.md) — 完整 API 参考
+
+

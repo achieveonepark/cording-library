@@ -1,0 +1,67 @@
+> For AI agents: the complete documentation index is available at /achieve-package-manager/llms.txt, the full documentation bundle is available at /achieve-package-manager/llms-full.txt.
+
+# 시작하기
+
+## 설치
+
+### Unity Package Manager에서 Git URL로 추가 (권장)
+
+`Window > Package Manager` → 좌측 상단 **+** → **Add package from git URL...** 선택 후 입력:
+
+```
+https://github.com/achieveonepark/achieve-package-manager.git
+```
+
+특정 버전을 고정하려면 태그를 붙입니다.
+
+```
+https://github.com/achieveonepark/achieve-package-manager.git#1.0.0
+```
+
+### manifest.json에 직접 추가
+
+`<Project>/Packages/manifest.json`의 `dependencies`에 추가합니다.
+
+```json
+{
+  "dependencies": {
+    "com.achieve.achieve-package-manager": "https://github.com/achieveonepark/achieve-package-manager.git"
+  }
+}
+```
+
+### 요구사항
+
+- Unity **2022.3** 이상
+- `com.unity.nuget.newtonsoft-json`, `com.unity.serialization` (의존성으로 자동 설치)
+- 네트워크 액세스 (OpenUPM 카탈로그 조회, Git 다운로드용)
+
+## 윈도우 열기
+
+Unity 메뉴에서:
+
+```
+Tools > Achieve Package Manager
+```
+
+## 화면 구성
+
+- **툴바**: 새로고침, 검색, 매니페스트 파일 위치 열기
+- **사이드바**: 4개의 카테고리 탭
+- **상태바**: 설치된 패키지 수 / 새로고침 상태
+
+## 4개 탭 한눈에
+
+| 탭                                                            | 용도                           |
+| ------------------------------------------------------------ | ---------------------------- |
+| [Installed](/achieve-package-manager/usage/installed.md)     | 현재 매니페스트의 패키지 / 미해결 항목 보기·삭제 |
+| [OpenUPM](/achieve-package-manager/usage/openupm.md)         | OpenUPM 레지스트리 전체 탐색·설치       |
+| [Featured (Git)](/achieve-package-manager/usage/featured.md) | 큐레이션된 Git 패키지 1클릭 설치         |
+| [Custom Git URL](/achieve-package-manager/usage/git-url.md)  | 임의 Git URL 입력으로 설치           |
+
+## 검색과 새로고침
+
+- 툴바의 **검색**은 현재 활성 탭의 리스트에 적용됩니다.
+- `↻ Refresh`는 Unity 패키지 리스트(`Client.List`)를 다시 가져오고 OpenUPM 카탈로그를 강제 재다운로드합니다. OpenUPM 카탈로그는 세션 내에서 자동 캐시됩니다.
+
+자세한 사용법은 [사용법](/achieve-package-manager/usage/installed.md)을 참고하세요.

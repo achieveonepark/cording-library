@@ -1,0 +1,29 @@
+> For AI agents: the complete documentation index is available at /AchReactive/zh/llms.txt, the full documentation bundle is available at /AchReactive/zh/llms-full.txt.
+
+# 变更历史
+
+## 0.1.0
+
+首次公开。从技能专用工具（Skill Creator）转变为**领域无关响应式框架 AchReactive**。
+
+### 新增
+
+- **Data Layer** — `IData`、`IDataLoader<T>`、`DataBase<T>`（不使用 typeof）
+- **Loader** — `JsonDataLoader<T>`（Newtonsoft）、`CsvDataLoader<T>` + `ICsvMapper<T>`
+- **Reaction Layer** — `Reaction`、`EntityData`、`ParamBag`、`ReactionContext`、`ReactionEngine`
+- **Registry** — `Effect/Condition/TriggerRegistry`（Attribute 自动收集 + 手动注册）
+- **基础动作池** — effect 8 种、condition 8 种、trigger 守卫 1 种
+- **集成边界** — `IEntity`、`IWorld`、`StatSheet`、`CooldownStore`
+- **UIToolkit 创作工具** — Type Designer（代码生成）、Data Editor（数据生成）
+- **Basic 示例** — 技能 + 怪物两个领域的示例
+
+### 变更
+
+- 包名 `com.achieve.skill-creator` → `com.achieve.reactive`
+- 命名空间 → `AchReactive`
+- `JsonUtility` → `Newtonsoft.Json`（移除包装类）
+
+### 移除
+
+- 技能专用的遗留代码（`SkillSystem`/`SkillRunner`/`EffectExecutor` 等）
+- 增益持续/叠加系统因需要重新设计运行时状态而暂时搁置（后续计划）

@@ -1,0 +1,34 @@
+> For AI agents: the complete documentation index is available at /cheat-terminal/ko/llms.txt, the full documentation bundle is available at /cheat-terminal/ko/llms-full.txt.
+
+# 소개
+
+Unity 런타임 개발자 콘솔입니다. 치트 · 디버깅 · 로그 확인 · 런타임 상태 조작을 한 곳에서 처리합니다.
+
+명령은 `RegisterCommand(...)`로 명시 등록합니다. 자동 어셈블리 스캔이나 reflection 호출 없이,
+IL2CPP/AOT 빌드에서도 예측 가능한 경로를 유지합니다. 콘솔이 닫혀 있을 때는 비용이 **0** 인 uGUI 오버레이로 동작합니다.
+
+```csharp
+TerminalBehaviour.RegisterCommand(
+    "gold",
+    ctx => ctx.Output.WriteLine("gold added", LogLevel.Success),
+    "골드 추가",
+    "Cheats",
+    "gold <amount>");
+```
+
+## 특징
+
+- **명시 등록** — `RegisterCommand("name", ctx => ...)`로 명령 등록. 숨은 reflection 스캔 없음.
+- **런타임 인텔리센스** — command, keyword, data table, row 후보를 설명과 함께 표시.
+- **성능 우선** — 닫혀 있으면 캔버스 비활성화(드로우콜·레이캐스트 0), 출력은 캡 링 버퍼, 명령 기록은 `TerminalInput`으로 두 입력 백엔드 지원.
+- **모듈식** — Scene / Data / Performance / Logs / Unity Components 모듈을 기본 제공, 필요한 것만 사용.
+- **탭 UI** — Console / Commands / Data 탭에서 출력, 등록 명령, 등록 데이터를 확인.
+- **모바일 친화** — 멀티터치 제스처(3/4 손가락 3연타)로 호출, 로그를 기기에서 파일로 export.
+- **치트 HUD** — 전체 화면 UI Toolkit HUD에서 파라미터 입력과 Run 버튼으로 등록된 치트를 실행. 열기/닫기 리스너로 `Time.timeScale` 제어.
+
+## 요구 사항
+
+- Unity 6 (6000.x)
+- `com.unity.ugui` (기본 포함)
+
+다음: [시작하기](/cheat-terminal/ko/getting-started.md)

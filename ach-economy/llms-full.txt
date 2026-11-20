@@ -1,0 +1,301 @@
+---
+url: /ach-economy/api.md
+---
+
+> For AI agents: the complete documentation index is available at /ach-economy/llms.txt, the full documentation bundle is available at /ach-economy/llms-full.txt.
+
+# API
+
+## EconomyConfig
+
+모든 튜닝 값을 담는 값 타입. `EconomyConfig.Default`에서 필요한 필드만 덮어쓰세요.
+
+| 필드                        | 기본값    | 설명                                      |
+| ------------------------- | ------ | --------------------------------------- |
+| `TickInterval`            | `1`    | 장기 틱 1회가 도는 시뮬레이션 시간(초)                 |
+| `PriceInertia`            | `0.15` | 장기 가격이 목표로 수렴하는 속도(0\~1). **대칭 관성**     |
+| `DemandWeight`            | `1`    | 가격 공식의 수요 성분 가중치                        |
+| `ShortTermResponse`       | `0.5`  | 거래 한 건이 단기 가격을 끌어당기는 강도(0\~1)           |
+| `ShortTermDecay`          | `0.25` | 단기 가격이 장기 가격으로 평균 회귀하는 강도(0\~1)         |
+| `InflationSensitivity`    | `0.1`  | source/sink 압력이 인플레 배수를 움직이는 민감도. 0이면 끔 |
+| `MinPriceMultiplier`      | `0.25` | 최종 가격 배수 하한                             |
+| `MaxPriceMultiplier`      | `4`    | 최종 가격 배수 상한                             |
+| `InflationAlertThreshold` | `0.2`  | 이 절대 압력을 넘으면 `OnInflationAlert` 발생      |
+| `TradeFlowRate`           | `0.1`  | 틱마다 잉여→부족 노드로 이동하는 재고 비율(0\~1). 0이면 끔   |
+
+## Economy
+
+동적 경제의 유일한 진입점(Facade).
+
+### 생성
+
+```csharp
+Economy(EconomyConfig config, bool autoTick = false)
+```
+
+`autoTick`이 true면 숨은 러너가 매 프레임 `Tick`을 호출합니다. 종료 시 `Dispose()` 필요.
+
+### 등록
+
+| 메서드                                                        | 설명                             |
+| ---------------------------------------------------------- | ------------------------------ |
+| `AddCommodity(id, basePrice, targetStock, baseDemand = 0)` | 상품 정의 등록                       |
+| `AddMarket(id, initialStock = null)`                       | 시장(노드) 등록. 초기 재고 지정 가능         |
+| `AddRecipe(marketId, inputs, outputs, throughput = 1)`     | 생산/소비 레시피. `outputs`가 비면 순수 소비 |
+| `AddTradeRoute(marketA, marketB)`                          | 두 노드를 무역로로 연결                  |
+
+### 거래 (인플레이션 중립)
+
+| 메서드                                     | 반환            | 설명                       |
+| --------------------------------------- | ------------- | ------------------------ |
+| `Buy(marketId, commodityId, quantity)`  | `TradeResult` | 플레이어가 사들임. 재고 부족 시 부분 체결 |
+| `Sell(marketId, commodityId, quantity)` | `TradeResult` | 플레이어가 내다 팖               |
+
+### source / sink (인플레이션 유발)
+
+| 메서드                                        | 설명                                    |
+| ------------------------------------------ | ------------------------------------- |
+| `Inject(commodityId, amount, tag = null)`  | 재화가 무에서 생성됨(faucet). `tag`는 텔레메트리용 라벨 |
+| `Consume(commodityId, amount, tag = null)` | 재화가 영구 소멸됨(sink)                      |
+
+### 조회
+
+| 메서드                                   | 반환      | 설명                             |
+| ------------------------------------- | ------- | ------------------------------ |
+| `GetPrice(marketId, commodityId)`     | `float` | 현재 단가(수급·인플레 배수 반영)            |
+| `GetStock(marketId, commodityId)`     | `float` | 현재 재고                          |
+| `GetInflationMultiplier(commodityId)` | `float` | 전역 인플레 배수(1=중립, \<1 과잉, >1 희소) |
+| `GetSinkFaucetRatio(commodityId)`     | `float` | sink/faucet 비율. 1보다 크면 sink 우세 |
+
+### 틱
+
+```csharp
+void Tick(float deltaTime)
+```
+
+누적 시간이 `TickInterval`에 도달할 때마다 장기 틱(생산 → 무역 → 가격 수렴 → 인플레 갱신)을 돌립니다.
+
+### 이벤트
+
+| 이벤트                | 시그니처                            | 발생 시점      |
+| ------------------ | ------------------------------- | ---------- |
+| `OnPriceChanged`   | `(market, commodity, newPrice)` | 단가 갱신      |
+| `OnStockChanged`   | `(market, commodity, newStock)` | 재고 변동      |
+| `OnTradeExecuted`  | `(TradeResult)`                 | 거래 체결      |
+| `OnInflationAlert` | `(commodity, pressure)`         | 압력이 임계값 초과 |
+| `OnDailyTick`      | `()`                            | 장기 틱 1회 완료 |
+
+## TradeResult
+
+`Buy`/`Sell`의 결과. 실패해도 예외 없이 `Success == false`로 돌아옵니다.
+
+| 필드                     | 타입       | 설명                |
+| ---------------------- | -------- | ----------------- |
+| `Success`              | `bool`   | 체결 여부             |
+| `Market` / `Commodity` | `string` | 대상 노드/상품 id       |
+| `Quantity`             | `float`  | 실제 체결 수량          |
+| `UnitPrice`            | `float`  | 체결 단가             |
+| `TotalCost`            | `float`  | 총액                |
+| `StockAfter`           | `float`  | 거래 후 재고           |
+| `Reason`               | `string` | 실패 사유(성공 시 빈 문자열) |
+
+## 가격 공식
+
+```text
+균형 배수 = (적정재고 + 수요 + 1) / (현재재고 + 수요 + 1)
+최종 가격 = 기준가 × clamp(단기배수 × 인플레배수, Min, Max)
+```
+
+- **단기 배수**: 거래마다 `ShortTermResponse`만큼 균형치로 즉시 이동
+- **장기 배수**: 틱마다 `PriceInertia`만큼 균형치로 대칭 수렴, 단기는 장기로 평균 회귀
+- **인플레 배수**: source/sink 순압력으로 갱신 — 순 생성이면 1 미만(싸짐), 순 소멸이면 1 초과(비싸짐)
+
+
+
+---
+url: /ach-economy/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /ach-economy/llms.txt, the full documentation bundle is available at /ach-economy/llms-full.txt.
+
+# 변경 내역
+
+이 프로젝트의 주요 변경 사항을 기록합니다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 따르며, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따릅니다.
+
+## \[1.0.0] - 2026-06-21
+
+### Added
+
+- `Economy` 파사드: 가격 결정·무역·생산·인플레이션을 한 진입점으로 통합
+- `EconomyConfig` struct: 모든 튜닝 값을 값 타입 하나로 외부화
+- 공급-수요 가격 결정 — 단기/장기 분리, 대칭 관성으로 차익거래 익스플로잇 차단
+- 거점 간 무역 흐름 — 무역로 기반 재고 평준화
+- 생산-소비 루프 — 레시피로 입력을 출력으로 변환
+- source/sink 인플레이션 계측 — `Inject`/`Consume`, 인플레이션 배수·경보
+- 선택적 자동 틱 러너 (`autoTick: true`)
+- EditMode 테스트 (가격 공식 결정성·대칭 관성·인플레이션 압력)
+- 최소 사용 예제 (`Samples~/Basic Usage`)
+
+
+
+---
+url: /ach-economy/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /ach-economy/llms.txt, the full documentation bundle is available at /ach-economy/llms-full.txt.
+
+# 시작하기
+
+## 1. 경제 만들기
+
+사용자가 다루는 타입은 `EconomyConfig`(struct)와 `Economy`(class) 둘뿐입니다.
+
+```csharp
+using AchEconomy;
+
+// 기본값에서 필요한 것만 덮어쓴다.
+var config = EconomyConfig.Default;
+config.TickInterval = 2f;   // 2초마다 장기 틱
+config.PriceInertia = 0.2f;
+
+var economy = new Economy(config);
+```
+
+## 2. 상품과 시장 등록
+
+```csharp
+economy.AddCommodity("wheat", basePrice: 10f, targetStock: 100f, baseDemand: 5f);
+economy.AddCommodity("cloth", basePrice: 40f, targetStock: 30f);
+
+economy.AddMarket("village", new() { ["wheat"] = 250f });
+economy.AddMarket("town",    new() { ["wheat"] = 20f, ["cloth"] = 40f });
+```
+
+`basePrice`는 재고가 `targetStock`과 균형일 때의 가격입니다. 재고가 적정치보다 적으면 비싸지고, 많으면 싸집니다.
+
+## 3. 거래하기
+
+거래는 **재화의 이동**이라 인플레이션에 중립입니다.
+
+```csharp
+var r = economy.Buy("town", "cloth", 5f);
+// r.UnitPrice, r.TotalCost, r.StockAfter, r.Success
+
+float price = economy.GetPrice("town", "cloth");  // 재고가 줄어 약간 오른 값
+```
+
+:::info
+재고가 모자라면 예외 대신 **부분 체결**됩니다. `r.Success`와 `r.Quantity`로 실제 체결량을 확인하세요.
+:::
+
+## 4. 생산-소비 루프
+
+레시피는 장기 틱마다 입력 상품을 출력 상품으로 바꿉니다. 출력이 비면 순수 소비(인구가 식량을 먹는 등)가 됩니다.
+
+```csharp
+// 도시가 밀 3을 소비해 직물 1을 생산, 틱당 2회 가동
+economy.AddRecipe("town",
+    inputs:  new[] { ("wheat", 3f) },
+    outputs: new[] { ("cloth", 1f) },
+    throughput: 2f);
+```
+
+## 5. 거점 간 무역
+
+무역로로 연결된 노드 사이에서 재고가 평준화됩니다. 잉여 노드에서 부족 노드로 흐르며, AI 캐러밴의 재정거래를 모사합니다.
+
+```csharp
+economy.AddTradeRoute("village", "town");
+// 무역로를 끊으면(연결 안 함) 노드 간 가격이 튑니다 — 의도된 인과
+```
+
+## 6. 인플레이션 관리 (source / sink)
+
+재화가 **무에서 생성**되거나(faucet) **영구히 소멸**할 때(sink)만 알려주면, 인플레이션 보정은 내부에서 자동으로 일어납니다.
+
+```csharp
+economy.Inject("wheat", 100f, tag: "daily_quest"); // 퀘스트 보상 = faucet
+economy.Consume("wheat", 30f, tag: "crafting");    // 제작 소모 = sink
+
+// 알고 싶을 때만 구독 (무시해도 됨)
+economy.OnInflationAlert += (commodity, pressure) =>
+    Debug.Log($"{commodity} 인플레 압력 {pressure:P0}");
+```
+
+## 7. 시간 진행
+
+```csharp
+void Update() => economy.Tick(Time.deltaTime);
+```
+
+:::warning
+멀티플레이(락스텝/Quantum 등)에서 결정성이 필요하면 **수동 `Tick` + 방정식 기반**을 쓰세요. `Tick`은 같은 입력에 같은 결과를 냅니다.
+:::
+
+자동 틱이 편하면 `new Economy(config, autoTick: true)`로 두면 숨은 러너가 매 프레임 `Tick`을 호출합니다. 이 경우 종료 시 `economy.Dispose()`로 러너를 정리하세요.
+
+전체 API는 [API 문서](/ach-economy/api.md)를 참고하세요.
+
+
+
+---
+url: /ach-economy/index.md
+---
+
+> For AI agents: the complete documentation index is available at /ach-economy/llms.txt, the full documentation bundle is available at /ach-economy/llms-full.txt.
+
+# 소개
+
+## Ach Economy란?
+
+**Ach Economy**는 상점 가격·재고가 고정값이 아니라 생산·소비·플레이어 매매에 따라 변동하는 경제를, 재사용 가능한 Unity 패키지로 묶은 것입니다.
+
+`EconomyConfig` 하나만 넘기면 `Economy` 클래스 안에서 **가격 결정 · 거점 간 무역 · 생산-소비 · 인플레이션 계측**이 전부 자동으로 돌아갑니다. ScriptableObject도, 씬에 붙이는 컴포넌트도 필요 없습니다.
+
+```csharp
+var economy = new Economy(EconomyConfig.Default);
+economy.AddCommodity("wheat", basePrice: 10f, targetStock: 100f);
+economy.AddMarket("town_a", new() { ["wheat"] = 200f });
+
+var r = economy.Buy("town_a", "wheat", 10);   // 재고 ↓ → 가격 ↑
+```
+
+## 두 개의 층위
+
+동적 경제는 성격이 다른 두 층위로 나뉩니다. 한 덩어리로 보면 설계가 꼬입니다.
+
+### [미시 — 가격 결정](/ach-economy/getting-started.md)
+
+단일 시장의 공급/수요로 가격·재고가 움직입니다. 무역·상점 컨텐츠의 핵심.
+
+### [거시 — 인플레이션](/ach-economy/api.md)
+
+전체 경제에 재화가 얼마나 들어오고(source) 빠지는가(sink). 라이브 서비스의 핵심.
+
+Ach Economy는 이 둘을 한 `Economy` 파사드 뒤로 숨기고, 사용자에게는 **`EconomyConfig` struct + `Economy` class** 두 가지만 노출합니다.
+
+## 핵심 특징
+
+| 항목                 | 설명                                                |
+| ------------------ | ------------------------------------------------- |
+| **단기/장기 가격 분리**    | 단기가는 거래 즉시, 장기가는 틱마다 대칭 관성으로 수렴                   |
+| **대칭 관성**          | 오를 때·내릴 때 같은 속도 → 대량매도 후 익일 매수 차익거래 익스플로잇 차단      |
+| **거점 간 무역**        | 무역로로 연결된 노드 간 재고가 평준화(재정거래 자동 모사)                 |
+| **생산-소비 루프**       | 레시피가 입력을 출력으로 바꿔 수급 수치를 채움                        |
+| **source/sink 계측** | `Inject`/`Consume`로 faucet·drain을 기록해 인플레이션 압력 산출 |
+
+## 설치
+
+Unity Package Manager에서 **Add package from git URL...** 를 선택하고 아래 주소를 입력하세요.
+
+```text
+https://github.com/achieveonepark/ach-economy.git
+```
+
+:::info
+특정 버전을 고정하려면 릴리스 태그를 푸시한 뒤 `...ach-economy.git#1.0.0` 처럼 태그를 붙이면 됩니다. OpenUPM 등록은 아직 진행되지 않았습니다.
+:::
+
+다음으로 [시작하기](/ach-economy/getting-started.md)에서 첫 경제를 만들어 보세요.
+
+

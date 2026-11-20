@@ -1,0 +1,186 @@
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# IAPManager
+
+`IAPManager`는 Unity IAP 5.4.1의 `StoreController` API를 사용해 상점 연결, 상품 조회,
+구매, 미확정 주문 재처리, 복원을 관리합니다. 실제 빌드에서는 보상 지급이 영속화되기 전에는
+주문을 확정하지 않으므로 네트워크 오류나 앱 종료 뒤에도 미확정 주문을 안전하게 재처리할 수 있습니다.
+
+`com.unity.purchasing` 5.4.1은 AchEngine의 패키지 의존성으로 포함되어 있으며,
+`AchManagerInstaller`는 `IAPManager`를 자동으로 등록합니다.
+
+## 빠른 설정
+
+상품 ID는 Google Play Console 또는 App Store Connect에 등록한 값과 정확히 같아야 합니다.
+실제 빌드에서는 초기화 전에 상품과 서버 검증기를 설정하세요. 서버 URL·HTTP 메서드·인증·요청 형식은 게임마다
+다르므로, 패키지는 `IIAPReceiptValidator` 인터페이스로만 결제 서버를 연결합니다.
+
+```csharp
+using AchEngine.DI;
+using AchEngine.Managers;
+using UnityEngine.Purchasing;
+
+var iap = ServiceLocator.Resolve<IAPManager>();
+
+iap.AddProduct("com.mygame.coins_100", ProductType.Consumable);
+iap.AddProduct("com.mygame.remove_ads", ProductType.NonConsumable);
+
+iap.ReceiptValidator = new GameReceiptValidator();
+
+await iap.Initialize();
+```
+
+## 에디터 Fake Store 테스트
+
+Unity 에디터에서는 `IAPManager`가 Unity IAP의 `fake` 스토어를 명시적으로 사용합니다.
+에디터에서만 `ReceiptValidator`와 `PurchaseProcessor`가 모두 비어 있어도 Fake Store 주문을
+자동 확정하므로, 실제 결제 없이 구매 버튼·완료 이벤트·팝업 흐름을 테스트할 수 있습니다.
+
+이 동작은 `UNITY_EDITOR`에서만 포함됩니다. Android, iOS 및 기타 실제 빌드에서는 영수증 검증기
+또는 보상 처리기를 설정하지 않으면 구매가 시작되지 않으며, 에디터 가짜 주문이 실제 보상으로
+처리되지 않습니다.
+
+Full Sample의 `PurchasePopup`도 에디터에서는 검증기 없이 구매 버튼을 활성화합니다. 실제 빌드에서는
+기존과 같이 `Receipt Validator` 필드에 게임별 서버 검증 컴포넌트를 연결하세요.
+
+`GameReceiptValidator`는 게임 프로젝트에서 `IIAPReceiptValidator`를 구현한 클래스입니다.
+검증기 안에서 인증된 플레이어를 확인하고, 플랫폼별 거래 정보를 게임 서버로 전달한 뒤 보상
+지급까지 서버에서 멱등적으로 저장하세요.
+
+```csharp
+using System.Threading.Tasks;
+
+public sealed class GameReceiptValidator : IIAPReceiptValidator
+{
+    public async Task<IAPReceiptValidationResult> ValidateAndFulfillAsync(IAPPurchase purchase)
+    {
+        // 게임의 HTTP 요청 형식과 서버 인증을 여기서 구현합니다.
+        // 서버가 거래 ID 기준으로 검증과 보상 저장을 모두 마친 경우에만 성공을 반환합니다.
+        var response = await SendToGameServerAsync(purchase);
+        return response.IsSuccess
+            ? IAPReceiptValidationResult.Succeeded()
+            : IAPReceiptValidationResult.Failed(response.Message);
+    }
+}
+```
+
+`ReceiptValidator`가 설정되면 `PurchaseProcessor`보다 먼저 사용됩니다. 서버 검증을 사용하지
+않는 특수한 경우에만 `PurchaseProcessor`에서 검증·보상 지급·저장 전체를 직접 처리하세요.
+
+## 구매 요청
+
+`PurchaseAsync`는 상점 결제와 서버 보상 지급, 주문 확정이 모두 끝난 뒤 결과를 반환합니다.
+실제 빌드에서는 검증기나 처리기를 설정하지 않은 상태에서 결제창을 열지 않습니다.
+에디터 Fake Store에서는 앞서 설명한 테스트 흐름을 사용합니다.
+
+```csharp
+var result = await iap.PurchaseAsync("com.mygame.coins_100");
+
+if (result.IsSuccess)
+{
+    Debug.Log("구매와 보상 지급이 확정되었습니다.");
+}
+else
+{
+    Debug.LogWarning($"구매 상태: {result.Status}, 사유: {result.Message}");
+}
+```
+
+| 상태                   | 의미                                           |
+| -------------------- | -------------------------------------------- |
+| `Confirmed`          | 영수증 검증과 보상 저장 후 스토어 주문까지 확정되었습니다.            |
+| `Failed`             | 사용자가 취소했거나 스토어 결제가 실패했습니다.                   |
+| `Deferred`           | 보호자 승인 등으로 결제가 보류되었습니다.                      |
+| `PendingFulfillment` | 서버 검증 또는 보상 저장에 실패했습니다. 주문은 확정하지 않으며 재처리됩니다. |
+
+## 서버 영수증 검증
+
+`IIAPReceiptValidator` 구현은 아래 정보를 서버에 전달해야 합니다. 서버는 인증 토큰으로
+플레이어를 식별하고, **거래 ID를 멱등 키로 보상 지급을 저장한 뒤** 결과를 반환해야 합니다.
+클라이언트에서만 소비성 보상을 저장하면 재설치나 앱 종료 시 복구할 수 없습니다.
+
+```json
+{
+  "transactionId": "스토어 거래 ID",
+  "receipt": "Unity IAP 통합 영수증",
+  "appleJwsRepresentation": "Apple StoreKit 2 JWS, Apple 이외 플랫폼에서는 빈 문자열",
+  "appleAppAccountToken": "Apple 앱 계정 토큰, 설정하지 않은 경우 빈 문자열",
+  "products": [
+    {
+      "productId": "com.mygame.coins_100",
+      "productType": "Consumable",
+      "quantity": 1
+    }
+  ]
+}
+```
+
+Google Play은 `receipt`의 Payload를 검증하고, Apple StoreKit 2는 `appleJwsRepresentation`을
+Apple App Store Server API로 검증하세요. 서버 응답의 거래 ID는 요청값과 일치해야 하며,
+`isValid`와 `isFulfilled`가 모두 `true`일 때만 `IAPManager`가 `ConfirmPurchase`를 호출합니다.
+
+```json
+{
+  "transactionId": "스토어 거래 ID",
+  "isValid": true,
+  "isFulfilled": true,
+  "message": "보상 지급 완료"
+}
+```
+
+서버 오류, 영수증 불일치, 보상 저장 실패는 모두 주문을 미확정 상태로 남깁니다. `IAPManager`는
+현재 세션에서 받은 `PendingOrder`를 보관하므로 아래 메서드로 같은 세션에서도 재시도할 수 있습니다.
+
+```csharp
+var results = await iap.RetryPendingFulfillmentsAsync();
+```
+
+스토어의 최신 구매 내역도 다시 읽고 재시도하려면 아래 메서드를 사용하세요.
+
+```csharp
+await iap.GetPendingListAsync();
+```
+
+## 복원과 이벤트
+
+`Initialize()`는 상품 조회 뒤 기존 구매 내역을 가져옵니다. 비소모품과 구독의 소유 상태는
+`PurchaseRestored` 이벤트에서 갱신하세요. 이미 확정한 소비성 상품은 스토어가 다시 제공하지
+않으므로 서버의 플레이어 인벤토리를 기준으로 표시해야 합니다.
+
+Apple 플랫폼에는 사용자가 누를 수 있는 **구매 복원** 버튼이 필요합니다. 버튼에서는
+`RestoreTransactionsAsync()`를 호출하고, 실제 복원된 소유 상품은 `PurchaseRestored`에서 갱신하세요.
+
+```csharp
+iap.PurchaseRestored += purchase =>
+{
+    foreach (var item in purchase.Items)
+        Debug.Log($"복원된 상품: {item.ProductId}");
+};
+
+iap.PurchasePendingFulfillment += result =>
+{
+    Debug.LogWarning($"미확정 거래를 재처리해야 합니다: {result.Message}");
+};
+
+var restore = await iap.RestoreTransactionsAsync();
+if (!restore.IsSuccess)
+    Debug.LogWarning(restore.Message);
+```
+
+## API
+
+| 멤버                                | 설명                                                          |
+| --------------------------------- | ----------------------------------------------------------- |
+| `AddProduct(id, type)`            | 초기화 전에 스토어에서 조회할 상품을 등록합니다.                                 |
+| `ReceiptValidator`                | 서버 영수증 검증과 멱등 보상 저장을 담당하는 `IIAPReceiptValidator`입니다.        |
+| `PurchaseProcessor`               | 서버 검증기를 사용하지 않을 때의 사용자 정의 비동기 처리기입니다.                       |
+| `Initialize()`                    | 상점 연결, 상품 조회, 기존 구매 내역 조회를 수행합니다.                           |
+| `PurchaseAsync(id)`               | 구매를 시작하고 최종 `IAPPurchaseResult`를 반환합니다.                     |
+| `RetryPendingFulfillmentsAsync()` | 현재 세션에 보관한 미확정 주문을 즉시 재시도합니다.                               |
+| `GetPendingListAsync()`           | 기존 구매를 다시 조회한 뒤 미확정 주문을 재시도합니다.                             |
+| `RestoreTransactionsAsync()`      | Apple 수동 복원 흐름을 시작합니다. 실제 소유 상태는 `PurchaseRestored`에서 받습니다. |
+| `TryGetProduct(id, out product)`  | 조회한 Unity IAP `Product`를 가져옵니다.                             |
+
+> `PurchaseProcessor` 또는 `IIAPReceiptValidator` 구현에서 예외를 던지거나 `false`/실패를
+> 반환하면 주문을 확정하지 않습니다. 동일 거래가 재전달될 수 있으므로 항상 거래 ID 기준의
+> 멱등 처리를 구현하세요.

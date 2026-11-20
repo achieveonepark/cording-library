@@ -1,0 +1,1008 @@
+---
+url: /cheat-terminal/ko/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ko/llms.txt, the full documentation bundle is available at /cheat-terminal/ko/llms-full.txt.
+
+# 시작하기
+
+## 설치
+
+Unity Package Manager → **Add package from git URL**:
+
+```
+https://github.com/achieveonepark/cheat-terminal.git
+```
+
+## 콘솔 열기
+
+에디터와 개발 빌드에서는 씬 로드 후 자동으로 부트스트랩됩니다. 우상단 도크의 슬라이더 아이콘은 Cheat Library, 터미널 아이콘은 Terminal을 엽니다. 그립이나 아이콘을 드래그하면 안전 영역 안에서 도크를 옮길 수 있습니다.
+
+```csharp
+// 릴리즈 빌드에서는 자동 생성되지 않으므로 한 번 호출
+Achieve.CheatTerminal.TerminalBehaviour.Bootstrap();
+```
+
+| 동작                        | 방법                                 | 에디터/데스크톱      |
+| ------------------------- | ---------------------------------- | ------------- |
+| 우상단 `Terminal` 핸들 표시 / 숨김 | **네 손가락 동시 탭 3회**                  | `F9`          |
+| 치트 HUD 열기 / 닫기            | **세 손가락 동시 탭 3회**                  | `F1`, `F10`   |
+| 콘솔 열기 / 닫기                | `Terminal` 핸들 탭, 또는 패널 우상단 `Close` | `F2`, `` ` `` |
+| 명령 실행                     | 입력 후 Enter                         |               |
+| 이전/다음 기록                  | 위 / 아래 화살표                         |               |
+| 도움말                       | `help`, `help <카테고리>`, `help <명령>` |               |
+
+같은 제스처를 다시 하면 닫힙니다. 자세한 내용은 [치트 HUD](/cheat-terminal/ko/usage/cheat-hud.md) 를 참고하세요.
+
+## 에디터에서 쓰기
+
+마우스로는 멀티터치 제스처를 낼 수 없으므로, 에디터·데스크톱에서는 키를 씁니다.
+`F1`은 Cheat Library, `F2`는 Terminal을 여닫습니다. `F10`도 치트 UI를 열고, `F9`는 도크 표시를 전환합니다. 백틱은 터미널을 열기만 하며 Escape는 현재 화면을 닫습니다.
+
+게임 뷰가 포커스를 잃으면 키 입력이 게임까지 도달하지 않습니다. 그때는 메뉴를 쓰세요.
+
+```
+Tools > Cheat Terminal > Toggle Console
+                       > Toggle Cheat HUD
+                       > Toggle Corner Handle
+                       > Pause Game While Open
+```
+
+:::info
+UI 는 `EventSystem` 이 있어야 클릭·탭이 됩니다. 씬에 하나도 없으면 터미널이 직접 만들며,
+Input System 전용 프로젝트에서는 `InputSystemUIInputModule` 을 붙여서 생성합니다.
+:::
+
+## 코드로 제어
+
+```csharp
+using Achieve.CheatTerminal;
+
+TerminalBehaviour.Open();        // 열기
+TerminalBehaviour.Toggle();      // 토글
+TerminalBehaviour.Execute("gold 100000"); // 명령 직접 실행
+
+TerminalBehaviour.ToggleCheatHud();      // 치트 HUD 토글
+TerminalBehaviour.HandleVisible = true;  // 우상단 핸들 표시
+
+// 열림 / 닫힘 리스너 (콘솔·HUD 통합)
+TerminalBehaviour.VisibilityChanged += open => Time.timeScale = open ? 0.2f : 1f;
+TerminalBehaviour.PauseGameWhileOpen = true; // 위와 같은 처리를 한 줄로
+```
+
+## 파라미터 입력과 실행
+
+파라미터 입력란은 항상 표시됩니다. 명령 이름 대신 값만 입력하고 Run 또는 Enter로 실행합니다. `<amount>`는 필수, `[amount]`는 선택이며, `<x> <y> <z>`는 좌표별 입력란을 만듭니다. `<on|off>`는 선택값 버튼도 제공합니다. 필수값은 모두 입력하고 선택값은 뒤에서부터 생략해야 합니다. `[args]`와 `<text...>`는 공백으로 구분한 여러 인자를 받으며, 공백이 포함된 한 값은 따옴표로 묶습니다.
+
+카테고리 버튼과 검색으로 명령을 찾습니다. 입력값은 필터링, 화면 크기 변경과 다시 열기 후에도 유지됩니다. 결과와 오류는 카드, 하단 상태 줄과 터미널 출력에 표시됩니다. 다른 화면으로 전환하면 이전 화면은 닫힙니다.
+
+다음: [명령 추가하기](/cheat-terminal/ko/usage/adding-commands.md)
+
+
+
+---
+url: /cheat-terminal/ko/usage/adding-commands.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ko/llms.txt, the full documentation bundle is available at /cheat-terminal/ko/llms-full.txt.
+
+# 명령 추가하기
+
+명령은 `RegisterCommand(...)`로 명시 등록합니다. 이 방식은 자동 스캔이 없고, 호출 경로도 reflection 없이 `CommandContext` delegate로 고정됩니다.
+
+> **usage 문자열 규칙** — `usage` 는 치트 HUD 의 실행 방식을 결정합니다.
+> 인자가 필요 없으면 괄호 없이(`god`), 필수 인자는 `<amount>`, 선택 인자는 `[amount]` 로 적습니다.
+> HUD는 파라미터별 입력란과 Run 버튼을 만듭니다. 명령 이름은 입력할 필요가 없습니다. → [치트 HUD](/cheat-terminal/ko/usage/cheat-hud.md)
+
+## 기본 등록
+
+```csharp
+using System.Globalization;
+using Achieve.CheatTerminal;
+using UnityEngine;
+
+public class PlayerCheats : MonoBehaviour
+{
+    private int _gold;
+
+    private void Start()
+    {
+        TerminalBehaviour.RegisterCommand(
+            "gold",
+            AddGold,
+            "골드 추가",
+            "Cheats",
+            "gold <amount>");
+
+        TerminalBehaviour.RegisterCommand(
+            "god",
+            ctx => ctx.Output.WriteLine("god toggled", LogLevel.Success),
+            "무적 토글",
+            "Cheats",
+            "god");
+    }
+
+    private void AddGold(CommandContext ctx)
+    {
+        if (!ctx.Has(0) ||
+            !int.TryParse(ctx.Args[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int amount))
+        {
+            ctx.Output.WriteLine("Usage: gold <amount>", LogLevel.Error);
+            return;
+        }
+
+        _gold += amount;
+        ctx.Output.WriteLine($"Gold is now {_gold}", LogLevel.Success);
+    }
+}
+```
+
+콘솔에서 `gold 100000`, `god` 실행. `help Cheats` 는 이 카테고리 명령을 설명과 함께 보여줍니다.
+
+## static 명령
+
+static 메서드도 자동 수집하지 않습니다. 원하는 시점에 명시적으로 등록하세요.
+
+```csharp
+public static class DebugCheats
+{
+    public static void Register(Terminal terminal)
+    {
+        terminal.RegisterCommand("ping", Ping, "Print pong", "Debug", "ping");
+        terminal.RegisterCommand("timescale", SetTimeScale, "Set Time.timeScale", "Debug", "timescale <scale>");
+    }
+
+    private static void Ping(CommandContext ctx)
+        => ctx.Output.WriteLine("pong", LogLevel.Success);
+
+    private static void SetTimeScale(CommandContext ctx)
+    {
+        if (!ctx.Has(0) || !float.TryParse(ctx.Args[0], NumberStyles.Float,
+                CultureInfo.InvariantCulture, out float scale))
+        {
+            ctx.Output.WriteLine("Usage: timescale <scale>", LogLevel.Error);
+            return;
+        }
+
+        Time.timeScale = scale;
+    }
+}
+```
+
+등록:
+
+```csharp
+DebugCheats.Register(TerminalBehaviour.Current);
+```
+
+## 인자 처리
+
+`CommandContext`에서 인자를 직접 읽습니다.
+
+- `ctx.Args`: 원본 인자 목록
+- `ctx.Has(index)`: 인자 존재 여부
+- `ctx.GetString/GetInt/GetFloat/GetBool`: 간단한 fallback 기반 getter
+- 엄격한 검증이 필요하면 `TryParse(..., CultureInfo.InvariantCulture, ...)`를 직접 사용하세요.
+
+## 자동완성 후보 추가
+
+사용자가 두 번째 토큰 이후를 입력할 때 보여줄 후보를 명령 등록 시 같이 넣을 수 있습니다.
+
+```csharp
+TerminalBehaviour.RegisterCommand(
+    "difficulty",
+    ctx => SetDifficulty(ctx.GetString(0, "normal")),
+    "난이도 설정",
+    "Cheats",
+    "difficulty <easy|normal|hard>",
+    (ctx, results) =>
+    {
+        if (ctx.ArgumentIndex != 0) return;
+        foreach (var value in new[] { "easy", "normal", "hard" })
+        {
+            if (value.StartsWith(ctx.CurrentToken, System.StringComparison.OrdinalIgnoreCase))
+                results.Add(new CompletionItem(value, value, "difficulty value", "Cheats"));
+        }
+    });
+```
+
+`usage`에 `<easy|normal|hard>`처럼 쓰면 기본 키워드 후보도 자동으로 캐시됩니다.
+
+## 데이터 테이블 등록
+
+테이블을 등록하면 `data` 명령, 입력 자동완성, `Data` 탭에 함께 표시됩니다.
+
+```csharp
+TerminalBehaviour.RegisterDataTable("items", "Items", () => new[]
+{
+    new DataTableRow("sword_001", "Bronze Sword"),
+    new DataTableRow("potion_hp", "Health Potion"),
+});
+```
+
+## 출력 쓰기
+
+`CommandContext.Output` 으로 레벨별 출력이 가능합니다.
+
+```csharp
+TerminalBehaviour.RegisterCommand("save", ctx =>
+{
+    ctx.Output.WriteLine("저장 완료", LogLevel.Success); // Info/Success/Warning/Error/System
+}, "Save game", "System", "save");
+```
+
+## 고급: ITerminalModule
+
+:::info
+**이 방법은 누구를 위한 건가요?**
+
+관련 명령 묶음을 **재사용 가능한 패키지**로 배포하고 싶을 때 사용합니다.\
+게임 내 치트·디버그 명령은 `RegisterCommand(...)`만으로도 충분합니다.
+
+:::
+
+`ITerminalModule`을 구현하면 `InstallModule()`로 명령 묶음을 한 번에 등록할 수 있습니다.
+
+```csharp
+using Achieve.CheatTerminal;
+
+public class NetworkDebugModule : ITerminalModule
+{
+    public string Name => "NetworkDebug";
+
+    public void Install(Terminal terminal)
+    {
+        terminal.RegisterCommand(
+            "net",
+            Run,
+            "Network debug tools",
+            "Network",
+            "net <ping|status>");
+    }
+
+    private static void Run(CommandContext ctx)
+    {
+        string sub = ctx.GetString(0, "status");
+        switch (sub)
+        {
+            case "ping":   ctx.Output.WriteLine("pong", LogLevel.Success); break;
+            case "status": ctx.Output.WriteLine("connected", LogLevel.Info); break;
+            default:       ctx.Output.WriteLine($"Unknown: {sub}", LogLevel.Error); break;
+        }
+    }
+}
+```
+
+등록은 부트스트랩 이후 어디서든 가능합니다:
+
+```csharp
+TerminalBehaviour.Instance.InstallModule(new NetworkDebugModule());
+```
+
+다음: [명령 레퍼런스](/cheat-terminal/ko/usage/commands.md)
+
+
+
+---
+url: /cheat-terminal/ko/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ko/llms.txt, the full documentation bundle is available at /cheat-terminal/ko/llms-full.txt.
+
+# 변경 내역
+
+패키지의 주요 변경 사항입니다. 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
+
+버전별 배경과 설계 변화는 [개발 이력](/cheat-terminal/ko/history.md)에 정리되어 있습니다.
+
+## 1.1.0 - 2026-10-17
+
+### 추가
+
+- 기본으로 표시되는 우상단 개발자 도크: 치트·터미널 벡터 아이콘, 드래그 그립, 안전 영역 내 이동, 숨김·표시와 화면 크기 변경 시 위치 유지.
+- usage 기반 파라미터 폼: 필수·선택 입력란, 선택값 버튼, 좌표별 입력, 여러 인자 입력, 필수값 검증과 입력값 유지. 명령 이름을 입력하지 않고 Run 버튼으로 실행합니다.
+- 카테고리 필터와 카드별 실행 결과·오류 표시. 터미널에 Run 버튼, Tab 자동완성, 키보드 명령 기록 탐색, 실행 명령 표시와 안전 영역 배치를 추가했습니다.
+- `.agents/skills/cheat-terminal`과 `.claude/skills/cheat-terminal`에 치트 작성 스킬을 추가했습니다.
+- 파라미터 폼, 따옴표 처리, 명령 실행, UI 조작, 도크 드래그와 일시 정지 복원을 검증하는 Unity 테스트.
+
+### 변경
+
+- 기본 단축키는 **F1: Cheat Library**, **F2: Terminal**입니다. F10은 치트 UI, F9는 도크 표시 전환, 백틱은 터미널 열기, Escape는 현재 화면 닫기입니다. `ConsoleKey`와 `CheatHudKey`로 변경할 수 있습니다.
+- 두 화면의 어두운 배경, 민트색 강조, 여백과 조작 버튼을 정리했습니다. 화면 전환 시 이전 화면을 닫고 통합 표시 상태와 일시 정지 상태를 유지합니다.
+- 파라미터 폼을 항상 표시하며 명시적인 Run 버튼으로 치트를 실행합니다. 별도로 명령을 등록할 필요가 없습니다.
+- 이전 변경 이력을 `1.0.0`\~`1.0.4`로 정리하고 이번 UI 개편을 `1.1.0`으로 지정했습니다.
+
+### 수정
+
+- 공백, 따옴표, 역슬래시와 빈 문자열 인자가 명령 직렬화·파싱 과정에서 보존됩니다.
+- 명령이 출력한 오류를 HUD에 표시하여 실패한 실행을 성공으로 표시하지 않습니다.
+- 도크 아이콘과 패널 배경에 필요한 CanvasRenderer를 생성합니다. 테마 에셋이 없어도 파라미터 입력란의 최소 높이를 유지하여 Run 버튼과 겹치지 않습니다.
+
+## 1.0.4 - 2026-08-29
+
+### Changed
+
+- 치트 HUD 가 좌측 슬라이드 패널에서 **화면 전체를 덮는** 형태로 바뀌었습니다. 행이 터치하기 충분한 크기(최소 104px)가 되고, `Screen.safeArea` 를 피해 배치되며, 넓은 화면에서는 2\~3열로 나뉩니다. 하단에 큰 `CLOSE` 버튼이 생겼습니다. 예전 패널은 `TerminalBehaviour.CheatHudFullScreen = false` 와 `CheatHudView.WidthPercent` 로 그대로 쓸 수 있습니다.
+
+### Added
+
+- 열기 / 닫기 리스너: `TerminalBehaviour.VisibilityChanged` (콘솔·HUD 통합), `ConsoleVisibilityChanged`, `CheatHudVisibilityChanged`. 뷰에서도 `OnOpened` / `OnClosed` / `OnVisibilityChanged` 로 직접 받을 수 있습니다.
+- `TerminalBehaviour.PauseGameWhileOpen` / `PausedTimeScale`: 열려 있는 동안 `Time.timeScale` 을 고정하고 닫힐 때 되돌리는 편의 기능.
+- 에디터·데스크톱 콘솔 단축키 `F1` (토글) 과 백틱 `` ` `` (열기 전용, 입력 중 방해 없음). 치트 HUD 는 `F10` 외에 `F2` 도 지원합니다.
+- 플레이 모드용 `Tools > Cheat Terminal` 에디터 메뉴 (콘솔 / HUD / 핸들 토글, Pause Game While Open, 수동 Bootstrap).
+- `TerminalShortcutKey` 에 `F1`\~`F4`, `F11`, `F12`, `BackQuote`, `Escape` 추가. `MultiFingerTapGesture` 에 두 번째 키 `AlternateKey`.
+
+### Fixed
+
+- Input System 전용 프로젝트에서 `EventSystem` 이 생성되지 않아 콘솔·치트 HUD 버튼이 전부 동작하지 않던 문제. 이제 `InputSystemUIInputModule` 을 붙여 생성합니다.
+
+### Documentation
+
+- 커밋 기록 기준으로 정리한 [개발 이력](/cheat-terminal/ko/history.md) 페이지 추가 (ko / en / ja / zh).
+
+## 1.0.3 - 2026-08-17
+
+### Changed
+
+- 우측 상단 `>_` 핸들이 기본적으로 숨겨집니다. 화면 어디서나 **네 손가락으로 동시에 3회 탭**하면 표시되고, 같은 제스처로 다시 숨깁니다. 코드에서는 `TerminalCornerTrigger.Visible` / `TerminalBehaviour.HandleVisible` 로 제어합니다 (`TerminalCornerTrigger.Enabled` 는 별칭으로 유지).
+
+### Added
+
+- 치트 HUD (`CheatHudView`): 좌측에서 슬라이드되는 UI Toolkit 패널로, 등록된 모든 명령을 카테고리별로 보여줍니다. **세 손가락 동시 3회 탭**(데스크톱 F10) 또는 `TerminalBehaviour.Open/Close/ToggleCheatHud()` 로 토글합니다. 인자가 없는 치트는 탭 한 번으로 실행되고, `<...>` / `[...]` 인자가 있는 치트는 인라인 입력창이 펼쳐집니다. 검색창, 마지막 실행 상태 줄, 콘솔을 여는 `>_` 버튼을 포함합니다.
+- `MultiFingerTapGesture`: "N 손가락 M 연타" 감지 컴포넌트. 손가락 수가 정확히 일치할 때만 인정하므로 3-finger / 4-finger 제스처가 서로 오작동하지 않습니다. 에디터·데스크톱용 키보드 폴백(F9 / F10) 제공.
+- `TerminalInput`: 레거시 Input Manager 와 Input System 패키지를 모두 지원하는 리플렉션 없는 입력 추상화.
+- 치트 작성 규칙을 담은 `AGENT.md`.
+
+## 1.0.2 - 2026-06-27
+
+### Changed (breaking)
+
+- Removed reflection-based `[Terminal]` method discovery and invocation. Commands are now
+  registered explicitly with `RegisterCommand(...)`.
+- Removed the reflection-based Object Inspector module from the default runtime.
+- EventSystem fallback no longer probes optional Input System types via reflection. Projects
+  using Input System-only input should provide an EventSystem with `InputSystemUIInputModule`.
+
+### Fixed
+
+- Terminal input now executes only on an explicit submit, not on focus loss.
+- Terminal output escapes rich text-sensitive characters before wrapping lines in color tags.
+- Unity component commands now use invariant-culture numeric parsing, strict bool parsing,
+  and inactive-inclusive GameObject lookup where appropriate.
+- Runtime helper GameObjects created by Logs and Performance modules are disposed with the
+  terminal bootstrap.
+
+### Added
+
+- Cached completion items for command names, usage keywords and command-specific providers.
+- Context-aware completions for built-in commands, including scenes, logs, GameObjects,
+  component targets and boolean values.
+- `data [table] [id|text]` command plus `RegisterDataTable(...)` for reflection-free data lookup.
+- Terminal UI tabs for Console, registered Commands and registered Data tables.
+
+## 1.0.1 - 2026-05-30
+
+### 변경
+
+- 네임스페이스를 `UniTerminal`에서 `Achieve.CheatTerminal`로 변경했습니다.
+
+### 추가
+
+- Unity 컴포넌트를 직접 조작하는 `transform`, `rb`, `cam`, `light`, `audio`, `time`, `go` 명령.
+- 한국어·영어·일본어·중국어 문서와 고급 모듈 사용법.
+
+## 1.0.0 - 2026-05-29
+
+### Changed (breaking)
+
+- Removed the internal collaborator interfaces (`ICommandRegistry`, `ICommandParser`,
+  `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`,
+  `ITerminalTrigger`, `ITerminal`) and `TerminalBuilder`. The core `Terminal` is now a
+  concrete class that owns concrete collaborators. Only `ICommand`, `ICommandOutput`,
+  `ITerminalView` and `ITerminalModule` remain as real extension points.
+- No marker interface for commands - the `[Terminal]` attribute is the only marker.
+- `Terminal.ScanStaticCommands()` sweeps user assemblies and auto-registers all static
+  `[Terminal]` methods; the bootstrap runs it on startup
+  (`TerminalBehaviour.AutoScanStaticCommands` to toggle). Instance commands still use
+  `Register(this)`.
+
+### Added
+
+- Runtime Logs module: captures `Debug.Log` output into a ring buffer with
+  `logs [n | error | warning | info | <text> | find <text> | clear | export]`.
+  Export writes to `Application.persistentDataPath` so logs are retrievable on device.
+- Up/Down arrow recalls previous/next command history in the input field
+  (via uGUI `IMoveHandler`, so it works under both the legacy Input Manager and
+  the Input System package).
+- `help <category>` lists the commands in a category with descriptions;
+  `help` now hints at `help <command>` / `help <category>`.
+
+### Fixed
+
+- EventSystem now creates `InputSystemUIInputModule` when the Input System package
+  is active (resolved via reflection), avoiding the per-frame `InvalidOperationException`.
+- Top-right corner trigger is now a visible `>_` handle and opens on a single tap.
+
+## 0.1.0 - 2026-05-29
+
+### Added
+
+- Core command system: `ICommandRegistry`, `ICommandParser` (quote-aware),
+  `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`,
+  `ICommandOutput` with default implementations.
+- `[Terminal("name {0}")]` attribute and reflection-based `AttributeCommand` binding,
+  including positional binding, optional parameters and `CommandContext` injection.
+- Interface-driven `Terminal` core assembled via `TerminalBuilder`.
+- uGUI overlay view (`UGuiTerminalView`) deactivated while closed for zero idle cost.
+- Top-right corner open gesture (`TerminalCornerTrigger`, double-tap by default).
+- `TerminalBehaviour` bootstrap with a static convenience API; auto-bootstraps in the
+  editor and development builds.
+- Built-in commands: `help`, `clear`, `history`, `echo`, `alias`.
+- Module system (`ITerminalModule`) with `InstallModule` / `GetModule<T>` on the bootstrap.
+- Scene Tools module: `scene list | load <name> [additive] | unload <name>`.
+- Object Inspector module: `find`, `inspect`, `set <name>.<member> <value>`, `call`,
+  with explicit object registration (`ObjectInspectorModule.RegisterObject`).
+- Performance Monitor module: `perf` (FPS, frame ms, memory, GC, render stats via
+  `ProfilerRecorder`).
+- Basic Usage sample.
+
+
+
+---
+url: /cheat-terminal/ko/history.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ko/llms.txt, the full documentation bundle is available at /cheat-terminal/ko/llms-full.txt.
+
+# 개발 이력
+
+커밋 기록을 기준으로 정리한 패키지의 변천사입니다. "무엇이 바뀌었는지"는
+[변경 내역](/cheat-terminal/ko/changelog.md)에, "왜 그렇게 바뀌었는지"는 이 문서에 정리합니다.
+
+## 한눈에 보기
+
+| 버전    | 날짜         | 핵심 변화                                         |
+| ----- | ---------- | --------------------------------------------- |
+| 1.1.0 | 2026-10-17 | 파라미터 폼, 이동 가능한 도크, F1/F2 단축키와 실행 피드백          |
+| 1.0.4 | 2026-08-29 | 전체 화면 치트 HUD, 표시 상태 이벤트와 에디터 지원               |
+| 1.0.3 | 2026-08-17 | 멀티터치 제스처로 UI 호출, UI Toolkit 치트 HUD 추가         |
+| 1.0.2 | 2026-06-27 | 리플렉션 완전 제거, 문맥 인식 자동완성, 데이터 테이블               |
+| 1.0.1 | 2026-05-30 | 네임스페이스 `Achieve.CheatTerminal`, Unity 컴포넌트 명령 |
+| 1.0.0 | 2026-05-29 | 인터페이스 제거 후 구체 코어로 재작성, Logs 모듈                |
+| 0.1.0 | 2026-05-29 | 최초 코어 / uGUI 뷰 / 모듈 시스템                       |
+
+## 설계 방향의 세 가지 전환
+
+1. **리플렉션 → 명시 등록.** 0.1.0 은 `[Terminal("name {0}")]` 속성과 리플렉션 바인딩으로
+   명령을 찾았고, 1.0.0 은 static 메서드 자동 스캔까지 추가했습니다. IL2CPP/AOT 빌드에서
+   예측 가능하도록 1.0.2 에서 속성·자동 스캔·리플렉션 호출 경로를 모두 제거하고
+   `RegisterCommand(...)` 명시 등록만 남겼습니다.
+2. **인터페이스 분해 → 구체 코어.** 0.1.0 의 `ICommandRegistry` / `ICommandParser` /
+   `IAutoCompleteProvider` 등 협력자 인터페이스와 `TerminalBuilder` 는 1.0.0 에서 삭제되고,
+   `Terminal` 이 구체 협력자를 직접 소유하는 구조가 되었습니다. 확장점은 `ICommand`,
+   `ICommandOutput`, `ITerminalView`, `ITerminalModule` 네 개만 남았습니다.
+3. **상시 노출 UI → 제스처 호출.** 0.1.0 의 우상단 더블탭 영역은 1.0.0 에서 눈에 보이는
+   `>_` 핸들(싱글 탭)이 되었고, 1.0.3 에서는 그 핸들마저 기본 숨김으로 바뀌어
+   멀티터치 제스처로만 불러오게 되었습니다.
+
+## 1.0.3 — 제스처와 치트 HUD
+
+- 우상단 `>_` 핸들이 기본 숨김이 되고, **네 손가락 동시 3연타**로 표시/숨김을 토글합니다.
+- 좌측에서 슬라이드되는 **UI Toolkit 치트 HUD** 를 추가했습니다. 등록된 모든 명령이 자동으로
+  카테고리별로 나열되고, 인자가 없는 치트는 탭 한 번으로 실행됩니다.
+  **세 손가락 동시 3연타**로 열고 닫습니다. → [치트 HUD](/cheat-terminal/ko/usage/cheat-hud.md)
+- 제스처는 `MultiFingerTapGesture` 가 담당하며 손가락 수가 정확히 일치할 때만 인정하므로
+  3-finger 와 4-finger 제스처가 서로 오작동하지 않습니다.
+- 터치 입력은 `TerminalInput` 추상화를 통해 레거시 Input Manager 와 Input System 패키지를
+  모두 지원합니다(리플렉션 없음, Input System 은 버전 디파인으로 처리되는 선택적 의존성).
+- 치트 작성 규칙을 담은 `AGENT.md` 를 저장소 루트에 추가했습니다.
+
+## 1.0.2 — 리플렉션 제거와 자동완성 강화
+
+- `TerminalAttribute`, `AttributeCommand`, 리플렉션 기반 Object Inspector 모듈을 삭제했습니다.
+  기존에 속성으로 등록하던 명령은 모두 `RegisterCommand(...)` 로 옮겨야 합니다.
+- 자동완성이 명령 이름 / `usage` 키워드 / 명령별 제공자 후보를 캐시하고, 씬·로그·GameObject·
+  컴포넌트 대상·불리언 값 같은 문맥 후보를 제공합니다
+  (`ICommandCompletionProvider`, `CommandCompletionContext`, `CompletionItem` 도입).
+- `RegisterDataTable(...)` 과 `data [table] [id|text]` 명령으로 게임 데이터 테이블을
+  리플렉션 없이 조회할 수 있습니다.
+- 터미널 UI 에 `Console / Commands / Data` 탭이 생겼습니다.
+- 수정: 포커스 해제가 아니라 명시적 submit 에서만 실행, 출력의 리치 텍스트 이스케이프,
+  Unity 컴포넌트 명령의 불변 문화권 파싱, Logs·Performance 헬퍼 GameObject 정리.
+- 이 시기에 문서 사이트를 Docusaurus 에서 **Fumadocs + Next.js** 로 이전하고, 폴더명을 `docs~`
+  로 통일했으며, Introduction / Getting started / Usage / Changelog 구조와 한국어
+  `CHANGELOG.ko.md` 를 정리했습니다.
+
+## 1.0.1 — 네임스페이스와 Unity 컴포넌트 명령
+
+- 네임스페이스를 `UniTerminal` → `Achieve.CheatTerminal` 로 변경했습니다(호환성 깨짐).
+- `transform` / `rb` / `cam` / `light` / `audio` / `time` / `go` 등 Unity 내장 컴포넌트를
+  직접 제어하는 명령을 추가했습니다. → [Unity 컴포넌트 명령](/cheat-terminal/ko/usage/unity-components.md)
+- 문서를 ko / en / ja / zh 네 언어로 현지화하고, `ITerminalModule` 고급 사용법 섹션과
+  `CHANGELOG` 를 도입했습니다.
+
+## 1.0.0 — 구체 코어로 재작성
+
+- 협력자 인터페이스와 `TerminalBuilder` 를 제거하고 `Terminal` 을 구체 클래스로 정리했습니다.
+- `Terminal.ScanStaticCommands()` 로 static `[Terminal]` 메서드를 자동 등록했습니다
+  (이 기능은 1.0.2 에서 제거되었습니다).
+- **Runtime Logs 모듈**: `Debug.Log` 를 링 버퍼에 수집하고
+  `logs [n | error | warning | info | <text> | find <text> | clear | export]` 로 조회합니다.
+  `export` 는 `Application.persistentDataPath` 에 저장하므로 실기기에서도 회수할 수 있습니다.
+- 입력창에서 위/아래 화살표로 명령 기록을 되감고, `help <카테고리>` 를 지원합니다.
+- EventSystem 입력 모듈 문제를 고치고, 우상단 트리거를 눈에 보이는 `>_` 핸들 + 싱글 탭으로
+  바꿨으며, Unity `.meta` 파일을 정리했습니다. 패키지 이름도
+  `com.achieve.cheat-terminal` 로 확정했습니다.
+- 문서 사이트(Docusaurus)와 GitHub Pages 자동 배포 CI 를 붙였습니다.
+
+## 0.1.0 — 최초 버전
+
+- 따옴표를 인식하는 파서, 기록, 별칭, 인자 변환, 자동완성, 출력 버퍼로 구성된 코어.
+- `[Terminal]` 속성 기반 리플렉션 바인딩과 `TerminalBuilder` 조립.
+- 닫혀 있을 때 완전히 비활성화되는 uGUI 오버레이 뷰, 우상단 더블탭 트리거.
+- 내장 명령 `help` / `clear` / `history` / `echo` / `alias`.
+- 모듈 시스템(`ITerminalModule`)과 Scene Tools / Object Inspector / Performance 모듈,
+  Basic Usage 샘플.
+
+## 업그레이드 요약
+
+| 이전                              | 현재                                                  |
+| ------------------------------- | --------------------------------------------------- |
+| `[Terminal]` 속성 / static 자동 스캔  | `TerminalBehaviour.RegisterCommand(...)` 명시 등록      |
+| `UniTerminal` 네임스페이스            | `Achieve.CheatTerminal`                             |
+| `TerminalBuilder` 로 코어 조립       | `new Terminal()` + `AttachView(...)`                |
+| Object Inspector 모듈             | `RegisterDataTable(...)` + `data` 명령                |
+| 항상 보이는 우상단 핸들                   | 네 손가락 3연타로 호출 (`TerminalBehaviour.HandleVisible`)   |
+| `TerminalCornerTrigger.Enabled` | `TerminalCornerTrigger.Visible` (`Enabled` 는 별칭 유지) |
+
+
+
+---
+url: /cheat-terminal/ko/index.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ko/llms.txt, the full documentation bundle is available at /cheat-terminal/ko/llms-full.txt.
+
+# 소개
+
+Unity 런타임 개발자 콘솔입니다. 치트 · 디버깅 · 로그 확인 · 런타임 상태 조작을 한 곳에서 처리합니다.
+
+명령은 `RegisterCommand(...)`로 명시 등록합니다. 자동 어셈블리 스캔이나 reflection 호출 없이,
+IL2CPP/AOT 빌드에서도 예측 가능한 경로를 유지합니다. 콘솔이 닫혀 있을 때는 비용이 **0** 인 uGUI 오버레이로 동작합니다.
+
+```csharp
+TerminalBehaviour.RegisterCommand(
+    "gold",
+    ctx => ctx.Output.WriteLine("gold added", LogLevel.Success),
+    "골드 추가",
+    "Cheats",
+    "gold <amount>");
+```
+
+## 특징
+
+- **명시 등록** — `RegisterCommand("name", ctx => ...)`로 명령 등록. 숨은 reflection 스캔 없음.
+- **런타임 인텔리센스** — command, keyword, data table, row 후보를 설명과 함께 표시.
+- **성능 우선** — 닫혀 있으면 캔버스 비활성화(드로우콜·레이캐스트 0), 출력은 캡 링 버퍼, 명령 기록은 `TerminalInput`으로 두 입력 백엔드 지원.
+- **모듈식** — Scene / Data / Performance / Logs / Unity Components 모듈을 기본 제공, 필요한 것만 사용.
+- **탭 UI** — Console / Commands / Data 탭에서 출력, 등록 명령, 등록 데이터를 확인.
+- **모바일 친화** — 멀티터치 제스처(3/4 손가락 3연타)로 호출, 로그를 기기에서 파일로 export.
+- **치트 HUD** — 전체 화면 UI Toolkit HUD에서 파라미터 입력과 Run 버튼으로 등록된 치트를 실행. 열기/닫기 리스너로 `Time.timeScale` 제어.
+
+## 요구 사항
+
+- Unity 6 (6000.x)
+- `com.unity.ugui` (기본 포함)
+
+다음: [시작하기](/cheat-terminal/ko/getting-started.md)
+
+
+
+---
+url: /cheat-terminal/ko/usage/cheat-hud.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ko/llms.txt, the full documentation bundle is available at /cheat-terminal/ko/llms-full.txt.
+
+# 치트 HUD
+
+터미널에 등록한 치트를 **화면 전체를 덮는 UI Toolkit HUD** 로 바로 실행할 수 있습니다.
+명령을 등록하기만 하면 HUD 에 자동으로 등록·표시되므로 별도 작업은 없습니다.
+
+## 열기
+
+| 제스처               | 동작                             | 에디터/데스크톱       |
+| ----------------- | ------------------------------ | -------------- |
+| **세 손가락 동시 탭 3회** | 치트 HUD 열기 / 닫기                 | `F1` / `F10`   |
+| **네 손가락 동시 탭 3회** | 우상단 `Terminal / F2` 핸들 표시 / 숨김 | `F9`           |
+| 핸들 탭              | 콘솔 열기 / 닫기                     | `F2` / `` ` `` |
+
+에디터에서는 `Tools > Cheat Terminal` 메뉴로도 열 수 있습니다. 게임 뷰가 포커스를 잃어
+키 입력이 게임까지 도달하지 않을 때 쓰세요.
+
+```csharp
+using Achieve.CheatTerminal;
+
+TerminalBehaviour.OpenCheatHud();
+TerminalBehaviour.CloseCheatHud();
+TerminalBehaviour.ToggleCheatHud();
+```
+
+## 레이아웃
+
+- HUD 는 기본적으로 **화면 전체**를 덮습니다. 행 하나가 손가락으로 누르기 충분한 크기(최소 104px)이고,
+  글자도 그에 맞게 큽니다.
+- 노치 / 홈 인디케이터를 피하도록 `Screen.safeArea` 만큼 안쪽으로 패딩이 잡힙니다.
+- 화면이 넓으면(가로 모드, 태블릿, 에디터 게임 뷰) 목록이 자동으로 2\~3열로 나뉩니다.
+- 하단 상태 줄에 큰 `CLOSE` 버튼이 있습니다. 세로로 긴 화면에서 상단 `X` 까지 손이 닿지 않을 때 쓰세요.
+- 예전처럼 좌측에서 슬라이드되는 좁은 패널이 필요하면 전체 화면을 끕니다.
+
+```csharp
+TerminalBehaviour.CheatHudFullScreen = false;           // 좌측 슬라이드 패널로
+TerminalBehaviour.Instance.CheatHud.WidthPercent = 42f; // 그때의 폭(%)
+```
+
+## 열기 / 닫기 리스너
+
+HUD 나 콘솔이 열려도 게임은 계속 돌아갑니다. 열림/닫힘을 구독해서 `Time.timeScale` 을 낮추거나
+입력을 막는 식으로 처리하세요.
+
+```csharp
+// 콘솔·치트 HUD 중 하나라도 열리면 true, 둘 다 닫히면 false
+TerminalBehaviour.VisibilityChanged += open => Time.timeScale = open ? 0.2f : 1f;
+
+// 각각 따로 받고 싶을 때
+TerminalBehaviour.CheatHudVisibilityChanged += open => { /* ... */ };
+TerminalBehaviour.ConsoleVisibilityChanged  += open => { /* ... */ };
+```
+
+시간만 멈추면 되는 경우는 한 줄로 끝납니다. 열릴 때의 `Time.timeScale` 을 저장했다가 닫힐 때
+그대로 되돌립니다.
+
+```csharp
+TerminalBehaviour.PauseGameWhileOpen = true; // 열려 있는 동안 timeScale 고정
+TerminalBehaviour.PausedTimeScale = 0f;      // 기본값 0 (완전 정지)
+```
+
+:::info
+구독 해제는 `-=` 로 합니다. `CheatHudView.OnOpened` / `OnClosed` / `OnVisibilityChanged`,
+`UGuiTerminalView` 의 같은 이름 이벤트로 뷰에서 직접 받을 수도 있습니다.
+:::
+
+## 표시 규칙
+
+- 명령은 `category` 별로 묶여 표시되고, `System` 카테고리(내장 명령)는 항상 맨 뒤로 정렬됩니다.
+- 상단 검색창에서 이름 / 설명 / 카테고리로 필터링합니다.
+- `usage` 문자열이 실행 방식을 결정합니다.
+
+| usage           | HUD 동작                 |
+| --------------- | ---------------------- |
+| `god` (인자 없음)   | Run 버튼으로 실행            |
+| `gold <amount>` | amount 입력 후 Run        |
+| `heal [amount]` | amount를 비우거나 입력한 뒤 Run |
+
+```csharp
+// 원터치 치트: usage 에 <>, [] 를 쓰지 않습니다.
+TerminalBehaviour.RegisterCommand("god", ToggleGod, "무적 토글", "Cheats", "god");
+
+// 인자 입력 치트
+TerminalBehaviour.RegisterCommand("gold", AddGold, "골드 추가", "Cheats", "gold <amount>");
+```
+
+## 동작 방식
+
+- HUD 는 `Terminal.Registry.Changed` 를 구독하므로, 런타임에 명령을 추가/제거해도 목록이 갱신됩니다.
+- 실행 결과는 터미널 콘솔 출력과 HUD 하단 상태 줄에 함께 표시됩니다.
+- 닫혀 있을 때는 패널이 `display: none` 이라 렌더링·레이아웃 비용이 없고,
+  루트 요소는 입력을 가로채지 않으므로 게임 조작에 영향을 주지 않습니다.
+- 헤더의 `Terminal / F2` 버튼으로 전체 터미널 콘솔을 열 수 있습니다.
+
+## 도크와 단축키
+
+에디터와 개발 빌드에서는 씬 로드 후 자동으로 부트스트랩됩니다. 우상단 도크의 슬라이더 아이콘은 Cheat Library, 터미널 아이콘은 Terminal을 엽니다. 그립이나 아이콘을 드래그하면 안전 영역 안에서 도크를 옮길 수 있습니다.
+
+`F1`은 Cheat Library, `F2`는 Terminal을 여닫습니다. `F10`도 치트 UI를 열고, `F9`는 도크 표시를 전환합니다. 백틱은 터미널을 열기만 하며 Escape는 현재 화면을 닫습니다.
+
+## 파라미터 입력과 실행
+
+파라미터 입력란은 항상 표시됩니다. 명령 이름 대신 값만 입력하고 Run 또는 Enter로 실행합니다. `<amount>`는 필수, `[amount]`는 선택이며, `<x> <y> <z>`는 좌표별 입력란을 만듭니다. `<on|off>`는 선택값 버튼도 제공합니다. 필수값은 모두 입력하고 선택값은 뒤에서부터 생략해야 합니다. `[args]`와 `<text...>`는 공백으로 구분한 여러 인자를 받으며, 공백이 포함된 한 값은 따옴표로 묶습니다.
+
+카테고리 버튼과 검색으로 명령을 찾습니다. 입력값은 필터링, 화면 크기 변경과 다시 열기 후에도 유지됩니다. 결과와 오류는 카드, 하단 상태 줄과 터미널 출력에 표시됩니다. 다른 화면으로 전환하면 이전 화면은 닫힙니다.
+
+
+
+---
+url: /cheat-terminal/ko/usage/commands.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ko/llms.txt, the full documentation bundle is available at /cheat-terminal/ko/llms-full.txt.
+
+# 명령 레퍼런스
+
+## 내장 명령
+
+| 명령                         | 설명                                          |
+| -------------------------- | ------------------------------------------- |
+| `help [명령\|카테고리]`          | 명령 목록 / 상세                                  |
+| `clear`                    | 출력 지우기                                      |
+| `history`                  | 입력 기록                                       |
+| `echo <text>`              | 텍스트 출력                                      |
+| `alias <name> <expansion>` | 별칭 등록 (`alias remove <name>`, `alias` 로 목록) |
+
+## 모듈
+
+기본 부트스트랩에서 아래 모듈이 자동 설치됩니다.
+
+### Scene
+
+```bash
+scene list                 # 로드된 씬 + 빌드 세팅 씬
+scene load Lobby           # 단일 로드
+scene load InGame additive # 가산 로드
+scene unload InGame
+```
+
+### Data
+
+등록된 데이터 테이블 ID와 row 이름을 조회합니다.
+
+```bash
+data                 # 테이블 ID / 이름 / row 수
+data items           # items 테이블의 row ID / 이름
+data items sword     # ID, 이름, 요약 검색 및 필드 출력
+```
+
+### Performance
+
+```bash
+perf   # FPS / 프레임 ms / 메모리 / Mono / GC / 드로우콜·배치·삼각형 (가능 시)
+```
+
+### Logs
+
+`Debug.Log` 출력을 캡 링 버퍼에 수집합니다.
+
+```bash
+logs                 # 최근 30개
+logs 100             # 최근 100개
+logs error           # 레벨 필터 (error / warning / info)
+logs network         # 텍스트 부분일치 필터
+logs find <text>     # 명시적 검색
+logs clear           # 비우기
+logs export          # 파일로 저장 (persistentDataPath, 실기기 회수 가능)
+```
+
+### Unity Components
+
+유니티 내장 컴포넌트를 터미널에서 직접 제어합니다. 자세한 내용은 [Unity 컴포넌트 명령](/cheat-terminal/ko/usage/unity-components.md)을 참조하세요.
+
+| 명령          | 설명                               |
+| ----------- | -------------------------------- |
+| `transform` | 위치·회전·스케일 조회 및 변경                |
+| `rb`        | Rigidbody 속성 제어                  |
+| `cam`       | Camera 설정 (FOV, 배경색 등)           |
+| `light`     | Light 속성 제어                      |
+| `audio`     | AudioListener 볼륨·뮤트·일시정지         |
+| `time`      | Time.timeScale·fixedDeltaTime 제어 |
+| `go`        | GameObject 활성화·태그·목록             |
+
+## 별칭 & 매크로
+
+자주 쓰는 조합은 별칭으로:
+
+```bash
+alias rich gold 999999
+rich            # → gold 999999
+```
+
+
+
+---
+url: /cheat-terminal/ko/usage/unity-components.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ko/llms.txt, the full documentation bundle is available at /cheat-terminal/ko/llms-full.txt.
+
+# Unity 컴포넌트 명령
+
+`UnityComponentsModule`이 제공하는 7가지 명령으로, 유니티에서 가장 자주 쓰이는 내장 컴포넌트를 터미널에서 바로 조작할 수 있습니다.\
+에디터·개발 빌드에서 자동 활성화되며 별도 설치 코드가 필요하지 않습니다.
+
+***
+
+## `transform` — Transform 조작
+
+```bash
+transform get   <name>                   # 위치·회전·스케일 출력
+transform pos   <name> [x y z]           # 위치 조회 또는 설정
+transform rot   <name> [x y z]           # 오일러 회전 조회 또는 설정
+transform scale <name> [x y z]           # 로컬 스케일 조회 또는 설정
+transform reset <name>                   # position/rotation/scale 초기화
+```
+
+### 예시
+
+```bash
+transform get   Player
+transform pos   Player 0 1 0
+transform rot   Enemy  0 90 0
+transform scale Boss   2 2 2
+transform reset Cube
+```
+
+:::info
+
+`x y z` 인자를 생략하면 현재 값만 출력합니다.
+
+:::
+
+***
+
+## `rb` — Rigidbody 제어
+
+```bash
+rb get       <name>           # 모든 Rigidbody 속성 출력
+rb velocity  <name> [x y z]  # 선속도 조회 또는 설정
+rb gravity   <name> [on|off] # useGravity 조회 또는 설정
+rb kinematic <name> [on|off] # isKinematic 조회 또는 설정
+rb mass      <name> [value]  # 질량 조회 또는 설정
+rb drag      <name> [value]  # 선형 감쇠(drag) 조회 또는 설정
+```
+
+### 예시
+
+```bash
+rb get       Player
+rb velocity  Player 0 10 0
+rb gravity   Player off
+rb kinematic Player on
+rb mass      Boulder 50
+rb drag      Ship 0.1
+```
+
+:::info
+
+대상 GameObject에 `Rigidbody` 컴포넌트가 없으면 오류를 출력합니다.
+
+:::
+
+***
+
+## `cam` — Camera 설정
+
+대상을 지정하지 않으면 항상 `Camera.main`에 적용됩니다.
+
+```bash
+cam list                          # 씬의 모든 카메라 목록
+cam fov  [value]                  # fieldOfView 조회 또는 설정 (1–179°)
+cam bg   [r g b [a]]              # backgroundColor 조회 또는 설정 (0–1 범위)
+cam ortho [on|off]                # 원근/직교 전환
+cam size  [value]                 # orthographicSize 조회 또는 설정
+cam clip  [near far]              # 클리핑 플레인 조회 또는 설정
+```
+
+### 예시
+
+```bash
+cam list
+cam fov 75
+cam bg 0.1 0.1 0.2
+cam ortho on
+cam size 5
+cam clip 0.01 1000
+```
+
+***
+
+## `light` — Light 제어
+
+```bash
+light list                        # 씬의 모든 Light 목록
+light intensity <name> [value]    # 밝기 조회 또는 설정
+light color     <name> [r g b]    # 색상 조회 또는 설정 (0–1 범위)
+light range     <name> [value]    # 범위 조회 또는 설정
+light shadow    <name> [on|off]   # 소프트 그림자 on/off
+```
+
+### 예시
+
+```bash
+light list
+light intensity Sun 1.5
+light color     Sun 1 0.9 0.8
+light range     PointLight 10
+light shadow    Sun off
+```
+
+***
+
+## `audio` — AudioListener 제어
+
+씬에 있는 `AudioListener` 전체에 영향을 미칩니다.
+
+```bash
+audio volume [value]   # 마스터 볼륨 조회 또는 설정 (0–1)
+audio mute   [on|off]  # 오디오 뮤트 on/off
+audio pause            # 오디오 일시정지
+audio resume           # 오디오 재개
+```
+
+### 예시
+
+```bash
+audio volume 0.5
+audio mute on
+audio pause
+audio resume
+```
+
+***
+
+## `time` — Time 제어
+
+```bash
+time get            # timeScale, fixedDeltaTime, time, frameCount 출력
+time scale [value]  # Time.timeScale 조회 또는 설정 (0 이상)
+time fixed [value]  # Time.fixedDeltaTime 조회 또는 설정
+```
+
+### 예시
+
+```bash
+time get
+time scale 0.5     # 슬로우 모션
+time scale 0       # 일시정지
+time scale 1       # 정상 속도 복구
+time fixed 0.02    # 50Hz 물리 업데이트
+```
+
+:::info
+
+`time scale 0`으로 게임을 정지한 뒤 터미널에서 상태를 검사하고 `time scale 1`로 재개하는 패턴이 유용합니다.
+
+:::
+
+***
+
+## `go` — GameObject 유틸리티
+
+```bash
+go list   [tag]          # GameObject 목록 (최대 40개, 태그 필터 가능)
+go active <name> <on|off> # SetActive 호출
+go tag    <name> [tag]   # 태그 조회 또는 설정
+```
+
+### 예시
+
+```bash
+go list
+go list Player          # tag=Player 인 오브젝트만
+go active Enemy on
+go active Canvas off
+go tag Player Untagged
+```
+
+:::info
+
+`go list`는 `FindObjectsByType` 결과 기준으로 최대 40개만 출력합니다.
+
+:::
+
+***
+
+## 값 입력 규칙
+
+| 타입              | 허용 형식                                       |
+| --------------- | ------------------------------------------- |
+| float           | `1`, `1.5`, `-0.3`                          |
+| bool            | `on` / `off` / `true` / `false` / `1` / `0` |
+| Vector3 (x y z) | 공백으로 구분: `0 1 0`                            |
+| Color (r g b)   | 0–1 범위 float: `1 0.5 0`                     |
+
+***
+
+## 카테고리
+
+모든 명령은 `Components` 카테고리에 속합니다. `help Components` 로 목록을 확인할 수 있습니다.
+
+

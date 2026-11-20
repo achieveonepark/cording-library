@@ -1,0 +1,817 @@
+---
+url: /AchReactive/zh/api.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/zh/llms.txt, the full documentation bundle is available at /AchReactive/zh/llms-full.txt.
+
+# API 参考
+
+所有命名空间均为 `AchReactive`。
+
+## DataBase\<T>
+
+```csharp
+public sealed class DataBase<T> where T : IData
+{
+    void Load(IDataLoader<T> loader);   // 全量替换
+    void Add(IDataLoader<T> loader);    // 合并
+    void Add(T item);
+    T Get(string id);
+    bool TryGet(string id, out T value);
+    bool Has(string id);
+    void Clear();
+    int Count { get; }
+    IReadOnlyCollection<T> All { get; }
+}
+```
+
+## IDataLoader / 实现类
+
+```csharp
+public interface IDataLoader<T> where T : IData
+{
+    IReadOnlyList<T> Load();
+}
+
+public sealed class JsonDataLoader<T> : IDataLoader<T> where T : IData
+{
+    JsonDataLoader(string json, JsonSerializerSettings settings = null);
+    JsonDataLoader(Func<string> read, JsonSerializerSettings settings = null);
+}
+
+public sealed class CsvDataLoader<T> : IDataLoader<T> where T : IData
+{
+    CsvDataLoader(string csv, ICsvMapper<T> mapper);
+    CsvDataLoader(Func<string> read, ICsvMapper<T> mapper);
+}
+
+public interface ICsvMapper<out T> where T : IData
+{
+    T Map(IReadOnlyDictionary<string, string> row);
+}
+```
+
+## 数据模型
+
+```csharp
+public interface IData { string Id { get; } }
+
+[Serializable]
+public class EntityData : IData
+{
+    public string id;
+    public Dictionary<string, float> stats;
+    public Reaction[] reactions;
+    public string Id => id;
+}
+
+[Serializable]
+public class Reaction
+{
+    public string trigger;
+    public ParamBag triggerParams;
+    public ConditionDef[] conditions;
+    public EffectDef[] effects;
+}
+
+[Serializable] public class EffectDef    { public string type; public ParamBag @params; }
+[Serializable] public class ConditionDef { public string type; public ParamBag @params; }
+```
+
+## ParamBag
+
+```csharp
+public sealed class ParamBag
+{
+    static readonly ParamBag Empty;
+    bool Has(string key);
+    T Get<T>(string key, T fallback = default);
+    bool TryGet<T>(string key, out T value);
+    void Set<T>(string key, T value);
+}
+```
+
+## ReactionEngine
+
+```csharp
+public sealed class ReactionEngine
+{
+    int Run(string trigger, EntityData data, ReactionContext ctx);
+}
+
+public sealed class ReactionContext
+{
+    public IEntity Source;
+    public IEntity Target;
+    public IReadOnlyList<IEntity> Targets;
+    public IWorld World;
+    public ParamBag Params;
+}
+```
+
+## Registry
+
+```csharp
+public delegate void EffectFn(ReactionContext ctx);
+public delegate bool ConditionFn(ReactionContext ctx);
+public delegate bool TriggerFn(ReactionContext ctx, ParamBag triggerParams);
+
+public static class EffectRegistry
+{
+    static void AutoRegister();
+    static void Register(string name, EffectFn fn);
+    static bool TryGet(string name, out EffectFn fn);
+    static bool Has(string name);
+    static IEnumerable<string> Names { get; }
+}
+// ConditionRegistry、TriggerRegistry 也采用相同的模式
+```
+
+## 集成边界
+
+```csharp
+public interface IEntity
+{
+    string Id { get; }
+    Vector3 Position { get; set; }
+    StatSheet Stats { get; }
+    bool IsAlive { get; }
+}
+
+public interface IWorld
+{
+    IEntity Spawn(string dataId, Vector3 at);
+    void Collect(Vector3 center, float radius, List<IEntity> buffer);
+}
+```
+
+## StatSheet / CooldownStore
+
+```csharp
+public sealed class StatSheet
+{
+    void SetBase(string statKey, float value);
+    float GetBase(string statKey);
+    float Get(string statKey);   // 应用修正器后的最终值
+    void AddModifier(string statKey, string modifierType, float value, object source);
+    void RemoveSource(object source);
+}
+
+public sealed class CooldownStore
+{
+    CooldownStore(Func<float> timeProvider = null);
+    bool IsReady(string id);
+    void Start(string id, float cooldown);
+    float Remaining(string id);
+}
+```
+
+
+
+---
+url: /AchReactive/zh/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/zh/llms.txt, the full documentation bundle is available at /AchReactive/zh/llms-full.txt.
+
+# 变更历史
+
+## 0.1.0
+
+首次公开。从技能专用工具（Skill Creator）转变为**领域无关响应式框架 AchReactive**。
+
+### 新增
+
+- **Data Layer** — `IData`、`IDataLoader<T>`、`DataBase<T>`（不使用 typeof）
+- **Loader** — `JsonDataLoader<T>`（Newtonsoft）、`CsvDataLoader<T>` + `ICsvMapper<T>`
+- **Reaction Layer** — `Reaction`、`EntityData`、`ParamBag`、`ReactionContext`、`ReactionEngine`
+- **Registry** — `Effect/Condition/TriggerRegistry`（Attribute 自动收集 + 手动注册）
+- **基础动作池** — effect 8 种、condition 8 种、trigger 守卫 1 种
+- **集成边界** — `IEntity`、`IWorld`、`StatSheet`、`CooldownStore`
+- **UIToolkit 创作工具** — Type Designer（代码生成）、Data Editor（数据生成）
+- **Basic 示例** — 技能 + 怪物两个领域的示例
+
+### 变更
+
+- 包名 `com.achieve.skill-creator` → `com.achieve.reactive`
+- 命名空间 → `AchReactive`
+- `JsonUtility` → `Newtonsoft.Json`（移除包装类）
+
+### 移除
+
+- 技能专用的遗留代码（`SkillSystem`/`SkillRunner`/`EffectExecutor` 等）
+- 增益持续/叠加系统因需要重新设计运行时状态而暂时搁置（后续计划）
+
+
+
+---
+url: /AchReactive/zh/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/zh/llms.txt, the full documentation bundle is available at /AchReactive/zh/llms-full.txt.
+
+# 开始使用
+
+## 安装
+
+在 Unity Package Manager 中选择 **Add package from git URL**，然后输入以下地址。
+
+```
+https://github.com/achieveonepark/AchReactive.git
+```
+
+或者直接添加到 `Packages/manifest.json` 中。
+
+```json
+{
+  "dependencies": {
+    "com.achieve.reactive": "https://github.com/achieveonepark/AchReactive.git"
+  }
+}
+```
+
+环境要求为 **Unity 2021.3 以上**。依赖只有 `com.unity.nuget.newtonsoft-json` 一个，
+并会自动一起安装。
+
+## 1. 实现集成边界
+
+AchReactive 不会强制你采用特定的游戏结构。只需实现两个接口即可。
+
+- `IEntity` — 响应的主体/目标（角色、怪物等）
+- `IWorld` — 生成/范围查询等世界边界
+
+```csharp
+using AchReactive;
+using UnityEngine;
+
+public sealed class Character : MonoBehaviour, IEntity
+{
+    public StatSheet Stats { get; } = new StatSheet();   // 包提供，直接使用
+    public string Id => name;
+    public Vector3 Position { get => transform.position; set => transform.position = value; }
+    public bool IsAlive => Stats.GetBase(StatKeys.Hp) > 0f;
+
+    void Awake()
+    {
+        Stats.SetBase(StatKeys.Hp, 100f);
+        Stats.SetBase(StatKeys.HpMax, 100f);
+        Stats.SetBase(StatKeys.Atk, 10f);
+        Stats.SetBase(StatKeys.Def, 2f);
+    }
+}
+```
+
+## 2. 编写数据
+
+以 `reactions` 格式的 JSON 来定义技能。（也可以不直接手写，而是用 [Data Editor](/AchReactive/zh/usage/authoring-tools.md) 来制作。）
+
+```json
+[
+  {
+    "id": "fire_slash",
+    "cooldown": 5.0,
+    "reactions": [
+      {
+        "trigger": "on_use",
+        "conditions": [{ "type": "alive" }],
+        "effects": [
+          { "type": "damage", "params": { "power": 1.8 } },
+          { "type": "log", "params": { "message": "fire_slash 명중!" } }
+        ]
+      }
+    ]
+  }
+]
+```
+
+## 3. 组装与执行
+
+```csharp
+using AchReactive;
+
+var skills = new DataBase<SkillData>();
+var engine = new ReactionEngine();
+
+void Start()
+{
+    // 自动收集动作池（包含默认的 damage/heal/…）
+    EffectRegistry.AutoRegister();
+    ConditionRegistry.AutoRegister();
+    TriggerRegistry.AutoRegister();
+
+    // 加载数据 —— 来源自由
+    skills.Load(new JsonDataLoader<SkillData>(() => skillsJson.text));
+}
+
+void UseSkill(IEntity caster, IEntity target)
+{
+    var ctx = new ReactionContext { Source = caster, Target = target };
+    engine.Run("on_use", skills.Get("fire_slash"), ctx);
+}
+```
+
+`damage`、`heal`、`add_modifier` 等基础 effect 由包提供，因此无需额外代码。
+可以在 `Samples` 的 **Basic** 示例中直接查看可运行的场景。
+
+## 下一步
+
+- [核心概念](/AchReactive/zh/usage/concepts.md) — 为什么是这样的结构
+- [基础动作池](/AchReactive/zh/usage/reactions.md) — 提供的 effect/condition 列表
+- [扩展](/AchReactive/zh/usage/extending.md) — 新动作与新领域
+
+
+
+---
+url: /AchReactive/zh/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/zh/llms.txt, the full documentation bundle is available at /AchReactive/zh/llms-full.txt.
+
+# AchReactive
+
+**AchReactive** 是一个 Unity 框架，它将技能、怪物、道具、地图、任务等所有游戏内容
+都用 **触发器 → 条件 → 效果** 的数据组合来构建。
+
+## 核心理念
+
+> 领域是无限的，但动作（primitive）是有限的。
+
+如果为每个领域都重新构建一套系统，就必须每次都填满 `领域 × 动作` 的矩阵。
+AchReactive 让动作池被**所有领域共享**，从而将这个乘法变成了加法。
+从第二个领域开始，几乎是免费的。
+
+```
+        damage  heal  add_modifier  spawn
+Skill     ✓      ✓        ✓
+Monster                    ✓          ✓     ← 复用相同的 effect
+Item               ✓       ✓
+```
+
+## 特性
+
+- **领域无关** — 仅用一个 `DataBase<T>` 即可处理 Skill/Monster/Item/… 全部
+- **来源无关** — 可从任意位置加载 JSON、CSV、远程等（只要实现 `IDataLoader<T>` 即可接入新来源）
+- **动作自动注册** — 通过反射收集 `[Effect]`/`[Condition]`/`[Trigger]` 方法，0 行接线代码
+- **UIToolkit 创作工具** — 在编辑器中生成类型与数据（无需手写 JSON）
+- **依赖最小** — 仅 Newtonsoft.Json 一个
+
+## 一目了然
+
+```csharp
+// 1) 自动收集动作池（包含默认的 effect/condition/trigger）
+EffectRegistry.AutoRegister();
+ConditionRegistry.AutoRegister();
+TriggerRegistry.AutoRegister();
+
+// 2) 加载数据（来源自由）
+var skills = new DataBase<SkillData>();
+skills.Load(new JsonDataLoader<SkillData>(() => json));
+
+// 3) 执行 —— 即使领域不同也完全一致
+engine.Run("on_use", skills.Get("fire_slash"), ctx);
+```
+
+## 下一步
+
+- [开始使用](/AchReactive/zh/getting-started.md) — 从安装到运行第一个响应
+- [核心概念](/AchReactive/zh/usage/concepts.md) — 触发器/条件/效果与领域模型
+- [扩展](/AchReactive/zh/usage/extending.md) — 添加新动作、新领域
+
+
+
+---
+url: /AchReactive/zh/usage/authoring-tools.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/zh/llms.txt, the full documentation bundle is available at /AchReactive/zh/llms-full.txt.
+
+# 创作工具
+
+无需用 JSON 手写数据。两个 UIToolkit 编辑器窗口会生成代码与数据。
+
+## Type Designer — 从类型生成代码
+
+菜单：**Tools ▸ AchReactive ▸ Type Designer**
+
+```
+Type Name:   [ Monster        ]
+Base Type:   [ EntityData ▾   ]
+Output:      [ Assets/Generated ]
+Fields:
+  [ hp        ] [ Float    ▾ ] [−]
+  [ dropTable ] [ StringArray ▾ ] [−]
+  [ + Add Field ]
+                              [ Generate ]
+```
+
+点击 **Generate** 会生成两个文件。
+
+- `MonsterData.cs` — 继承 `EntityData` 的 `IData` 实现（兼容 Newtonsoft）
+- `MonsterCsvMapper.cs` — `ICsvMapper<MonsterData>` 实现
+
+支持的字段类型：`string`、`int`、`float`、`bool`，以及各自的数组类型（`string[]` 等）。
+数组在 CSV 中以 `|` 分隔。
+
+如果不想生成，手写 `class MonsterData : EntityData { ... }` 也能 100% 正常工作。
+
+## Data Editor — 创建/编辑数据
+
+菜单：**Tools ▸ AchReactive ▸ Data Editor**
+
+- 左侧：实例列表（用 + Instance 添加）
+- 右侧：所选实例的 `id` 与 **Reactions 构建器**
+  - **Trigger** 下拉菜单 — 已注册的触发器 + 通用通道（on_use、on_hit …）
+  - **Conditions / Effects** — `type` 是从注册表填充的下拉菜单，`params` 为 JSON
+- 顶部 **Export JSON…** — 以 `reactions` 格式的数组保存
+
+```
+Reactions
+ ┌────────────────────────────────────────┐
+ │ Trigger: [ on_use ▾ ]              [−]  │
+ │ Conditions (AND)                        │
+ │   [ alive ▾ ] [ {} ]              [−]   │
+ │   [ + Condition ]                       │
+ │ Effects                                 │
+ │   [ damage ▾ ] [ { "power": 1.8 } ] [−] │
+ │   [ + Effect ]                          │
+ └────────────────────────────────────────┘
+```
+
+关键在于**不需要直接手动输入 trigger/condition/effect 类型**。
+下拉菜单只会显示注册表中实际注册的名称，因此从源头杜绝了拼写错误与未注册类型。
+保存的 JSON 可由 `JsonDataLoader` 直接读取。
+
+> 创作用 UI，运行时消费用数据文件 —— 用户无需直接接触 JSON。
+
+
+
+---
+url: /AchReactive/zh/usage/concepts.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/zh/llms.txt, the full documentation bundle is available at /AchReactive/zh/llms-full.txt.
+
+# 核心概念
+
+## 把乘法变成加法
+
+如果为每个领域都构建专用系统（SkillSystem、MonsterSystem、…），
+就必须每次都填满 `领域 × 动作` 的矩阵。AchReactive 让**动作池被所有领域
+共享**，从而把它变成 `领域 + 动作`。
+
+- 添加新领域 → 一个数据类（0 行系统代码）
+- 复用已有动作 → 0 代码，只需数据
+- 真正的新动作 → 一个函数，之后所有领域共享
+
+## 四个层
+
+```
+Data Layer       IData · IDataLoader<T> · DataBase<T>      (泛型，包提供)
+Reaction Layer   Reaction · ReactionEngine · Registry      (泛型，包提供)
+Behavior Pool    [Effect("damage")] [Condition("alive")]   (游戏编写，领域无关)
+Domain Data      SkillData · MonsterData · ItemData         (数据，可代码生成)
+```
+
+上面两层由包提供且不会改变。你只需填充下面两层即可。
+
+## 响应 = 触发器 → 条件 → 效果
+
+所有领域都用同一种语言表达。
+
+```
+Reaction
+ ├─ trigger      "on_use" | "on_hit" | "on_hp_below" ...
+ ├─ conditions   以 AND 评估 (alive, hp_below, chance ...)
+ └─ effects      按顺序执行 (damage, heal, add_modifier ...)
+```
+
+即便领域不同，形态也完全一致。
+
+```json
+// 技能 — 使用时造成伤害
+{ "trigger": "on_use",
+  "effects": [{ "type": "damage", "params": { "power": 1.8 } }] }
+
+// 怪物 — HP 30% 以下时狂暴化
+{ "trigger": "on_hp_below", "triggerParams": { "threshold": 0.3 },
+  "effects": [{ "type": "add_modifier", "params": { "stat": "atk", "modifier": "percent_add", "value": 0.5 } }] }
+
+// 道具 — 装备时产生光环
+{ "trigger": "on_equip",
+  "effects": [{ "type": "add_modifier", "params": { "stat": "def", "modifier": "flat", "value": 5 } }] }
+```
+
+无论是技能使用还是道具使用，`add_modifier` 都是**同一份代码**。
+
+## 集成边界
+
+游戏只需实现两个接口。
+
+- **`IEntity`** — `Id`、`Position`、`Stats`（StatSheet）、`IsAlive`
+- **`IWorld`** — `Spawn`、`Collect`
+
+effect/condition 通过 `ReactionContext` 访问 `Source`/`Target`/`Targets`/`World`。
+
+## 不使用 typeof
+
+在组合多个领域时，不使用 `Dictionary<Type, object>` 这类以类型为键的服务定位器。
+而是**显式持有**每个 `DataBase<T>`，需要跨领域引用的 effect 则通过
+[手动注册 + 闭包捕获](/AchReactive/zh/usage/extending.md#跨领域)来解决。
+
+```csharp
+public sealed class GameDataContext
+{
+    public readonly DataBase<SkillData>   Skills   = new();
+    public readonly DataBase<MonsterData> Monsters = new();
+}
+```
+
+
+
+---
+url: /AchReactive/zh/usage/data-sources.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/zh/llms.txt, the full documentation bundle is available at /AchReactive/zh/llms-full.txt.
+
+# 数据与来源
+
+## IData 与 DataBase
+
+所有领域数据都实现 `IData`（即 `string Id`）。`DataBase<T>` 是一个 `id → 定义` 的
+内存索引，**所有领域都以泛型方式共享这一个类**。
+
+```csharp
+var skills = new DataBase<SkillData>();
+skills.Load(loader);              // 全量替换
+skills.Add(loader);               // 合并
+SkillData s = skills.Get("fire_slash");
+bool has   = skills.Has("fire_slash");
+```
+
+## 来源无关 — IDataLoader\<T>
+
+无论从哪里读取数据，都通过 `IDataLoader<T>` 这一相同的边界。包提供了两个实现。
+
+### JSON
+
+基于 Newtonsoft.Json，因此可直接读取顶层数组。（无需包装类）
+
+```csharp
+// 直接传字符串
+skills.Load(new JsonDataLoader<SkillData>(json));
+
+// 延迟读取（文件/StreamingAssets/网络）
+skills.Load(new JsonDataLoader<SkillData>(
+    () => File.ReadAllText(path)));
+```
+
+```json
+[
+  { "id": "fire_slash", "cooldown": 5.0, "reactions": [ /* ... */ ] }
+]
+```
+
+### CSV
+
+将第一行作为表头，并用 `ICsvMapper<T>` 转换每一行。支持引号/逗号/换行。
+
+```csharp
+skills.Load(new CsvDataLoader<SkillData>(
+    () => File.ReadAllText(path), new SkillCsvMapper()));
+```
+
+`ICsvMapper<T>` 实现类通常由 [Type Designer](/AchReactive/zh/usage/authoring-tools.md) 生成。
+
+### 自定义来源
+
+二进制、ScriptableObject、公司内部格式等，只需实现 `IDataLoader<T>` 即可。
+
+```csharp
+public sealed class MyBinaryLoader<T> : IDataLoader<T> where T : IData
+{
+    public IReadOnlyList<T> Load() { /* 自行解码 */ }
+}
+```
+
+> 像编辑器用 JSON、实际运营用 CSV/Remote 这样，**只需替换来源**即可。
+
+## 数据格式（reactions）
+
+领域数据继承 `EntityData`。公共字段为 `id`、`stats`、`reactions`。
+
+```csharp
+[Serializable]
+public class SkillData : EntityData   // 继承 id / stats / reactions
+{
+    public float cooldown;
+    public float castTime;
+}
+```
+
+```json
+{
+  "id": "fire_slash",
+  "cooldown": 5.0,
+  "stats": { "manaCost": 20 },
+  "reactions": [
+    {
+      "trigger": "on_use",
+      "conditions": [{ "type": "alive" }],
+      "effects": [{ "type": "damage", "params": { "power": 1.8 } }]
+    }
+  ]
+}
+```
+
+`params` 是任意键值对（`ParamBag`），effect/condition 会像 `ctx.Params.Get<float>("power")`
+这样进行类型转换后读取。
+
+
+
+---
+url: /AchReactive/zh/usage/extending.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/zh/llms.txt, the full documentation bundle is available at /AchReactive/zh/llms-full.txt.
+
+# 扩展
+
+## 添加新动作
+
+### 路径 A — Attribute（推荐）
+
+只要编写带有 `[Effect]`/`[Condition]`/`[Trigger]` 的静态方法，`AutoRegister()` 就会
+从所有程序集中自动收集。无需接线代码。
+
+```csharp
+using AchReactive;
+
+public static class MyEffects
+{
+    [Effect("teleport")]
+    public static void Teleport(ReactionContext c) =>
+        c.Source.Position = c.World != null ? /* ... */ c.Source.Position;
+}
+```
+
+签名是固定的。
+
+```csharp
+[Effect("name")]    static void M(ReactionContext ctx)
+[Condition("name")] static bool M(ReactionContext ctx)
+[Trigger("name")]   static bool M(ReactionContext ctx, ParamBag triggerParams)
+```
+
+### 路径 B — 手动注册
+
+当需要 DI、运行时状态、闭包时使用。
+
+```csharp
+EffectRegistry.Register("teleport", c => myTeleporter.Move(c.Source));
+```
+
+## 添加新领域
+
+新领域只需**一个数据类**即可。没有系统代码。
+
+```csharp
+[Serializable]
+public class MonsterData : EntityData   // 继承 id / stats / reactions
+{
+    public int expReward;               // 领域专有字段
+}
+```
+
+```csharp
+var monsters = new DataBase<MonsterData>();
+monsters.Load(new JsonDataLoader<MonsterData>(() => json));
+
+engine.Run("on_hp_below", monsters.Get("goblin_boss"), ctx);
+```
+
+`damage`/`add_modifier` 等会直接复用技能已经注册的那些 → 0 行代码。
+数据类和 CSV 映射器可以用 [Type Designer](/AchReactive/zh/usage/authoring-tools.md) 生成。
+
+## 跨领域
+
+当 effect 需要引用其他领域的数据时，不使用自动注册，而是用**手动注册 + 闭包捕获**
+来抓住对应的 `DataBase<T>`。不使用类型键（typeof）。
+
+```csharp
+var items = new DataBase<ItemData>();
+
+EffectRegistry.Register("drop_item", c =>
+{
+    var item = items.Get(c.Params.Get<string>("itemId")); // 将 items 作为闭包捕获
+    c.World.Spawn(item.id, c.Source.Position);
+});
+```
+
+> 建议：自动注册的 effect 只放不了解领域的纯动作，只有需要与领域耦合的 effect 才用手动注册。
+
+## AOT (IL2CPP) 注意事项
+
+`AutoRegister()` 基于反射，因此在 IL2CPP 构建中方法可能会被剥离。
+请用 `link.xml` 保留包含动作方法的程序集。
+
+```xml
+<linker>
+  <assembly fullname="YourGameAssembly" preserve="all" />
+</linker>
+```
+
+如果想避免使用反射，也可以只使用**路径 B（手动注册）**。
+
+
+
+---
+url: /AchReactive/zh/usage/reactions.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/zh/llms.txt, the full documentation bundle is available at /AchReactive/zh/llms-full.txt.
+
+# 响应与基础动作
+
+## 执行流程
+
+```csharp
+var engine = new ReactionEngine();
+engine.Run("on_use", skillData, ctx);
+```
+
+`Run(trigger, data, ctx)` 会遍历 `data.reactions`，并对每个响应作如下处理。
+
+```
+1. trigger 通道名称是否匹配？          (不匹配则 skip)
+2. 触发器守卫是否通过？                (TriggerRegistry，没有则视为通过)
+3. 所有条件（AND）是否通过？           (ConditionRegistry)
+4. 按顺序执行各个效果                  (EffectRegistry)
+```
+
+返回值是实际执行的响应数量。
+
+## ReactionContext
+
+```csharp
+var ctx = new ReactionContext
+{
+    Source  = caster,     // 主体
+    Target  = target,     // 单一目标
+    Targets = targets,    // 范围目标（存在时优先）
+    World   = world,      // 生成/查询边界
+};
+```
+
+effect 通过 `ctx.Params` 读取自身参数。引擎会为每个项目注入。
+
+## 基础 Effect
+
+| type              | 说明                                | params                                |
+| ----------------- | --------------------------------- | ------------------------------------- |
+| `damage`          | 按 `atk*power + flat - def` 减少 hp  | `power`, `flat`                       |
+| `heal`            | 恢复 `atk*power + flat`（上限为 hp_max） | `power`, `flat`                       |
+| `set_stat`        | 设置属性基础值                           | `stat`, `value`                       |
+| `add_stat`        | 增减属性基础值                           | `stat`, `delta`                       |
+| `add_modifier`    | 添加属性修正器（增益的基本形态）                  | `stat`, `modifier`, `value`, `source` |
+| `remove_modifier` | 移除 source 令牌的修正器                  | `source`                              |
+| `spawn`           | 通过 World 生成实体                     | `entityId`                            |
+| `log`             | 调试日志                              | `message`                             |
+
+`modifier` 的取值为 `flat` / `percent_add` / `percent_mul`。目标在 `Targets` 存在时
+为全部，否则为 `Target`。
+
+## 基础 Condition
+
+| type                        | 说明      | params          |
+| --------------------------- | ------- | --------------- |
+| `always`                    | 始终为真    | —               |
+| `alive` / `dead`            | 目标存活/死亡 | —               |
+| `chance`                    | 按概率通过   | `value` (0\~1)  |
+| `hp_below` / `hp_above`     | HP 比例比较 | `value` (0\~1)  |
+| `stat_above` / `stat_below` | 属性值比较   | `stat`, `value` |
+
+条件在未另行指定时，评估 `Target`（不存在则为 `Source`）。
+
+## 基础 Trigger 守卫
+
+大多数触发器（`on_use`、`on_hit`、`on_equip` 等）仅凭通道名称即可发动，因此没有守卫。
+只有需要阈值比较的触发器才设有守卫。
+
+| type          | 说明                              | triggerParams      |
+| ------------- | ------------------------------- | ------------------ |
+| `on_hp_below` | 仅当 Source HP 比例 ≤ threshold 时发动 | `threshold` (0\~1) |
+
+## 属性约定
+
+基础 effect/condition 使用以下键（`StatKeys`）。若要使用其他体系，直接注册 effect
+覆盖即可。
+
+| 键        | 含义             |
+| -------- | -------------- |
+| `hp`     | 当前生命值（资源）      |
+| `hp_max` | 最大生命值（比例条件的分母） |
+| `atk`    | 攻击力（应用修正器）     |
+| `def`    | 防御力（应用修正器）     |
+
+

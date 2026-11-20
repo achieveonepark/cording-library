@@ -1,0 +1,97 @@
+> For AI agents: the complete documentation index is available at /infinity-value/en/llms.txt, the full documentation bundle is available at /infinity-value/en/llms-full.txt.
+
+# API Reference
+
+## Main Types
+
+| Type                        | Purpose                                                                                                                     |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `InfinityValue`             | Large-number value type.                                                                                                    |
+| `InfinityValueUnitNames`    | Instance-owned unit suffix table for parsing and display.                                                                   |
+| `InfinityValueConverter`    | Optional Newtonsoft.Json converter.                                                                                         |
+| `SerializableInfinityValue` | Serialization wrapper for exposing `InfinityValue` in the Unity Inspector ([details](/infinity-value/en/api/inspector.md)). |
+
+## Constructors
+
+```csharp
+new InfinityValue(long number)
+new InfinityValue(long number, InfinityValueUnitNames unitNames)
+
+new InfinityValue(double number)
+new InfinityValue(double number, InfinityValueUnitNames unitNames)
+
+new InfinityValue(float number)
+new InfinityValue(float number, InfinityValueUnitNames unitNames)
+
+new InfinityValue(BigInteger number)
+new InfinityValue(BigInteger number, InfinityValueUnitNames unitNames)
+
+new InfinityValue(string input)
+new InfinityValue(string input, InfinityValueUnitNames unitNames)
+```
+
+## Static Values
+
+```csharp
+InfinityValue.Zero
+InfinityValue.One
+```
+
+Use `WithUnitNames` when a zero or one value should carry a custom unit context:
+
+```csharp
+InfinityValue zeroGold = InfinityValue.Zero.WithUnitNames(goldUnits);
+```
+
+## Parsing
+
+```csharp
+InfinityValue.TryParse(string input, out InfinityValue result)
+InfinityValue.TryParse(string input, InfinityValueUnitNames unitNames, out InfinityValue result)
+```
+
+## Instance Members
+
+```csharp
+bool IsEmpty { get; }
+InfinityValueUnitNames UnitNames { get; }
+InfinityValue WithUnitNames(InfinityValueUnitNames unitNames)
+string ToString()
+int CompareTo(InfinityValue other)
+bool Equals(InfinityValue other)
+int GetHashCode()
+```
+
+## Operators
+
+```csharp
+a + b
+a - b
+a * 10L
+a * 1.5
+a / 2L
+a / 2.0
+
+a == b
+a != b
+a < b
+a > b
+a <= b
+a >= b
+```
+
+## Conversions
+
+```csharp
+InfinityValue value = 1000;
+InfinityValue parsed = "500A";
+
+long asLong = (long)value;
+double asDouble = (double)value;
+float asFloat = (float)value;
+```
+
+## See Also
+
+- [Math Helpers](/infinity-value/en/api/math.md) — cost curves, `AffordableCount`, `ToProgress`, `Min`/`Max`/`Clamp`, increment/decrement operators
+- [Inspector & Exact Serialization](/infinity-value/en/api/inspector.md) — `SerializableInfinityValue`, `ToExactString`/`TryParseExact`

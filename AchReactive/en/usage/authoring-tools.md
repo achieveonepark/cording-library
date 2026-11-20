@@ -1,0 +1,59 @@
+> For AI agents: the complete documentation index is available at /AchReactive/en/llms.txt, the full documentation bundle is available at /AchReactive/en/llms-full.txt.
+
+# Authoring tools
+
+You don't write data by hand in JSON. Two UIToolkit editor windows generate code and data.
+
+## Type Designer — generate code from a type
+
+Menu: **Tools ▸ AchReactive ▸ Type Designer**
+
+```
+Type Name:   [ Monster        ]
+Base Type:   [ EntityData ▾   ]
+Output:      [ Assets/Generated ]
+Fields:
+  [ hp        ] [ Float    ▾ ] [−]
+  [ dropTable ] [ StringArray ▾ ] [−]
+  [ + Add Field ]
+                              [ Generate ]
+```
+
+Pressing **Generate** produces two files.
+
+- `MonsterData.cs` — an `IData` implementation that inherits `EntityData` (Newtonsoft compatible)
+- `MonsterCsvMapper.cs` — an `ICsvMapper<MonsterData>` implementation
+
+Supported field types: `string`, `int`, `float`, `bool`, and their array forms (`string[]`, etc.).
+Arrays are separated by `|` in CSV.
+
+If you'd rather not generate, writing `class MonsterData : EntityData { ... }` by hand works 100% as well.
+
+## Data Editor — create/edit data
+
+Menu: **Tools ▸ AchReactive ▸ Data Editor**
+
+- Left: instance list (add with + Instance)
+- Right: the selected instance's `id` and the **Reactions builder**
+  - **Trigger** dropdown — registered triggers + common channels (on_use, on_hit …)
+  - **Conditions / Effects** — `type` is a dropdown populated from the registry, `params` is JSON
+- Top **Export JSON…** — save as a `reactions`-format array
+
+```
+Reactions
+ ┌────────────────────────────────────────┐
+ │ Trigger: [ on_use ▾ ]              [−]  │
+ │ Conditions (AND)                        │
+ │   [ alive ▾ ] [ {} ]              [−]   │
+ │   [ + Condition ]                       │
+ │ Effects                                 │
+ │   [ damage ▾ ] [ { "power": 1.8 } ] [−] │
+ │   [ + Effect ]                          │
+ └────────────────────────────────────────┘
+```
+
+The key point is that **you don't type trigger/condition/effect types directly**.
+The dropdowns expose only the names actually registered in the registry, so typos and unregistered types are blocked at the source.
+The saved JSON is read by `JsonDataLoader` as is.
+
+> Authoring is UI, runtime consumption is data files — users never need to touch JSON directly.

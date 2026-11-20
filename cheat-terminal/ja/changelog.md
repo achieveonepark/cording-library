@@ -1,0 +1,128 @@
+> For AI agents: the complete documentation index is available at /cheat-terminal/ja/llms.txt, the full documentation bundle is available at /cheat-terminal/ja/llms-full.txt.
+
+# 変更履歴
+
+パッケージの主な変更点です。このプロジェクトは [Semantic Versioning](https://semver.org/) に従います。
+
+各リリースの背景と設計の変化は[開発の歩み](/cheat-terminal/ja/history.md)にまとめています。
+
+## 1.1.0 - 2026-10-17
+
+### 追加
+
+- 安全領域内でドラッグできる開発者ドック。チートと Terminal のアイコンを個別に表示します。
+- usage から生成する必須・任意の入力欄、選択ボタン、座標欄、複数引数、入力値の保持と検証。
+- カテゴリーフィルター、カード別の結果とエラー。Terminal に Run、Tab 補完、履歴操作と安全領域対応を追加。
+- ローカルのチート作成スキルと Unity のコア・UI テスト。
+
+### 変更・修正
+
+- `F1`: Cheat Library、`F2`: Terminal、`F10`: チート UI、`F9`: ドック、Escape: 閉じる。
+- Run ボタンで実行し、画面切り替え時には前の画面を閉じます。一時停止状態は維持します。
+- 引用符、空白、バックスラッシュ、空文字の引数を保持し、実行エラーを表示します。
+- ドックのアイコンとパネル背景に必要な CanvasRenderer を生成。テーマがなくても入力欄の最小高さを保ち、Run ボタンとの重なりを防ぎます。
+- 過去のリリース記録を `1.0.0`〜`1.0.4`、今回の UI 更新を `1.1.0` に整理しました。
+
+## 1.0.4 - 2026-08-29
+
+### Changed
+
+- チート HUD が左からスライドするパネルではなく**画面全体**を覆うようになりました。各行が押しやすい大きさ（最小 104px）になり、`Screen.safeArea` を避けて配置され、広い画面では 2〜3 列に分かれます。下部には大きな `CLOSE` ボタンがあります。以前のパネルは `TerminalBehaviour.CheatHudFullScreen = false` と `CheatHudView.WidthPercent` で引き続き使えます。
+
+### Added
+
+- 開閉リスナー: `TerminalBehaviour.VisibilityChanged`（コンソールと HUD をまとめて）、`ConsoleVisibilityChanged`、`CheatHudVisibilityChanged`。ビューからも `OnOpened` / `OnClosed` / `OnVisibilityChanged` で受け取れます。
+- `TerminalBehaviour.PauseGameWhileOpen` / `PausedTimeScale`: 開いている間 `Time.timeScale` を固定し、閉じたときに元へ戻します。
+- エディター・デスクトップ向けのコンソールキー: `F1`（切り替え）とバッククォート `` ` ``（開くだけなので入力の邪魔にならない）。チート HUD は `F10` に加えて `F2` でも開きます。
+- プレイモード用の `Tools > Cheat Terminal` エディターメニュー（コンソール / HUD / ハンドルの切り替え、Pause Game While Open、手動ブートストラップ）。
+- `TerminalShortcutKey` に `F1`〜`F4`、`F11`、`F12`、`BackQuote`、`Escape` を追加。`MultiFingerTapGesture` は 2 つ目のキー `AlternateKey` を受け取ります。
+
+### Fixed
+
+- Input System のみのプロジェクトで `EventSystem` が作られず、コンソールとチート HUD のボタンがすべて反応しなかった問題。`InputSystemUIInputModule` 付きで作成するようになりました。
+
+### Documentation
+
+- コミット履歴をもとに整理した[開発の歩み](/cheat-terminal/ja/history.md)ページを追加 (ko / en / ja / zh)。
+
+## 1.0.3 - 2026-08-17
+
+### Changed
+
+- 右上の `>_` ハンドルは既定で非表示になりました。画面のどこでも **4 本指で 3 回タップ**すると表示され、同じジェスチャーで再び隠れます。コードからは `TerminalCornerTrigger.Visible` / `TerminalBehaviour.HandleVisible` で制御します（`TerminalCornerTrigger.Enabled` は別名として維持）。
+
+### Added
+
+- チート HUD (`CheatHudView`): 左からスライドインする UI Toolkit パネル。登録済みのコマンドをカテゴリー別に表示します。**3 本指で 3 回タップ**（デスクトップは F10）または `TerminalBehaviour.Open/Close/ToggleCheatHud()` で切り替えます。引数のないチートはワンタップで実行され、`<...>` / `[...]` 引数を持つチートはインライン入力欄が開きます。検索欄、直近の実行を示すステータス行、コンソールを開く `>_` ボタンを含みます。
+- `MultiFingerTapGesture`: 「N 本指・M 連タップ」を検出する再利用可能なコンポーネント。指の本数が完全に一致した場合のみ成立するため、3 本指と 4 本指のジェスチャーが干渉しません。エディター・デスクトップ用のキーボードフォールバック（F9 / F10）付き。
+- `TerminalInput`: レガシー Input Manager と Input System パッケージの両方に対応する、リフレクション不要の入力抽象化。
+- チート作成時の規約をまとめた `AGENT.md`。
+
+## 1.0.2 - 2026-06-27
+
+### Changed (breaking)
+
+- reflection ベースの `[Terminal]` メソッド探索と呼び出しを削除しました。コマンドは `RegisterCommand(...)` で明示的に登録します。
+- reflection ベースの Object Inspector module をデフォルト runtime から削除しました。
+- EventSystem fallback は optional Input System 型を reflection で探索しなくなりました。Input System-only のプロジェクトでは `InputSystemUIInputModule` 付きの EventSystem を用意してください。
+
+### Fixed
+
+- Terminal input は focus loss ではなく、明示的な submit のときだけ実行されます。
+- Terminal output は color tag で包む前に rich text-sensitive 文字を escape します。
+- Unity component commands は invariant-culture の数値 parsing、厳密な bool parsing、必要に応じた inactive-inclusive GameObject lookup を使います。
+- Logs / Performance module が作成する runtime helper GameObject は terminal bootstrap と一緒に dispose されます。
+
+### Added
+
+- command name、usage keyword、command-specific provider の cached completion items を追加しました。
+- scene、logs、GameObject、component target、boolean value など、built-in command 向けの context-aware completion を追加しました。
+- reflection-free data lookup のための `data [table] [id|text]` command と `RegisterDataTable(...)` を追加しました。
+- Console、registered Commands、registered Data tables を表示する Terminal UI tabs を追加しました。
+
+## 1.0.1 - 2026-05-30
+
+### 変更
+
+- 名前空間を `UniTerminal` から `Achieve.CheatTerminal` に変更。
+
+### 追加
+
+- Unity コンポーネントを操作する `transform`、`rb`、`cam`、`light`、`audio`、`time`、`go` コマンド。
+- 韓国語・英語・日本語・中国語のドキュメントと高度なモジュールの使用方法。
+
+## 1.0.0 - 2026-05-29
+
+### Changed (breaking)
+
+- 内部協調用インターフェース (`ICommandRegistry`, `ICommandParser`, `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`, `ITerminalTrigger`, `ITerminal`) と `TerminalBuilder` を削除しました。core `Terminal` は concrete collaborator を所有する concrete class になりました。拡張ポイントとして残るのは `ICommand`, `ICommandOutput`, `ITerminalView`, `ITerminalModule` です。
+- command 用 marker interface はなくなり、`[Terminal]` attribute が唯一の marker になりました。
+- `Terminal.ScanStaticCommands()` は user assemblies を scan し、すべての static `[Terminal]` methods を自動登録します。bootstrap 時に `TerminalBehaviour.AutoScanStaticCommands` を通じて実行されます。instance commands は引き続き `Register(this)` を使います。
+
+### Added
+
+- Runtime Logs module: `Debug.Log` output を ring buffer に収集し、`logs [n | error | warning | info | <text> | find <text> | clear | export]` で扱えます。export は `Application.persistentDataPath` に書き込むため、device から logs を回収できます。
+- input field で Up/Down arrow により前後の command history を呼び出せます。uGUI `IMoveHandler` 経由なので、legacy Input Manager と Input System package の両方で動作します。
+- `help <category>` は category 内の commands を descriptions 付きで表示します。`help` は `help <command>` / `help <category>` を案内します。
+
+### Fixed
+
+- Input System package が有効な場合、EventSystem は reflection 経由で `InputSystemUIInputModule` を作成するようになり、毎 frame の `InvalidOperationException` を避けます。
+- top-right corner trigger は表示される `>_` handle になり、single tap で開くようになりました。
+
+## 0.1.0 - 2026-05-29
+
+### Added
+
+- Core command system: `ICommandRegistry`, quote-aware `ICommandParser`, `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`, default implementation 付きの `ICommandOutput`。
+- `[Terminal("name {0}")]` attribute と reflection-based `AttributeCommand` binding。positional binding、optional parameters、`CommandContext` injection を含みます。
+- `TerminalBuilder` で組み立てる interface-driven `Terminal` core。
+- closed 時に zero idle cost になる uGUI overlay view (`UGuiTerminalView`)。
+- top-right corner open gesture (`TerminalCornerTrigger`, default は double-tap)。
+- static convenience API を持つ `TerminalBehaviour` bootstrap。editor と development build では auto-bootstrap します。
+- built-in commands: `help`, `clear`, `history`, `echo`, `alias`。
+- bootstrap 上の `InstallModule` / `GetModule<T>` による module system (`ITerminalModule`)。
+- Scene Tools module: `scene list | load <name> [additive] | unload <name>`。
+- Object Inspector module: `find`, `inspect`, `set <name>.<member> <value>`, `call`。explicit object registration (`ObjectInspectorModule.RegisterObject`) に対応。
+- Performance Monitor module: `perf` (FPS, frame ms, memory, GC, render stats via `ProfilerRecorder`)。
+- Basic Usage sample。

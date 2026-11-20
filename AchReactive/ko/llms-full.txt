@@ -1,0 +1,817 @@
+---
+url: /AchReactive/ko/api.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/ko/llms.txt, the full documentation bundle is available at /AchReactive/ko/llms-full.txt.
+
+# API 레퍼런스
+
+네임스페이스는 모두 `AchReactive` 입니다.
+
+## DataBase\<T>
+
+```csharp
+public sealed class DataBase<T> where T : IData
+{
+    void Load(IDataLoader<T> loader);   // 전체 교체
+    void Add(IDataLoader<T> loader);    // 병합
+    void Add(T item);
+    T Get(string id);
+    bool TryGet(string id, out T value);
+    bool Has(string id);
+    void Clear();
+    int Count { get; }
+    IReadOnlyCollection<T> All { get; }
+}
+```
+
+## IDataLoader / 구현체
+
+```csharp
+public interface IDataLoader<T> where T : IData
+{
+    IReadOnlyList<T> Load();
+}
+
+public sealed class JsonDataLoader<T> : IDataLoader<T> where T : IData
+{
+    JsonDataLoader(string json, JsonSerializerSettings settings = null);
+    JsonDataLoader(Func<string> read, JsonSerializerSettings settings = null);
+}
+
+public sealed class CsvDataLoader<T> : IDataLoader<T> where T : IData
+{
+    CsvDataLoader(string csv, ICsvMapper<T> mapper);
+    CsvDataLoader(Func<string> read, ICsvMapper<T> mapper);
+}
+
+public interface ICsvMapper<out T> where T : IData
+{
+    T Map(IReadOnlyDictionary<string, string> row);
+}
+```
+
+## 데이터 모델
+
+```csharp
+public interface IData { string Id { get; } }
+
+[Serializable]
+public class EntityData : IData
+{
+    public string id;
+    public Dictionary<string, float> stats;
+    public Reaction[] reactions;
+    public string Id => id;
+}
+
+[Serializable]
+public class Reaction
+{
+    public string trigger;
+    public ParamBag triggerParams;
+    public ConditionDef[] conditions;
+    public EffectDef[] effects;
+}
+
+[Serializable] public class EffectDef    { public string type; public ParamBag @params; }
+[Serializable] public class ConditionDef { public string type; public ParamBag @params; }
+```
+
+## ParamBag
+
+```csharp
+public sealed class ParamBag
+{
+    static readonly ParamBag Empty;
+    bool Has(string key);
+    T Get<T>(string key, T fallback = default);
+    bool TryGet<T>(string key, out T value);
+    void Set<T>(string key, T value);
+}
+```
+
+## ReactionEngine
+
+```csharp
+public sealed class ReactionEngine
+{
+    int Run(string trigger, EntityData data, ReactionContext ctx);
+}
+
+public sealed class ReactionContext
+{
+    public IEntity Source;
+    public IEntity Target;
+    public IReadOnlyList<IEntity> Targets;
+    public IWorld World;
+    public ParamBag Params;
+}
+```
+
+## Registry
+
+```csharp
+public delegate void EffectFn(ReactionContext ctx);
+public delegate bool ConditionFn(ReactionContext ctx);
+public delegate bool TriggerFn(ReactionContext ctx, ParamBag triggerParams);
+
+public static class EffectRegistry
+{
+    static void AutoRegister();
+    static void Register(string name, EffectFn fn);
+    static bool TryGet(string name, out EffectFn fn);
+    static bool Has(string name);
+    static IEnumerable<string> Names { get; }
+}
+// ConditionRegistry, TriggerRegistry 도 동일 패턴
+```
+
+## 통합 경계
+
+```csharp
+public interface IEntity
+{
+    string Id { get; }
+    Vector3 Position { get; set; }
+    StatSheet Stats { get; }
+    bool IsAlive { get; }
+}
+
+public interface IWorld
+{
+    IEntity Spawn(string dataId, Vector3 at);
+    void Collect(Vector3 center, float radius, List<IEntity> buffer);
+}
+```
+
+## StatSheet / CooldownStore
+
+```csharp
+public sealed class StatSheet
+{
+    void SetBase(string statKey, float value);
+    float GetBase(string statKey);
+    float Get(string statKey);   // 수정자 적용 최종값
+    void AddModifier(string statKey, string modifierType, float value, object source);
+    void RemoveSource(object source);
+}
+
+public sealed class CooldownStore
+{
+    CooldownStore(Func<float> timeProvider = null);
+    bool IsReady(string id);
+    void Start(string id, float cooldown);
+    float Remaining(string id);
+}
+```
+
+
+
+---
+url: /AchReactive/ko/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/ko/llms.txt, the full documentation bundle is available at /AchReactive/ko/llms-full.txt.
+
+# 변경 이력
+
+## 0.1.0
+
+첫 공개. 스킬 전용 도구(Skill Creator)에서 **도메인 무관 리액션 프레임워크 AchReactive** 로 전환.
+
+### 추가
+
+- **Data Layer** — `IData`, `IDataLoader<T>`, `DataBase<T>` (typeof 미사용)
+- **Loader** — `JsonDataLoader<T>`(Newtonsoft), `CsvDataLoader<T>` + `ICsvMapper<T>`
+- **Reaction Layer** — `Reaction`, `EntityData`, `ParamBag`, `ReactionContext`, `ReactionEngine`
+- **Registry** — `Effect/Condition/TriggerRegistry` (Attribute 자동수집 + 수동등록)
+- **기본 동작 풀** — effect 8종, condition 8종, trigger 가드 1종
+- **통합 경계** — `IEntity`, `IWorld`, `StatSheet`, `CooldownStore`
+- **UIToolkit 저작 도구** — Type Designer(코드 생성), Data Editor(데이터 생성)
+- **Basic 샘플** — 스킬 + 몬스터 두 도메인 예제
+
+### 변경
+
+- 패키지명 `com.achieve.skill-creator` → `com.achieve.reactive`
+- 네임스페이스 → `AchReactive`
+- `JsonUtility` → `Newtonsoft.Json` (래퍼 클래스 제거)
+
+### 제거
+
+- 스킬 전용 레거시(`SkillSystem`/`SkillRunner`/`EffectExecutor` 등)
+- 버프 지속/스택 시스템은 런타임 상태 재설계가 필요해 일시 보류 (후속 예정)
+
+
+
+---
+url: /AchReactive/ko/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/ko/llms.txt, the full documentation bundle is available at /AchReactive/ko/llms-full.txt.
+
+# 시작하기
+
+## 설치
+
+Unity Package Manager 에서 **Add package from git URL** 을 선택하고 다음 주소를 입력합니다.
+
+```
+https://github.com/achieveonepark/AchReactive.git
+```
+
+또는 `Packages/manifest.json` 에 직접 추가합니다.
+
+```json
+{
+  "dependencies": {
+    "com.achieve.reactive": "https://github.com/achieveonepark/AchReactive.git"
+  }
+}
+```
+
+요구 사항은 **Unity 2021.3 이상** 입니다. 의존성은 `com.unity.nuget.newtonsoft-json` 하나이며
+자동으로 함께 설치됩니다.
+
+## 1. 통합 경계 구현
+
+AchReactive 는 여러분의 게임 구조를 강제하지 않습니다. 두 인터페이스만 구현하면 됩니다.
+
+- `IEntity` — 리액션의 주체/대상 (캐릭터, 몬스터 등)
+- `IWorld` — 스폰/범위 조회 등 월드 경계
+
+```csharp
+using AchReactive;
+using UnityEngine;
+
+public sealed class Character : MonoBehaviour, IEntity
+{
+    public StatSheet Stats { get; } = new StatSheet();   // 패키지 제공, 그대로 사용
+    public string Id => name;
+    public Vector3 Position { get => transform.position; set => transform.position = value; }
+    public bool IsAlive => Stats.GetBase(StatKeys.Hp) > 0f;
+
+    void Awake()
+    {
+        Stats.SetBase(StatKeys.Hp, 100f);
+        Stats.SetBase(StatKeys.HpMax, 100f);
+        Stats.SetBase(StatKeys.Atk, 10f);
+        Stats.SetBase(StatKeys.Def, 2f);
+    }
+}
+```
+
+## 2. 데이터 작성
+
+스킬을 `reactions` 형식의 JSON 으로 정의합니다. (직접 쓰지 않고 [Data Editor](/AchReactive/ko/usage/authoring-tools.md) 로 만들어도 됩니다.)
+
+```json
+[
+  {
+    "id": "fire_slash",
+    "cooldown": 5.0,
+    "reactions": [
+      {
+        "trigger": "on_use",
+        "conditions": [{ "type": "alive" }],
+        "effects": [
+          { "type": "damage", "params": { "power": 1.8 } },
+          { "type": "log", "params": { "message": "fire_slash 명중!" } }
+        ]
+      }
+    ]
+  }
+]
+```
+
+## 3. 조립과 실행
+
+```csharp
+using AchReactive;
+
+var skills = new DataBase<SkillData>();
+var engine = new ReactionEngine();
+
+void Start()
+{
+    // 동작 풀 자동수집 (기본 damage/heal/… 포함)
+    EffectRegistry.AutoRegister();
+    ConditionRegistry.AutoRegister();
+    TriggerRegistry.AutoRegister();
+
+    // 데이터 적재 — 소스는 자유
+    skills.Load(new JsonDataLoader<SkillData>(() => skillsJson.text));
+}
+
+void UseSkill(IEntity caster, IEntity target)
+{
+    var ctx = new ReactionContext { Source = caster, Target = target };
+    engine.Run("on_use", skills.Get("fire_slash"), ctx);
+}
+```
+
+`damage`, `heal`, `add_modifier` 같은 기본 effect 는 패키지가 제공하므로 별도 코드가 필요 없습니다.
+`Samples` 의 **Basic** 예제에서 동작하는 씬을 바로 확인할 수 있습니다.
+
+## 다음 단계
+
+- [개념](/AchReactive/ko/usage/concepts.md) — 왜 이런 구조인지
+- [기본 동작 풀](/AchReactive/ko/usage/reactions.md) — 제공되는 effect/condition 목록
+- [확장하기](/AchReactive/ko/usage/extending.md) — 새 동작과 새 도메인
+
+
+
+---
+url: /AchReactive/ko/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/ko/llms.txt, the full documentation bundle is available at /AchReactive/ko/llms-full.txt.
+
+# AchReactive
+
+**AchReactive** 는 스킬·몬스터·아이템·맵·퀘스트 등 모든 게임 콘텐츠를
+**트리거 → 조건 → 효과** 의 데이터 조합으로 만드는 Unity 프레임워크입니다.
+
+## 핵심 아이디어
+
+> 도메인은 무한하지만, 동작(primitive)은 유한하다.
+
+도메인마다 시스템을 새로 만들면 `도메인 × 동작` 매트릭스를 매번 채워야 합니다.
+AchReactive 는 동작 풀을 **모든 도메인이 공유**하게 만들어 이 곱셈을 덧셈으로 바꿉니다.
+두 번째 도메인부터는 거의 공짜입니다.
+
+```
+        damage  heal  add_modifier  spawn
+Skill     ✓      ✓        ✓
+Monster                    ✓          ✓     ← 같은 effect 재사용
+Item               ✓       ✓
+```
+
+## 특징
+
+- **도메인 무관** — `DataBase<T>` 하나로 Skill/Monster/Item/… 전부 처리
+- **소스 무관** — JSON·CSV·원격 등 어디서든 로드 (`IDataLoader<T>` 만 구현하면 새 소스)
+- **동작 자동등록** — `[Effect]`/`[Condition]`/`[Trigger]` 메서드를 리플렉션으로 수집, 배선 0줄
+- **UIToolkit 저작 도구** — 타입과 데이터를 에디터에서 생성 (JSON 수기 작성 없음)
+- **의존성 최소** — Newtonsoft.Json 하나
+
+## 한눈에 보기
+
+```csharp
+// 1) 동작 풀 자동수집 (기본 effect/condition/trigger 포함)
+EffectRegistry.AutoRegister();
+ConditionRegistry.AutoRegister();
+TriggerRegistry.AutoRegister();
+
+// 2) 데이터 적재 (소스 자유)
+var skills = new DataBase<SkillData>();
+skills.Load(new JsonDataLoader<SkillData>(() => json));
+
+// 3) 실행 — 도메인이 달라도 동일
+engine.Run("on_use", skills.Get("fire_slash"), ctx);
+```
+
+## 다음 단계
+
+- [시작하기](/AchReactive/ko/getting-started.md) — 설치부터 첫 리액션 실행까지
+- [개념](/AchReactive/ko/usage/concepts.md) — 트리거/조건/효과와 도메인 모델
+- [확장하기](/AchReactive/ko/usage/extending.md) — 새 동작·새 도메인 추가
+
+
+
+---
+url: /AchReactive/ko/usage/authoring-tools.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/ko/llms.txt, the full documentation bundle is available at /AchReactive/ko/llms-full.txt.
+
+# 저작 도구
+
+데이터를 JSON 으로 손수 쓰지 않습니다. 두 개의 UIToolkit 에디터 창이 코드와 데이터를 생성합니다.
+
+## Type Designer — 타입에서 코드 생성
+
+메뉴: **Tools ▸ AchReactive ▸ Type Designer**
+
+```
+Type Name:   [ Monster        ]
+Base Type:   [ EntityData ▾   ]
+Output:      [ Assets/Generated ]
+Fields:
+  [ hp        ] [ Float    ▾ ] [−]
+  [ dropTable ] [ StringArray ▾ ] [−]
+  [ + Add Field ]
+                              [ Generate ]
+```
+
+**Generate** 를 누르면 두 파일이 생성됩니다.
+
+- `MonsterData.cs` — `EntityData` 를 상속한 `IData` 구현 (Newtonsoft 호환)
+- `MonsterCsvMapper.cs` — `ICsvMapper<MonsterData>` 구현
+
+지원 필드 타입: `string`, `int`, `float`, `bool`, 그리고 각 배열형(`string[]` 등).
+배열은 CSV 에서 `|` 로 구분합니다.
+
+생성을 원치 않으면 손으로 `class MonsterData : EntityData { ... }` 를 써도 100% 동작합니다.
+
+## Data Editor — 데이터 생성/편집
+
+메뉴: **Tools ▸ AchReactive ▸ Data Editor**
+
+- 좌측: 인스턴스 목록 (+ Instance 로 추가)
+- 우측: 선택 인스턴스의 `id` 와 **Reactions 빌더**
+  - **Trigger** 드롭다운 — 등록된 트리거 + 일반 채널(on_use, on_hit …)
+  - **Conditions / Effects** — `type` 은 레지스트리에서 채운 드롭다운, `params` 는 JSON
+- 상단 **Export JSON…** — `reactions` 형식 배열로 저장
+
+```
+Reactions
+ ┌────────────────────────────────────────┐
+ │ Trigger: [ on_use ▾ ]              [−]  │
+ │ Conditions (AND)                        │
+ │   [ alive ▾ ] [ {} ]              [−]   │
+ │   [ + Condition ]                       │
+ │ Effects                                 │
+ │   [ damage ▾ ] [ { "power": 1.8 } ] [−] │
+ │   [ + Effect ]                          │
+ └────────────────────────────────────────┘
+```
+
+핵심은 **trigger/condition/effect 타입을 직접 타이핑하지 않는다**는 점입니다.
+드롭다운이 레지스트리에 실제 등록된 이름만 노출하므로 오타·미등록 타입이 원천 차단됩니다.
+저장된 JSON 은 `JsonDataLoader` 가 그대로 읽습니다.
+
+> 저작은 UI, 런타임 소비는 데이터 파일 — 사용자가 JSON 을 직접 만질 필요가 없습니다.
+
+
+
+---
+url: /AchReactive/ko/usage/concepts.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/ko/llms.txt, the full documentation bundle is available at /AchReactive/ko/llms-full.txt.
+
+# 핵심 컨셉
+
+## 곱셈을 덧셈으로
+
+도메인마다 전용 시스템(SkillSystem, MonsterSystem, …)을 만들면
+`도메인 × 동작` 매트릭스를 매번 채워야 합니다. AchReactive 는 **동작 풀을 모든 도메인이
+공유**하게 만들어 이를 `도메인 + 동작` 으로 바꿉니다.
+
+- 새 도메인 추가 → 데이터 클래스 1개 (시스템 코드 0)
+- 이미 있는 동작 재사용 → 코드 0, 데이터만
+- 진짜 새 동작 → 함수 1개, 이후 모든 도메인이 공유
+
+## 4개의 레이어
+
+```
+Data Layer       IData · IDataLoader<T> · DataBase<T>      (제네릭, 패키지 제공)
+Reaction Layer   Reaction · ReactionEngine · Registry      (제네릭, 패키지 제공)
+Behavior Pool    [Effect("damage")] [Condition("alive")]   (게임 작성, 도메인 무관)
+Domain Data      SkillData · MonsterData · ItemData         (데이터, 코드젠 가능)
+```
+
+위 두 레이어는 패키지가 제공하며 바뀌지 않습니다. 아래 두 레이어만 채우면 됩니다.
+
+## 리액션 = 트리거 → 조건 → 효과
+
+모든 도메인은 같은 언어로 표현됩니다.
+
+```
+Reaction
+ ├─ trigger      "on_use" | "on_hit" | "on_hp_below" ...
+ ├─ conditions   AND 로 평가 (alive, hp_below, chance ...)
+ └─ effects      순서대로 실행 (damage, heal, add_modifier ...)
+```
+
+도메인이 달라도 형태는 동일합니다.
+
+```json
+// 스킬 — 사용 시 피해
+{ "trigger": "on_use",
+  "effects": [{ "type": "damage", "params": { "power": 1.8 } }] }
+
+// 몬스터 — HP 30% 이하에서 광폭화
+{ "trigger": "on_hp_below", "triggerParams": { "threshold": 0.3 },
+  "effects": [{ "type": "add_modifier", "params": { "stat": "atk", "modifier": "percent_add", "value": 0.5 } }] }
+
+// 아이템 — 장착 시 오라
+{ "trigger": "on_equip",
+  "effects": [{ "type": "add_modifier", "params": { "stat": "def", "modifier": "flat", "value": 5 } }] }
+```
+
+`add_modifier` 는 스킬이 쓰든 아이템이 쓰든 **같은 코드 하나**입니다.
+
+## 통합 경계
+
+게임은 두 인터페이스만 구현합니다.
+
+- **`IEntity`** — `Id`, `Position`, `Stats`(StatSheet), `IsAlive`
+- **`IWorld`** — `Spawn`, `Collect`
+
+effect/condition 은 `ReactionContext` 를 통해 `Source`/`Target`/`Targets`/`World` 에 접근합니다.
+
+## typeof 를 쓰지 않는다
+
+여러 도메인을 묶을 때 `Dictionary<Type, object>` 같은 타입-키 서비스 로케이터를 쓰지 않습니다.
+각 `DataBase<T>` 를 **명시적으로 보유**하고, 크로스 도메인 참조가 필요한 effect 는
+[수동등록 + 클로저 캡처](/AchReactive/ko/usage/extending.md#크로스-도메인)로 해결합니다.
+
+```csharp
+public sealed class GameDataContext
+{
+    public readonly DataBase<SkillData>   Skills   = new();
+    public readonly DataBase<MonsterData> Monsters = new();
+}
+```
+
+
+
+---
+url: /AchReactive/ko/usage/data-sources.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/ko/llms.txt, the full documentation bundle is available at /AchReactive/ko/llms-full.txt.
+
+# 데이터와 소스
+
+## IData 와 DataBase
+
+모든 도메인 데이터는 `IData`(= `string Id`)를 구현합니다. `DataBase<T>` 는 `id → 정의` 의
+인메모리 인덱스로, **모든 도메인이 이 한 클래스를 제네릭으로 공유**합니다.
+
+```csharp
+var skills = new DataBase<SkillData>();
+skills.Load(loader);              // 전체 교체
+skills.Add(loader);               // 병합
+SkillData s = skills.Get("fire_slash");
+bool has   = skills.Has("fire_slash");
+```
+
+## 소스 무관 — IDataLoader\<T>
+
+데이터를 어디서 읽든 `IDataLoader<T>` 라는 동일한 경계를 통합니다. 패키지는 두 구현을 제공합니다.
+
+### JSON
+
+Newtonsoft.Json 기반이라 최상위 배열을 그대로 읽습니다. (래퍼 클래스 불필요)
+
+```csharp
+// 문자열 직접
+skills.Load(new JsonDataLoader<SkillData>(json));
+
+// 읽기 지연 (파일/StreamingAssets/네트워크)
+skills.Load(new JsonDataLoader<SkillData>(
+    () => File.ReadAllText(path)));
+```
+
+```json
+[
+  { "id": "fire_slash", "cooldown": 5.0, "reactions": [ /* ... */ ] }
+]
+```
+
+### CSV
+
+첫 행을 헤더로 사용하고, 각 행을 `ICsvMapper<T>` 로 변환합니다. 따옴표/콤마/개행을 지원합니다.
+
+```csharp
+skills.Load(new CsvDataLoader<SkillData>(
+    () => File.ReadAllText(path), new SkillCsvMapper()));
+```
+
+`ICsvMapper<T>` 구현체는 보통 [Type Designer](/AchReactive/ko/usage/authoring-tools.md) 가 생성합니다.
+
+### 커스텀 소스
+
+바이너리, ScriptableObject, 사내 포맷 등은 `IDataLoader<T>` 만 구현하면 됩니다.
+
+```csharp
+public sealed class MyBinaryLoader<T> : IDataLoader<T> where T : IData
+{
+    public IReadOnlyList<T> Load() { /* 직접 디코딩 */ }
+}
+```
+
+> 에디터에서는 JSON, 실제 운영에서는 CSV/Remote 처럼 **소스만 갈아끼우면** 됩니다.
+
+## 데이터 형식 (reactions)
+
+도메인 데이터는 `EntityData` 를 상속합니다. 공통 필드는 `id`, `stats`, `reactions` 입니다.
+
+```csharp
+[Serializable]
+public class SkillData : EntityData   // id / stats / reactions 상속
+{
+    public float cooldown;
+    public float castTime;
+}
+```
+
+```json
+{
+  "id": "fire_slash",
+  "cooldown": 5.0,
+  "stats": { "manaCost": 20 },
+  "reactions": [
+    {
+      "trigger": "on_use",
+      "conditions": [{ "type": "alive" }],
+      "effects": [{ "type": "damage", "params": { "power": 1.8 } }]
+    }
+  ]
+}
+```
+
+`params` 는 임의 키-값(`ParamBag`)으로, effect/condition 이 `ctx.Params.Get<float>("power")`
+처럼 타입 변환해 읽습니다.
+
+
+
+---
+url: /AchReactive/ko/usage/extending.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/ko/llms.txt, the full documentation bundle is available at /AchReactive/ko/llms-full.txt.
+
+# 확장하기
+
+## 새 동작 추가
+
+### 길 A — Attribute (권장)
+
+`[Effect]`/`[Condition]`/`[Trigger]` 를 붙인 정적 메서드를 작성하면 `AutoRegister()` 가
+모든 어셈블리에서 자동 수집합니다. 배선 코드가 없습니다.
+
+```csharp
+using AchReactive;
+
+public static class MyEffects
+{
+    [Effect("teleport")]
+    public static void Teleport(ReactionContext c) =>
+        c.Source.Position = c.World != null ? /* ... */ c.Source.Position;
+}
+```
+
+시그니처는 고정입니다.
+
+```csharp
+[Effect("name")]    static void M(ReactionContext ctx)
+[Condition("name")] static bool M(ReactionContext ctx)
+[Trigger("name")]   static bool M(ReactionContext ctx, ParamBag triggerParams)
+```
+
+### 길 B — 수동등록
+
+DI, 런타임 상태, 클로저가 필요할 때 사용합니다.
+
+```csharp
+EffectRegistry.Register("teleport", c => myTeleporter.Move(c.Source));
+```
+
+## 새 도메인 추가
+
+새 도메인은 **데이터 클래스 1개** 면 충분합니다. 시스템 코드는 없습니다.
+
+```csharp
+[Serializable]
+public class MonsterData : EntityData   // id / stats / reactions 상속
+{
+    public int expReward;               // 도메인 고유 필드
+}
+```
+
+```csharp
+var monsters = new DataBase<MonsterData>();
+monsters.Load(new JsonDataLoader<MonsterData>(() => json));
+
+engine.Run("on_hp_below", monsters.Get("goblin_boss"), ctx);
+```
+
+`damage`/`add_modifier` 등은 스킬이 이미 등록한 것을 그대로 재사용합니다 → 코드 0줄.
+데이터 클래스와 CSV 매퍼는 [Type Designer](/AchReactive/ko/usage/authoring-tools.md) 로 생성할 수 있습니다.
+
+## 크로스 도메인
+
+effect 가 다른 도메인 데이터를 참조해야 하면, 자동등록 대신 **수동등록 + 클로저 캡처**로
+해당 `DataBase<T>` 를 잡습니다. 타입 키(typeof)를 쓰지 않습니다.
+
+```csharp
+var items = new DataBase<ItemData>();
+
+EffectRegistry.Register("drop_item", c =>
+{
+    var item = items.Get(c.Params.Get<string>("itemId")); // items 를 클로저로 캡처
+    c.World.Spawn(item.id, c.Source.Position);
+});
+```
+
+> 권장: 자동등록 effect 는 도메인을 모르는 순수 동작만, 도메인 결합이 필요한 effect 만 수동등록.
+
+## AOT (IL2CPP) 주의
+
+`AutoRegister()` 는 리플렉션 기반이라 IL2CPP 빌드에서 메서드가 스트리핑될 수 있습니다.
+동작 메서드가 포함된 어셈블리를 `link.xml` 로 보존하세요.
+
+```xml
+<linker>
+  <assembly fullname="YourGameAssembly" preserve="all" />
+</linker>
+```
+
+리플렉션을 피하고 싶으면 **길 B(수동등록)** 만 사용해도 됩니다.
+
+
+
+---
+url: /AchReactive/ko/usage/reactions.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/ko/llms.txt, the full documentation bundle is available at /AchReactive/ko/llms-full.txt.
+
+# 리액션과 기본 동작
+
+## 실행 흐름
+
+```csharp
+var engine = new ReactionEngine();
+engine.Run("on_use", skillData, ctx);
+```
+
+`Run(trigger, data, ctx)` 는 `data.reactions` 를 순회하며 각 리액션을 이렇게 처리합니다.
+
+```
+1. trigger 채널 이름 일치?            (아니면 skip)
+2. 트리거 가드 통과?                  (TriggerRegistry, 없으면 통과)
+3. 모든 조건(AND) 통과?               (ConditionRegistry)
+4. 효과를 순서대로 실행               (EffectRegistry)
+```
+
+반환값은 실제로 실행된 리액션 수입니다.
+
+## ReactionContext
+
+```csharp
+var ctx = new ReactionContext
+{
+    Source  = caster,     // 주체
+    Target  = target,     // 단일 대상
+    Targets = targets,    // 광역 대상 (있으면 우선)
+    World   = world,      // 스폰/조회 경계
+};
+```
+
+effect 는 `ctx.Params` 로 자기 인자를 읽습니다. 엔진이 항목마다 주입합니다.
+
+## 기본 Effect
+
+| type              | 설명                                | params                                |
+| ----------------- | --------------------------------- | ------------------------------------- |
+| `damage`          | `atk*power + flat - def` 만큼 hp 감소 | `power`, `flat`                       |
+| `heal`            | `atk*power + flat` 회복 (hp_max 상한) | `power`, `flat`                       |
+| `set_stat`        | 스탯 기본값 설정                         | `stat`, `value`                       |
+| `add_stat`        | 스탯 기본값 증감                         | `stat`, `delta`                       |
+| `add_modifier`    | 스탯 수정자 추가 (버프 기본형)                | `stat`, `modifier`, `value`, `source` |
+| `remove_modifier` | source 토큰의 수정자 제거                 | `source`                              |
+| `spawn`           | World 로 엔티티 스폰                    | `entityId`                            |
+| `log`             | 디버그 로그                            | `message`                             |
+
+`modifier` 값은 `flat` / `percent_add` / `percent_mul` 입니다. 대상은 `Targets` 가 있으면
+전부, 없으면 `Target` 입니다.
+
+## 기본 Condition
+
+| type                        | 설명       | params          |
+| --------------------------- | -------- | --------------- |
+| `always`                    | 항상 참     | —               |
+| `alive` / `dead`            | 대상 생존/사망 | —               |
+| `chance`                    | 확률 통과    | `value` (0\~1)  |
+| `hp_below` / `hp_above`     | HP 비율 비교 | `value` (0\~1)  |
+| `stat_above` / `stat_below` | 스탯 값 비교  | `stat`, `value` |
+
+조건은 별도 지정이 없으면 `Target`(없으면 `Source`)을 평가합니다.
+
+## 기본 Trigger 가드
+
+대부분의 트리거(`on_use`, `on_hit`, `on_equip` 등)는 채널 이름만으로 발동하므로 가드가 없습니다.
+임계값 비교가 필요한 트리거만 가드를 둡니다.
+
+| type          | 설명                                | triggerParams      |
+| ------------- | --------------------------------- | ------------------ |
+| `on_hp_below` | Source HP 비율이 threshold 이하일 때만 발동 | `threshold` (0\~1) |
+
+## 스탯 관례
+
+기본 effect/condition 은 다음 키를 사용합니다 (`StatKeys`). 다른 체계를 쓰려면 effect 를
+직접 등록해 덮어쓰면 됩니다.
+
+| 키        | 의미               |
+| -------- | ---------------- |
+| `hp`     | 현재 체력 (리소스)      |
+| `hp_max` | 최대 체력 (비율 조건 분모) |
+| `atk`    | 공격력 (수정자 적용)     |
+| `def`    | 방어력 (수정자 적용)     |
+
+

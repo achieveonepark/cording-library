@@ -1,0 +1,34 @@
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Watched Folders & Groups
+
+Register a watched folder to add assets under that folder automatically to the selected Addressables group.
+
+Open **Project Settings › AchEngine › Addressables › Watched Folders** and click **+ Add Folder**.
+
+## Watched-folder fields
+
+| Field                  | Description                                                            |
+| ---------------------- | ---------------------------------------------------------------------- |
+| **Folder Path**        | A relative path beginning with `Assets/`, such as `Assets/Art/Icons`.  |
+| **Group Name**         | The Addressables group name. It is created automatically when missing. |
+| **Address Naming**     | File name, path relative to the watched folder, or the full path.      |
+| **Include Subfolders** | Whether to scan child folders recursively.                             |
+| **Labels**             | A comma-separated list of Addressables labels.                         |
+
+## Address naming (`AddressNamingMode`)
+
+| Value              | Example                                       |
+| ------------------ | --------------------------------------------- |
+| `FilenameOnly`     | `icon_sword`                                  |
+| `RelativeToFolder` | `Icons/icon_sword` when watching `Assets/Art` |
+| `FullPath`         | `Assets/Art/Icons/icon_sword`                 |
+
+`FilenameOnly` can collide when different folders contain the same file name. Use `RelativeToFolder` when managing multiple folders.
+
+
+> **Automatic scanning**
+> 
+> Unity's `AssetPostprocessor` updates watched folders when assets are added, moved, or deleted. Use **Rescan** or **AchEngine › Addressables › Re-scan Watched Folders** to register existing assets in one pass.
+> 
+

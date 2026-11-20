@@ -1,0 +1,7 @@
+# LiteDB
+
+> A lightweight package for reading SQLite-based static table data in Unity.
+
+## Others
+
+- [404](/lite-db/404.md)

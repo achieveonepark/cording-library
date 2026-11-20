@@ -1,0 +1,34 @@
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# IAPManager
+
+`IAPManager` 使用 Unity IAP 5.4.1 `StoreController` 管理商店连接、商品获取、购买、未完成订单重试和恢复。在玩家构建中，只有奖励持久化成功后才确认订单。
+
+```csharp
+var iap = ServiceLocator.Resolve<IAPManager>();
+iap.AddProduct("com.mygame.coins_100", ProductType.Consumable);
+iap.AddProduct("com.mygame.remove_ads", ProductType.NonConsumable);
+iap.ReceiptValidator = new GameReceiptValidator();
+await iap.Initialize();
+```
+
+## 编辑器 Fake Store 测试
+
+在 Unity 编辑器中，`IAPManager` 会明确使用 Unity IAP 的 `fake` 商店。
+仅在编辑器中，即使没有设置 `ReceiptValidator` 和 `PurchaseProcessor`，Fake Store 订单也会自动确认，因此可以在不进行真实支付、不调用后端的情况下测试购买按钮、完成事件和弹窗流程。
+
+此行为仅在 `UNITY_EDITOR` 下编译。Android、iOS 以及其他玩家构建仍必须在开始购买前设置收据验证器或奖励处理器。编辑器 Fake Store 订单不会被当作真实购买奖励处理。
+
+Full Sample 的 `PurchasePopup` 在编辑器中也会在没有验证器时启用购买按钮。实际构建时，请将游戏专用的服务器验证组件连接到 `Receipt Validator` 字段。
+
+在游戏中实现 `IIAPReceiptValidator`，将认证玩家、交易 ID、收据和商品发送到服务器，并使用交易 ID 作为幂等键保存奖励。
+
+```csharp
+var result = await iap.PurchaseAsync("com.mygame.coins_100");
+if (result.IsSuccess)
+    Debug.Log("购买和奖励已确认。");
+```
+
+可处理 `Confirmed`、`Failed`、`Deferred` 和 `PendingFulfillment` 状态。使用 `RetryPendingFulfillmentsAsync()` 重试当前会话的未完成订单，使用 `GetPendingListAsync()` 重新读取商店记录。
+
+Apple 平台通过用户操作调用 `RestoreTransactionsAsync()`，并在 `PurchaseRestored` 中更新拥有状态。

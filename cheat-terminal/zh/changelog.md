@@ -1,0 +1,128 @@
+> For AI agents: the complete documentation index is available at /cheat-terminal/zh/llms.txt, the full documentation bundle is available at /cheat-terminal/zh/llms-full.txt.
+
+# 更新日志
+
+这里记录包的主要变更。本项目遵循 [Semantic Versioning](https://semver.org/)。
+
+每个版本的背景与设计变化整理在[开发历程](/cheat-terminal/zh/history.md)中。
+
+## 1.1.0 - 2026-10-17
+
+### 新增
+
+- 默认显示的开发者工具栏，可在安全区域内拖动，分别打开作弊库与 Terminal。
+- 根据 usage 生成必填、可选、选项、坐标和多个参数输入框，并验证及保留输入值。
+- 分类筛选、卡片执行结果及错误。Terminal 新增 Run、Tab 补全、历史记录操作及安全区域布局。
+- 本地作弊命令编写技能，以及 Unity 核心与 UI 测试。
+
+### 变更与修复
+
+- `F1`: Cheat Library，`F2`: Terminal，`F10`: 作弊 UI，`F9`: 工具栏，Escape: 关闭。
+- 使用 Run 按钮执行命令，切换界面时关闭之前的界面，并保留暂停状态。
+- 保留参数中的空格、引号、反斜杠和空字符串，并显示执行错误。
+- 为工具栏图标和面板背景创建所需的 CanvasRenderer。没有主题资源时也保留输入框的最小高度，避免与 Run 按钮重叠。
+- 将之前的版本记录整理为 `1.0.0` 至 `1.0.4`，本次 UI 更新设为 `1.1.0`。
+
+## 1.0.4 - 2026-08-29
+
+### Changed
+
+- 作弊 HUD 由从左侧滑出的面板改为**覆盖整个屏幕**。行的尺寸满足点按需求（最小 104px），内容按 `Screen.safeArea` 内缩，宽屏会自动分成 2\~3 列，底部还有一个大号 `CLOSE` 按钮。仍需旧面板时可用 `TerminalBehaviour.CheatHudFullScreen = false` 与 `CheatHudView.WidthPercent`。
+
+### Added
+
+- 打开 / 关闭监听: `TerminalBehaviour.VisibilityChanged`（控制台与 HUD 合并）、`ConsoleVisibilityChanged`、`CheatHudVisibilityChanged`。视图也会直接触发 `OnOpened` / `OnClosed` / `OnVisibilityChanged`。
+- `TerminalBehaviour.PauseGameWhileOpen` / `PausedTimeScale`: 打开期间固定 `Time.timeScale`，关闭时恢复原值。
+- 面向编辑器和桌面的控制台快捷键: `F1` 开关，反引号 `` ` `` 只负责打开（输入命令时不会误触）。作弊 HUD 除 `F10` 外也支持 `F2`。
+- 播放模式下的 `Tools > Cheat Terminal` 编辑器菜单（开关控制台 / HUD / 手柄，Pause Game While Open，手动 Bootstrap）。
+- `TerminalShortcutKey` 新增 `F1`\~`F4`、`F11`、`F12`、`BackQuote`、`Escape`; `MultiFingerTapGesture` 支持第二个按键 `AlternateKey`。
+
+### Fixed
+
+- 仅使用 Input System 的项目不会创建 `EventSystem`，导致控制台和作弊 HUD 的按钮全部失效。现在会附带 `InputSystemUIInputModule` 创建。
+
+### Documentation
+
+- 新增根据提交记录整理的[开发历程](/cheat-terminal/zh/history.md)页面 (ko / en / ja / zh)。
+
+## 1.0.3 - 2026-08-17
+
+### Changed
+
+- 右上角的 `>_` 手柄默认隐藏。在屏幕任意位置**四指连点 3 次**即可显示，再做一次同样的手势则隐藏。代码中可通过 `TerminalCornerTrigger.Visible` / `TerminalBehaviour.HandleVisible` 控制（`TerminalCornerTrigger.Enabled` 保留为别名）。
+
+### Added
+
+- 作弊 HUD (`CheatHudView`): 从左侧滑入的 UI Toolkit 面板，按分类列出所有已注册命令。通过**三指连点 3 次**（桌面为 F10）或 `TerminalBehaviour.Open/Close/ToggleCheatHud()` 切换。无参数的命令点按一次即可执行，带 `<...>` / `[...]` 参数的命令会展开内联输入框。面板包含搜索框、最近执行状态栏，以及打开控制台的 `>_` 按钮。
+- `MultiFingerTapGesture`: 可复用的“N 指 M 连点”检测组件。仅在手指数量完全一致时成立，因此三指与四指手势不会互相触发。提供编辑器 / 桌面的键盘回退（F9 / F10）。
+- `TerminalInput`: 同时支持旧版 Input Manager 与 Input System 包的免反射输入抽象。
+- 新增说明作弊命令编写规范的 `AGENT.md`。
+
+## 1.0.2 - 2026-06-27
+
+### Changed (breaking)
+
+- 移除了基于 reflection 的 `[Terminal]` 方法发现和调用。命令现在通过 `RegisterCommand(...)` 显式注册。
+- 从默认 runtime 中移除了基于 reflection 的 Object Inspector module。
+- EventSystem fallback 不再通过 reflection 探测 optional Input System 类型。Input System-only 项目应自行提供带 `InputSystemUIInputModule` 的 EventSystem。
+
+### Fixed
+
+- Terminal input 现在只会在显式 submit 时执行，不会在 focus loss 时执行。
+- Terminal output 在包裹 color tag 前会 escape rich text-sensitive 字符。
+- Unity component commands 现在使用 invariant-culture 数字解析、严格 bool 解析，并在适当场景下包含 inactive GameObject lookup。
+- Logs / Performance module 创建的 runtime helper GameObject 会随 terminal bootstrap 一起 dispose。
+
+### Added
+
+- 添加了 command name、usage keyword 和 command-specific provider 的 cached completion items。
+- 添加了 built-in command 的 context-aware completions，包括 scenes、logs、GameObjects、component targets 和 boolean values。
+- 添加了用于 reflection-free data lookup 的 `data [table] [id|text]` command 和 `RegisterDataTable(...)`。
+- 添加了可查看 Console、registered Commands 和 registered Data tables 的 Terminal UI tabs。
+
+## 1.0.1 - 2026-05-30
+
+### 变更
+
+- 将命名空间从 `UniTerminal` 改为 `Achieve.CheatTerminal`。
+
+### 新增
+
+- 操作 Unity 组件的命令：`transform`、`rb`、`cam`、`light`、`audio`、`time`、`go`。
+- 韩语、英语、日语、中文文档，以及高级模块用法。
+
+## 1.0.0 - 2026-05-29
+
+### Changed (breaking)
+
+- 移除了内部协作接口 (`ICommandRegistry`, `ICommandParser`, `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`, `ITerminalTrigger`, `ITerminal`) 和 `TerminalBuilder`。core `Terminal` 现在是拥有 concrete collaborators 的 concrete class。真正保留的扩展点只有 `ICommand`, `ICommandOutput`, `ITerminalView`, `ITerminalModule`。
+- 不再使用 command marker interface，`[Terminal]` attribute 是唯一 marker。
+- `Terminal.ScanStaticCommands()` 会扫描 user assemblies 并自动注册所有 static `[Terminal]` methods。bootstrap 会在启动时通过 `TerminalBehaviour.AutoScanStaticCommands` 执行它。instance commands 仍然使用 `Register(this)`。
+
+### Added
+
+- Runtime Logs module: 将 `Debug.Log` output 收集到 ring buffer，并通过 `logs [n | error | warning | info | <text> | find <text> | clear | export]` 操作。export 会写入 `Application.persistentDataPath`，方便从 device 取回 logs。
+- input field 支持用 Up/Down arrow 召回上一条/下一条 command history。它通过 uGUI `IMoveHandler` 实现，因此兼容 legacy Input Manager 和 Input System package。
+- `help <category>` 会列出某个 category 中的 commands 及 descriptions。`help` 现在会提示 `help <command>` / `help <category>`。
+
+### Fixed
+
+- 当 Input System package 启用时，EventSystem 会通过 reflection 创建 `InputSystemUIInputModule`，避免每 frame 出现 `InvalidOperationException`。
+- top-right corner trigger 现在是可见的 `>_` handle，并且 single tap 即可打开。
+
+## 0.1.0 - 2026-05-29
+
+### Added
+
+- Core command system: `ICommandRegistry`, quote-aware `ICommandParser`, `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`, 以及带 default implementation 的 `ICommandOutput`。
+- `[Terminal("name {0}")]` attribute 和 reflection-based `AttributeCommand` binding，包括 positional binding、optional parameters 和 `CommandContext` injection。
+- 通过 `TerminalBuilder` 组装的 interface-driven `Terminal` core。
+- uGUI overlay view (`UGuiTerminalView`) 在 closed 时停用，实现 zero idle cost。
+- top-right corner open gesture (`TerminalCornerTrigger`，default 是 double-tap)。
+- 带 static convenience API 的 `TerminalBehaviour` bootstrap，在 editor 和 development build 中 auto-bootstrap。
+- built-in commands: `help`, `clear`, `history`, `echo`, `alias`。
+- module system (`ITerminalModule`)，在 bootstrap 上提供 `InstallModule` / `GetModule<T>`。
+- Scene Tools module: `scene list | load <name> [additive] | unload <name>`。
+- Object Inspector module: `find`, `inspect`, `set <name>.<member> <value>`, `call`，并支持 explicit object registration (`ObjectInspectorModule.RegisterObject`)。
+- Performance Monitor module: `perf` (FPS, frame ms, memory, GC, render stats via `ProfilerRecorder`)。
+- Basic Usage sample。

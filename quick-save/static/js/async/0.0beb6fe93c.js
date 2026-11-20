@@ -1,0 +1,1 @@
+"use strict";(self.rspackChunkquick_save_docs=self.rspackChunkquick_save_docs||[]).push([[0],{Gs(){}}]);

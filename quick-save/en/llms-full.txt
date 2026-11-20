@@ -1,0 +1,670 @@
+---
+url: /quick-save/en/api/builder.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/en/llms.txt, the full documentation bundle is available at /quick-save/en/llms-full.txt.
+
+# Builder
+
+`QuickSave<T>.Builder` is a builder class for constructing `QuickSave<T>` instances.
+
+```csharp
+var save = new QuickSave<T>.Builder()
+    /* optional methods */
+    .Build();
+```
+
+***
+
+## Methods
+
+### Build()
+
+```csharp
+public QuickSave<T> Build()
+```
+
+Applies the configuration and returns a `QuickSave<T>` instance. The save directory is created automatically at this point if it doesn't exist.
+
+***
+
+### UseEncryption(string encryptionKey)
+
+```csharp
+public Builder UseEncryption(string encryptionKey)
+```
+
+> Available only when the `USE_ENCRYPT` symbol is defined (requires DataProtector).
+
+Enables encryption on save and decryption on load.
+
+| Parameter       | Type     | Description                            |
+| --------------- | -------- | -------------------------------------- |
+| `encryptionKey` | `string` | Key used for encryption and decryption |
+
+```csharp
+new QuickSave<PlayerData>.Builder()
+    .UseEncryption("your-secret-key")
+    .Build();
+```
+
+***
+
+### UseVersion(int version)
+
+```csharp
+public Builder UseVersion(int version)
+```
+
+> Available only when the `USE_ENCRYPT` symbol is defined.
+
+Appends a version number to the save file name. Defaults to `0`.
+
+| Parameter | Type  | Description                              |
+| --------- | ----- | ---------------------------------------- |
+| `version` | `int` | Version number appended to the file name |
+
+```csharp
+new QuickSave<PlayerData>.Builder()
+    .UseEncryption("your-secret-key")
+    .UseVersion(2)
+    .Build();
+// → PlayerData_2.acqs
+```
+
+
+
+---
+url: /quick-save/en/api/methods.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/en/llms.txt, the full documentation bundle is available at /quick-save/en/llms-full.txt.
+
+# QuickSave<T> Methods
+
+Public method reference for `QuickSave<T>`.
+
+> Generic constraint: `where T : class`
+
+***
+
+## SaveData
+
+```csharp
+public void SaveData(T data)
+```
+
+Serializes `data` with MemoryPack and writes it to a file. If encryption is enabled, the binary is encrypted after serialization.
+
+| Parameter | Type | Description        |
+| --------- | ---- | ------------------ |
+| `data`    | `T`  | The object to save |
+
+```csharp
+save.SaveData(player);
+```
+
+***
+
+## SaveDataAsync
+
+```csharp
+public Task SaveDataAsync(T data)
+```
+
+Async version of `SaveData`. Does not block the main thread.
+
+```csharp
+await save.SaveDataAsync(player);
+```
+
+***
+
+## LoadData
+
+```csharp
+public T LoadData()
+```
+
+Reads the save file and returns the deserialized object.
+
+| Return value                  | Condition                             |
+| ----------------------------- | ------------------------------------- |
+| `T` instance                  | Successfully loaded                   |
+| `null`                        | File does not exist                   |
+| Throws `InvalidDataException` | File exists but deserialization fails |
+
+```csharp
+try
+{
+    var data = save.LoadData();
+    if (data == null) { /* no file */ }
+}
+catch (InvalidDataException e)
+{
+    Debug.LogError(e.Message); // corrupted file
+}
+```
+
+***
+
+## LoadDataAsync
+
+```csharp
+public Task<T> LoadDataAsync()
+```
+
+Async version of `LoadData`.
+
+```csharp
+var data = await save.LoadDataAsync();
+```
+
+***
+
+## HasSaveData
+
+```csharp
+public bool HasSaveData()
+```
+
+Returns `true` if the save file exists, `false` otherwise. Use this to check for a file before calling `LoadData`.
+
+```csharp
+if (save.HasSaveData())
+{
+    var data = save.LoadData();
+}
+```
+
+***
+
+## DeleteData
+
+```csharp
+public void DeleteData()
+```
+
+Deletes the save file. Does nothing if the file doesn't exist.
+
+```csharp
+save.DeleteData();
+```
+
+
+
+---
+url: /quick-save/en/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/en/llms.txt, the full documentation bundle is available at /quick-save/en/llms-full.txt.
+
+# Changelog
+
+## \[1.0.3] `latest` — 2026-05-23
+
+### Added
+
+- **`SaveDataAsync(T data)`** — Async save method using `File.WriteAllBytesAsync`. Prevents blocking the main thread during file I/O.
+- **`LoadDataAsync()`** — Async load method. Avoids frame drops on large save files or slow storage (especially mobile).
+- **`HasSaveData()`** — Check whether a save file exists before attempting to load. Previously, you had to call `LoadData()` and check for `null`.
+
+### Fixed
+
+- **`Builder.UseVersion()` ignored bug** — When `UseVersion(n)` was called, the version value was silently hardcoded to `0` internally. This caused save files to be created at the wrong path when using encryption with versioning.
+- **`SaveData<T>` type parameter shadowing** — A structural bug that allowed serializing a different type than the class-level `T` in `QuickSave<T>`. For example, passing a `string` to a `QuickSave<MyData>` instance compiled without error.
+- **`LoadData()` error distinction** — Previously, a missing file and a corrupted file were handled ambiguously. Now a missing file returns `null`, while a deserialization failure throws `InvalidDataException`, making the two cases clearly distinguishable.
+
+### Performance
+
+- **Save directory creation optimized** — Previously, `Directory.Exists` was called on every `SaveData`, `LoadData`, and `DeleteData` call. Now the directory is checked and created exactly once at `Build()` time, and the file path is cached in `_filePath`.
+
+***
+
+## \[1.0.2] — 2026-05-16
+
+### Added
+
+- **`DeleteData()`** — Delete the save file (`.acqs`) at runtime. Does not throw if the file doesn't exist.
+- **Editor menu `Achieve > Delete Save`** — Unity Editor utility to batch-delete all `.acqs` files in the `quicksave/` directory. Shows a confirmation dialog with the file count and path before deleting.
+
+***
+
+## \[1.0.0] — 2024-01-01
+
+### Added
+
+- Initial package release
+- **`SaveData(T data)`** — Binary serialization using MemoryPack
+- **`LoadData()`** — Binary deserialization and load
+- Save files stored as `.acqs` under `Application.persistentDataPath/quicksave/`
+- **Encryption option** — AES encryption via DataProtector integration (`USE_ENCRYPT` define)
+- **Versioning** — Append version numbers to file names with `UseVersion(int)` for multi-version save management
+- **Builder pattern** — Fluent instance configuration via `QuickSave<T>.Builder`
+
+
+
+---
+url: /quick-save/en/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/en/llms.txt, the full documentation bundle is available at /quick-save/en/llms-full.txt.
+
+# Getting Started
+
+## Prerequisite: install MemoryPack
+
+Quick Save depends on MemoryPack. First, install MemoryPack via [NuGetForUnity](https://github.com/GlitchEnzo/NuGetForUnity).
+
+1. Install NuGetForUnity in your project.
+2. Open **NuGet > Manage NuGet Packages** from the Unity menu.
+3. Search for `MemoryPack` and install it.
+
+## Installation
+
+### Unity Package Manager (UPM) — recommended
+
+1. Open **Window > Package Manager**.
+2. Click the `+` button in the top left → **Add package from git URL...**.
+3. Enter the URL below and click **Add**.
+
+```
+https://github.com/achieveonepark/QuickSave.git#1.0.3
+```
+
+### Editing manifest.json directly
+
+Add to `dependencies` in `Packages/manifest.json`.
+
+```json
+{
+  "dependencies": {
+    "com.achieve.quick-save": "https://github.com/achieveonepark/QuickSave.git#1.0.3"
+  }
+}
+```
+
+
+> **Info**
+> 
+> If you need encryption, also install the [DataProtector](https://github.com/achieveonepark/DataProtector) package. When DataProtector is present, the `USE_ENCRYPT` symbol is defined automatically, enabling the `UseEncryption()` and `UseVersion()` methods. See [Usage › Encryption & Versioning](/quick-save/en/usage/encryption.md) for details.
+> 
+
+
+## Quick start
+
+### 1. Define the data class to save
+
+Add the `[MemoryPackable]` attribute and the `partial` keyword to the class you want to serialize with MemoryPack.
+
+```csharp
+using MemoryPack;
+
+[MemoryPackable]
+public partial class PlayerData
+{
+    public string Name;
+    public int Level;
+    public float HP;
+    public long Gold;
+}
+```
+
+### 2. Create a QuickSave instance
+
+Create an instance with the `Builder` pattern. The save directory (`persistentDataPath/quicksave/`) is prepared at creation time.
+
+```csharp
+using Achieve.QuickSave;
+
+var save = new QuickSave<PlayerData>.Builder().Build();
+```
+
+### 3. Save, load, delete
+
+```csharp
+var player = new PlayerData { Name = "Hero", Level = 1, HP = 100f, Gold = 0 };
+
+save.SaveData(player);                 // save
+
+if (save.HasSaveData())                // check existence
+{
+    PlayerData loaded = save.LoadData(); // load
+    Debug.Log(loaded.Name);            // "Hero"
+}
+
+save.DeleteData();                     // delete
+```
+
+## Next steps
+
+- [Usage › Basic Usage](/quick-save/en/usage/basic.md)
+- [API › QuickSave\<T> Methods](/quick-save/en/api/methods.md)
+
+
+
+---
+url: /quick-save/en/index.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/en/llms.txt, the full documentation bundle is available at /quick-save/en/llms-full.txt.
+
+# Introduction
+
+**A lightweight save system for Unity.**
+Save your game data quickly and safely with MemoryPack-based binary serialization.
+
+## Features
+
+- ⚡ **High-performance serialization** — Fast binary serialization/deserialization using Cysharp's MemoryPack.
+- 🔒 **Encryption support** — Encrypt saved data to prevent tampering and inspection.
+- 🧩 **Concise API** — Compose your save/load flow at a glance with the builder pattern.
+
+## Quick links
+
+- [Getting Started](/quick-save/en/getting-started.md)
+- [Usage](/quick-save/en/usage/basic.md)
+- [API Reference](/quick-save/en/api/methods.md)
+- [GitHub](https://github.com/achieveonepark/quick-save)
+
+
+
+---
+url: /quick-save/en/usage/async.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/en/llms.txt, the full documentation bundle is available at /quick-save/en/llms-full.txt.
+
+# Async Save / Load
+
+## Why Async?
+
+`SaveData` / `LoadData` use `File.WriteAllBytes` / `File.ReadAllBytes` internally. On large save files or slow storage (especially mobile), this can momentarily block the main thread.
+
+`SaveDataAsync` / `LoadDataAsync` use `File.WriteAllBytesAsync` / `File.ReadAllBytesAsync` to avoid blocking the main thread.
+
+***
+
+## SaveDataAsync
+
+```csharp
+await save.SaveDataAsync(playerData);
+```
+
+***
+
+## LoadDataAsync
+
+```csharp
+PlayerData loaded = await save.LoadDataAsync();
+
+if (loaded == null)
+{
+    // No save file
+}
+```
+
+***
+
+## Full Example (async/await)
+
+```csharp
+using Achieve.QuickSave;
+using UnityEngine;
+
+public class SaveManager : MonoBehaviour
+{
+    private QuickSave<PlayerData> _save;
+
+    void Awake()
+    {
+        _save = new QuickSave<PlayerData>.Builder().Build();
+    }
+
+    public async void OnSaveButtonClicked(PlayerData player)
+    {
+        await _save.SaveDataAsync(player);
+        Debug.Log("Saved");
+    }
+
+    public async void OnLoadButtonClicked()
+    {
+        try
+        {
+            PlayerData data = await _save.LoadDataAsync();
+            if (data == null)
+                Debug.Log("No save data");
+            else
+                Debug.Log($"Loaded: {data.Name}");
+        }
+        catch (System.IO.InvalidDataException e)
+        {
+            Debug.LogError($"Save file corrupted: {e.Message}");
+        }
+    }
+}
+```
+
+***
+
+## Using with UniTask
+
+If UniTask is in your project, you can convert `Task` to `UniTask`.
+
+```csharp
+using Cysharp.Threading.Tasks;
+
+public async UniTaskVoid SaveAsync(PlayerData player)
+{
+    await _save.SaveDataAsync(player).AsUniTask();
+}
+```
+
+
+
+---
+url: /quick-save/en/usage/basic.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/en/llms.txt, the full documentation bundle is available at /quick-save/en/llms-full.txt.
+
+# Basic Usage
+
+## Preparing a Data Class
+
+Two requirements for the class you want to serialize with MemoryPack:
+
+- `[MemoryPackable]` attribute
+- `partial` keyword
+
+```csharp
+using MemoryPack;
+
+[MemoryPackable]
+public partial class InventoryData
+{
+    public List<string> Items;
+    public int Capacity;
+}
+```
+
+> The generic constraint on `QuickSave<T>` is `where T : class`. Structs are not supported.
+
+***
+
+## Creating an Instance via Builder
+
+```csharp
+var save = new QuickSave<InventoryData>.Builder().Build();
+```
+
+When `Build()` is called, the save directory (`persistentDataPath/quicksave/`) is created if it doesn't exist. Subsequent calls to `SaveData` / `LoadData` incur no directory check overhead.
+
+***
+
+## SaveData
+
+```csharp
+var inventory = new InventoryData
+{
+    Items = new List<string> { "Sword", "Shield" },
+    Capacity = 20
+};
+
+save.SaveData(inventory);
+```
+
+The file is saved at `{persistentDataPath}/quicksave/InventoryData.acqs`.
+
+***
+
+## HasSaveData
+
+Check whether the save file exists before loading.
+
+```csharp
+if (save.HasSaveData())
+{
+    // Load only when a file exists
+}
+```
+
+***
+
+## LoadData
+
+```csharp
+InventoryData loaded = save.LoadData();
+```
+
+- Returns `null` if the file doesn't exist.
+- Throws `InvalidDataException` if the file exists but deserialization fails — allowing you to distinguish between a missing file and a corrupted one.
+
+```csharp
+try
+{
+    var data = save.LoadData();
+    if (data == null)
+    {
+        // No save file → use defaults
+    }
+}
+catch (InvalidDataException e)
+{
+    Debug.LogError($"Save file corrupted: {e.Message}");
+    save.DeleteData(); // Remove corrupted file and restart
+}
+```
+
+***
+
+## DeleteData
+
+```csharp
+save.DeleteData();
+```
+
+Does nothing if the file doesn't exist. No exception is thrown.
+
+***
+
+## Deleting Saves in the Editor
+
+Use the Unity Editor menu **Achieve > Delete Save** to delete all `.acqs` files in the `quicksave/` directory. A confirmation dialog is shown before deletion.
+
+
+
+---
+url: /quick-save/en/usage/encryption.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/en/llms.txt, the full documentation bundle is available at /quick-save/en/llms-full.txt.
+
+# Encryption & Versioning
+
+## Prerequisites
+
+The encryption feature is only active when the [DataProtector](https://github.com/achieveonepark/DataProtector) package is installed.
+
+Once DataProtector is installed, the Assembly Definition automatically defines the `USE_ENCRYPT` symbol, and the Builder's `UseEncryption()` and `UseVersion()` methods become available.
+
+***
+
+## UseEncryption
+
+```csharp
+var save = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-secret-key-32chars")
+    .Build();
+```
+
+- `SaveData` / `SaveDataAsync`: serializes then encrypts before writing.
+- `LoadData` / `LoadDataAsync`: decrypts then deserializes.
+
+> Keep your encryption key safe. Changing the key will make existing save files unreadable.
+
+***
+
+## UseVersion
+
+Specifying a version appends the version number to the file name, letting you separate saves across game updates.
+
+```csharp
+var saveV1 = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(1)
+    .Build();
+
+var saveV2 = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(2)
+    .Build();
+```
+
+Resulting file paths:
+
+```
+{persistentDataPath}/quicksave/PlayerData_1.acqs   ← v1
+{persistentDataPath}/quicksave/PlayerData_2.acqs   ← v2
+```
+
+***
+
+## Migration Pattern
+
+Example of migrating from an old version's save file to a new one.
+
+```csharp
+var oldSave = new QuickSave<PlayerDataV1>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(1)
+    .Build();
+
+var newSave = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(2)
+    .Build();
+
+if (oldSave.HasSaveData() && !newSave.HasSaveData())
+{
+    PlayerDataV1 legacy = oldSave.LoadData();
+    PlayerData migrated = Migrate(legacy);
+    newSave.SaveData(migrated);
+    oldSave.DeleteData();
+}
+```
+
+***
+
+## Encryption Only (No Version)
+
+If `UseVersion` is not called, the version defaults to `0` and the file name becomes `TypeName_0.acqs`.
+
+```csharp
+var save = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    // UseVersion not called → _0.acqs
+    .Build();
+```
+
+

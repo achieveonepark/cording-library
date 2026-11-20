@@ -1,0 +1,158 @@
+> For AI agents: the complete documentation index is available at /cheat-terminal/ko/llms.txt, the full documentation bundle is available at /cheat-terminal/ko/llms-full.txt.
+
+# 변경 내역
+
+패키지의 주요 변경 사항입니다. 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
+
+버전별 배경과 설계 변화는 [개발 이력](/cheat-terminal/ko/history.md)에 정리되어 있습니다.
+
+## 1.1.0 - 2026-10-17
+
+### 추가
+
+- 기본으로 표시되는 우상단 개발자 도크: 치트·터미널 벡터 아이콘, 드래그 그립, 안전 영역 내 이동, 숨김·표시와 화면 크기 변경 시 위치 유지.
+- usage 기반 파라미터 폼: 필수·선택 입력란, 선택값 버튼, 좌표별 입력, 여러 인자 입력, 필수값 검증과 입력값 유지. 명령 이름을 입력하지 않고 Run 버튼으로 실행합니다.
+- 카테고리 필터와 카드별 실행 결과·오류 표시. 터미널에 Run 버튼, Tab 자동완성, 키보드 명령 기록 탐색, 실행 명령 표시와 안전 영역 배치를 추가했습니다.
+- `.agents/skills/cheat-terminal`과 `.claude/skills/cheat-terminal`에 치트 작성 스킬을 추가했습니다.
+- 파라미터 폼, 따옴표 처리, 명령 실행, UI 조작, 도크 드래그와 일시 정지 복원을 검증하는 Unity 테스트.
+
+### 변경
+
+- 기본 단축키는 **F1: Cheat Library**, **F2: Terminal**입니다. F10은 치트 UI, F9는 도크 표시 전환, 백틱은 터미널 열기, Escape는 현재 화면 닫기입니다. `ConsoleKey`와 `CheatHudKey`로 변경할 수 있습니다.
+- 두 화면의 어두운 배경, 민트색 강조, 여백과 조작 버튼을 정리했습니다. 화면 전환 시 이전 화면을 닫고 통합 표시 상태와 일시 정지 상태를 유지합니다.
+- 파라미터 폼을 항상 표시하며 명시적인 Run 버튼으로 치트를 실행합니다. 별도로 명령을 등록할 필요가 없습니다.
+- 이전 변경 이력을 `1.0.0`\~`1.0.4`로 정리하고 이번 UI 개편을 `1.1.0`으로 지정했습니다.
+
+### 수정
+
+- 공백, 따옴표, 역슬래시와 빈 문자열 인자가 명령 직렬화·파싱 과정에서 보존됩니다.
+- 명령이 출력한 오류를 HUD에 표시하여 실패한 실행을 성공으로 표시하지 않습니다.
+- 도크 아이콘과 패널 배경에 필요한 CanvasRenderer를 생성합니다. 테마 에셋이 없어도 파라미터 입력란의 최소 높이를 유지하여 Run 버튼과 겹치지 않습니다.
+
+## 1.0.4 - 2026-08-29
+
+### Changed
+
+- 치트 HUD 가 좌측 슬라이드 패널에서 **화면 전체를 덮는** 형태로 바뀌었습니다. 행이 터치하기 충분한 크기(최소 104px)가 되고, `Screen.safeArea` 를 피해 배치되며, 넓은 화면에서는 2\~3열로 나뉩니다. 하단에 큰 `CLOSE` 버튼이 생겼습니다. 예전 패널은 `TerminalBehaviour.CheatHudFullScreen = false` 와 `CheatHudView.WidthPercent` 로 그대로 쓸 수 있습니다.
+
+### Added
+
+- 열기 / 닫기 리스너: `TerminalBehaviour.VisibilityChanged` (콘솔·HUD 통합), `ConsoleVisibilityChanged`, `CheatHudVisibilityChanged`. 뷰에서도 `OnOpened` / `OnClosed` / `OnVisibilityChanged` 로 직접 받을 수 있습니다.
+- `TerminalBehaviour.PauseGameWhileOpen` / `PausedTimeScale`: 열려 있는 동안 `Time.timeScale` 을 고정하고 닫힐 때 되돌리는 편의 기능.
+- 에디터·데스크톱 콘솔 단축키 `F1` (토글) 과 백틱 `` ` `` (열기 전용, 입력 중 방해 없음). 치트 HUD 는 `F10` 외에 `F2` 도 지원합니다.
+- 플레이 모드용 `Tools > Cheat Terminal` 에디터 메뉴 (콘솔 / HUD / 핸들 토글, Pause Game While Open, 수동 Bootstrap).
+- `TerminalShortcutKey` 에 `F1`\~`F4`, `F11`, `F12`, `BackQuote`, `Escape` 추가. `MultiFingerTapGesture` 에 두 번째 키 `AlternateKey`.
+
+### Fixed
+
+- Input System 전용 프로젝트에서 `EventSystem` 이 생성되지 않아 콘솔·치트 HUD 버튼이 전부 동작하지 않던 문제. 이제 `InputSystemUIInputModule` 을 붙여 생성합니다.
+
+### Documentation
+
+- 커밋 기록 기준으로 정리한 [개발 이력](/cheat-terminal/ko/history.md) 페이지 추가 (ko / en / ja / zh).
+
+## 1.0.3 - 2026-08-17
+
+### Changed
+
+- 우측 상단 `>_` 핸들이 기본적으로 숨겨집니다. 화면 어디서나 **네 손가락으로 동시에 3회 탭**하면 표시되고, 같은 제스처로 다시 숨깁니다. 코드에서는 `TerminalCornerTrigger.Visible` / `TerminalBehaviour.HandleVisible` 로 제어합니다 (`TerminalCornerTrigger.Enabled` 는 별칭으로 유지).
+
+### Added
+
+- 치트 HUD (`CheatHudView`): 좌측에서 슬라이드되는 UI Toolkit 패널로, 등록된 모든 명령을 카테고리별로 보여줍니다. **세 손가락 동시 3회 탭**(데스크톱 F10) 또는 `TerminalBehaviour.Open/Close/ToggleCheatHud()` 로 토글합니다. 인자가 없는 치트는 탭 한 번으로 실행되고, `<...>` / `[...]` 인자가 있는 치트는 인라인 입력창이 펼쳐집니다. 검색창, 마지막 실행 상태 줄, 콘솔을 여는 `>_` 버튼을 포함합니다.
+- `MultiFingerTapGesture`: "N 손가락 M 연타" 감지 컴포넌트. 손가락 수가 정확히 일치할 때만 인정하므로 3-finger / 4-finger 제스처가 서로 오작동하지 않습니다. 에디터·데스크톱용 키보드 폴백(F9 / F10) 제공.
+- `TerminalInput`: 레거시 Input Manager 와 Input System 패키지를 모두 지원하는 리플렉션 없는 입력 추상화.
+- 치트 작성 규칙을 담은 `AGENT.md`.
+
+## 1.0.2 - 2026-06-27
+
+### Changed (breaking)
+
+- Removed reflection-based `[Terminal]` method discovery and invocation. Commands are now
+  registered explicitly with `RegisterCommand(...)`.
+- Removed the reflection-based Object Inspector module from the default runtime.
+- EventSystem fallback no longer probes optional Input System types via reflection. Projects
+  using Input System-only input should provide an EventSystem with `InputSystemUIInputModule`.
+
+### Fixed
+
+- Terminal input now executes only on an explicit submit, not on focus loss.
+- Terminal output escapes rich text-sensitive characters before wrapping lines in color tags.
+- Unity component commands now use invariant-culture numeric parsing, strict bool parsing,
+  and inactive-inclusive GameObject lookup where appropriate.
+- Runtime helper GameObjects created by Logs and Performance modules are disposed with the
+  terminal bootstrap.
+
+### Added
+
+- Cached completion items for command names, usage keywords and command-specific providers.
+- Context-aware completions for built-in commands, including scenes, logs, GameObjects,
+  component targets and boolean values.
+- `data [table] [id|text]` command plus `RegisterDataTable(...)` for reflection-free data lookup.
+- Terminal UI tabs for Console, registered Commands and registered Data tables.
+
+## 1.0.1 - 2026-05-30
+
+### 변경
+
+- 네임스페이스를 `UniTerminal`에서 `Achieve.CheatTerminal`로 변경했습니다.
+
+### 추가
+
+- Unity 컴포넌트를 직접 조작하는 `transform`, `rb`, `cam`, `light`, `audio`, `time`, `go` 명령.
+- 한국어·영어·일본어·중국어 문서와 고급 모듈 사용법.
+
+## 1.0.0 - 2026-05-29
+
+### Changed (breaking)
+
+- Removed the internal collaborator interfaces (`ICommandRegistry`, `ICommandParser`,
+  `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`,
+  `ITerminalTrigger`, `ITerminal`) and `TerminalBuilder`. The core `Terminal` is now a
+  concrete class that owns concrete collaborators. Only `ICommand`, `ICommandOutput`,
+  `ITerminalView` and `ITerminalModule` remain as real extension points.
+- No marker interface for commands - the `[Terminal]` attribute is the only marker.
+- `Terminal.ScanStaticCommands()` sweeps user assemblies and auto-registers all static
+  `[Terminal]` methods; the bootstrap runs it on startup
+  (`TerminalBehaviour.AutoScanStaticCommands` to toggle). Instance commands still use
+  `Register(this)`.
+
+### Added
+
+- Runtime Logs module: captures `Debug.Log` output into a ring buffer with
+  `logs [n | error | warning | info | <text> | find <text> | clear | export]`.
+  Export writes to `Application.persistentDataPath` so logs are retrievable on device.
+- Up/Down arrow recalls previous/next command history in the input field
+  (via uGUI `IMoveHandler`, so it works under both the legacy Input Manager and
+  the Input System package).
+- `help <category>` lists the commands in a category with descriptions;
+  `help` now hints at `help <command>` / `help <category>`.
+
+### Fixed
+
+- EventSystem now creates `InputSystemUIInputModule` when the Input System package
+  is active (resolved via reflection), avoiding the per-frame `InvalidOperationException`.
+- Top-right corner trigger is now a visible `>_` handle and opens on a single tap.
+
+## 0.1.0 - 2026-05-29
+
+### Added
+
+- Core command system: `ICommandRegistry`, `ICommandParser` (quote-aware),
+  `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`,
+  `ICommandOutput` with default implementations.
+- `[Terminal("name {0}")]` attribute and reflection-based `AttributeCommand` binding,
+  including positional binding, optional parameters and `CommandContext` injection.
+- Interface-driven `Terminal` core assembled via `TerminalBuilder`.
+- uGUI overlay view (`UGuiTerminalView`) deactivated while closed for zero idle cost.
+- Top-right corner open gesture (`TerminalCornerTrigger`, double-tap by default).
+- `TerminalBehaviour` bootstrap with a static convenience API; auto-bootstraps in the
+  editor and development builds.
+- Built-in commands: `help`, `clear`, `history`, `echo`, `alias`.
+- Module system (`ITerminalModule`) with `InstallModule` / `GetModule<T>` on the bootstrap.
+- Scene Tools module: `scene list | load <name> [additive] | unload <name>`.
+- Object Inspector module: `find`, `inspect`, `set <name>.<member> <value>`, `call`,
+  with explicit object registration (`ObjectInspectorModule.RegisterObject`).
+- Performance Monitor module: `perf` (FPS, frame ms, memory, GC, render stats via
+  `ProfilerRecorder`).
+- Basic Usage sample.

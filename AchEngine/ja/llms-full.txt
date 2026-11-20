@@ -1,0 +1,1932 @@
+---
+url: /AchEngine/ja/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# 変更履歴
+
+## 1.3.2
+
+**新機能**
+
+- Unity Ads Legacy 4.16.4 を標準プロバイダーとし、非同期初期化と全画面・リワード・バナー広告のロード・表示を管理する `AdsManager` を追加しました。
+- `AdsShowResult.ShouldGrantReward` が `true` の場合だけリワードを付与します。
+- Unity LevelPlay、AppLovin MAX、Google AdMob/Google Ad Manager、FairBid などのメディエーション SDK に切り替えられる公開 `IAdsProvider` を追加しました。
+- `com.unity.ads` 4.16.4 依存関係と `AchManagerInstaller` の `AdsManager` 自動登録を追加しました。
+
+**ドキュメント**
+
+- 設定とメディエーション移行を説明する 4 言語の `AdsManager` ガイドを追加しました。
+
+## 1.3.1
+
+**改善**
+
+- Unity Editor で `IAPManager` が Unity IAP Fake Store を明示的に使用するようにしました。
+- Editor では `ReceiptValidator` または `PurchaseProcessor` が未設定でも Fake Store の注文を自動確定し、バックエンドなしで購入 UI の流れをテストできるようにしました。
+- Full Sample の購入ポップアップが Editor Fake Store のテスト時に検証コンポーネントなしで有効になります。実際のビルドでは引き続き報酬処理の検証が必要です。
+
+## 1.3.0
+
+**新機能**
+
+- Unity 6000.3 以降で Build Settings のシーンを選択し、未保存の変更を確認して開ける `AchEngine/Scene Navigator` ツールバーを追加しました。
+- `UIRoot` が `Screen`、`Popup`、`Tooltip` レイヤーへ `UISafeAreaFitter` を自動追加するようになりました。`Background` と `Overlay` は全画面のままです。
+
+**改善**
+
+- Addressables のアセット・ロケーションキャッシュが、要求された型を確認してからハンドルを再利用するようになりました。
+- 初期化、ダウンロードサイズ確認、依存関係ダウンロード、カタログ確認・更新に使う一時ハンドルを自動解放します。
+- Domain Reload を無効にした Play Mode 再入場時のデバッグコンソール重複コールバックを防止しました。
+- ランタイム探索を `FindFirstObjectByType` に更新し、子 UI Root への `DontDestroyOnLoad` の重複呼び出しを避けました。
+- `IScene` を任意のライフサイクルフックとして扱い、実装していないシーンに警告を出さなくなりました。
+
+**ドキュメント**
+
+- Addressables、UI Safe Area、Scene Navigator、AI Assistant Skill のガイドを更新し、1.2.0 / 1.3.0 のリリースノートを追加しました。
+
+## 1.2.0
+
+- Addressables を静的な `AddressableManager` と `AchTask` ベースの API 中心に再構成しました。
+- ロケーションメタデータ・アセットハンドルキャッシュ、シーンハンドル追跡、エディター設定、監視フォルダー機能、サンプルを追加しました。
+- キャッシュ解放フローに合わせて Addressables と統合ガイドを更新しました。
+
+## 1.1.2
+
+- iOS ネイティブデバッグコンソールを削除しました。Android オーバーレイと Editor IMGUI は維持されます。
+
+## 1.1.1
+
+- `IIAPReceiptValidator` 拡張ポイント、Apple StoreKit 2 JWS / app-account-token、手動復元、未確定注文の再試行 API を追加しました。
+- 取引 ID による購入結果の照合、IAP 単体テスト、Full Sample 購入ドキュメントを追加しました。
+
+## 1.1.0
+
+- `IAPManager` に Unity IAP 5.4.1 対応を追加し、`com.unity.purchasing` を依存関係に登録しました。
+
+## 1.0.8
+
+- AchEngine に同梱する `AIAssistantSkills/` 定義を追加しました。
+
+## 1.0.7
+
+- `com.unity.addressables` 未導入時の Addressables エディターコンパイル問題を修正しました。
+- 不足していた `AGENTS.md.meta` を追加しました。
+
+## 1.0.6
+
+- `AchEngine.Extensions` アセンブリと拡張メソッドガイドを削除しました。
+
+## 1.0.5
+
+- `AchTask` / `AchTask<T>` と非同期ガイドを追加しました。
+
+## 1.0.4
+
+- `SoundManager` を `AudioManager` に置き換えました。
+- `AudioManager`、`AchTimer`、`UIAchTimer`、ボタン拡張、`AchDebugConsole`、RedDot API を追加しました。
+- 現在の API シグネチャに合わせて全ガイドを更新しました。
+
+## 1.0.3
+
+- Save Service、`AchProjectile`、独立した `AchFollower`、多言語 TMP FontAsset ベイクを追加しました。
+
+## 1.0.2
+
+- ECS、Manager、Singleton、ログ、WebRequest、PlayerData、QuickSave、A\*、AchMover、RedDot、UI、Full Sample を追加しました。
+- Addressables、DI、Localization、Table、UI、ドキュメントを改善しました。
+
+## 1.0.1
+
+- JSON ファイル・フォルダーを CSV に変換するツールを追加しました。
+
+
+
+---
+url: /AchEngine/ja/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# はじめに
+
+AchEngine のコア機能を 5 分で体験するガイドです。
+
+## 1. DI スコープの設定
+
+シーンに空の GameObject を作成し、`AchEngineScope` コンポーネントを追加します。
+
+```
+Hierarchy
+└── [AchEngineScope]   ← AchEngineScope コンポーネントを追加
+```
+
+## 2. Installer の作成
+
+```csharp
+using AchEngine.DI;
+using UnityEngine;
+
+public class GameInstaller : AchEngineInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            .Register<IGameService, GameService>()
+            .Register<IPlayerService, PlayerService>(ServiceLifetime.Transient);
+    }
+}
+```
+
+`AchEngineScope` Inspector の **Installers** 配列に `GameInstaller` をドラッグします。
+
+## 3. UI Root の作成
+
+**Project Settings › AchEngine › UI Workspace** で **UI Root 生成** ボタンをクリックするか、シーンに `UIRoot` プレハブを配置します。
+
+## 4. UIView の定義
+
+```csharp
+using AchEngine.UI;
+
+public class MainMenuView : UIView
+{
+    protected override void OnInitialize()
+    {
+        // 最初の生成時に 1 回呼ばれる
+    }
+
+    protected override void OnOpened()
+    {
+        // Show() 後、トランジション完了時に呼ばれる
+    }
+
+    protected override void OnClosed()
+    {
+        // Close() 後、プールに返却される
+    }
+}
+```
+
+## 5. View の表示
+
+```csharp
+// [Inject] を使用（VContainer が必要）
+[Inject] readonly IUIService _ui;
+_ui.Show<MainMenuView>();
+
+// ServiceLocator を使用（MonoBehaviour など）
+ServiceLocator.Resolve<IUIService>().Show("MainMenu");
+
+// 閉じる
+_ui.Close<MainMenuView>();
+```
+
+## 6. テーブルデータの読み込み
+
+```csharp
+// TableManager を通じて型安全にアクセス
+var itemTable = TableManager.Get<ItemTable>();
+var sword = itemTable.Get(101);
+Debug.Log(sword.Name); // "Iron Sword"
+```
+
+## 次のステップ
+
+各モジュールの詳しい説明は左のサイドバーから確認してください。
+
+- [DI システム](/AchEngine/ja/usage/di.md)
+- [UI System](/AchEngine/ja/usage/ui.md)
+- [Table Loader](/AchEngine/ja/usage/table.md)
+- [Addressables](/AchEngine/ja/usage/addressables.md)
+- [Localization](/AchEngine/ja/usage/localization.md)
+- [モジュール連携ガイド](/AchEngine/ja/usage/integration.md)
+
+
+
+---
+url: /AchEngine/ja/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# 概要
+
+AchEngine は、Unity 開発でよく使う機能を 1 つの UPM パッケージにまとめた**統合開発ツールキット**です。
+
+各モジュールは独立して使用でき、VContainer、MemoryPack、Addressables のようなオプションパッケージがなくてもコア機能は動作し続けます。
+
+## モジュール構成
+
+| モジュール            | 説明                               | オプションパッケージ                     |
+| ---------------- | -------------------------------- | ------------------------------ |
+| **DI**           | VContainer ラッパー、ServiceLocator   | `jp.hadashikick.vcontainer`    |
+| **UI System**    | レイヤーベースの View 管理、プーリング、トランジション   | -                              |
+| **Table Loader** | Google Sheets から C# データパイプラインを生成 | `com.cysharp.memorypack`       |
+| **Addressables** | アセットキャッシュ、自動グループ管理、リモート配信        | `com.unity.addressables`       |
+| **Localization** | JSON ローカライズ、キーコード生成              | `com.unity.textmeshpro`（オプション） |
+
+## パッケージ情報
+
+- **Package ID:** `com.achieve.engine`
+- **バージョン:** 1.0.1
+- **最小 Unity バージョン:** 6000.3
+- **必須依存:** `com.unity.ugui`
+
+## オプションパッケージ
+
+以下のパッケージをインストールすると、対応するシンボルが**自動的に定義**され、AchEngine の高度な機能が有効になります。インストールしなくてもコンパイルエラーにはならず、その機能のみ無効になります。
+
+```
+jp.hadashikick.vcontainer   -> DI コンテナを有効化         -> ACHENGINE_VCONTAINER
+com.cysharp.memorypack      -> バイナリシリアライズを有効化 -> ACHENGINE_MEMORYPACK
+com.unity.addressables      -> Addressables モジュールを有効化 -> ACHENGINE_ADDRESSABLES
+com.unity.textmeshpro       -> TMP Localization を有効化     -> ACHENGINE_LOCALIZATION_TMP
+com.unity.entities          -> ECS ラッパーを有効化          -> ACHENGINE_ENTITIES
+```
+
+
+> **Info**
+> 
+> オプションパッケージのインストール状況は **Project Settings > AchEngine** の Overview で一目で確認でき、ボタンから直接インストールできます。
+> 
+
+
+
+
+---
+url: /AchEngine/ja/usage/addressables/folders.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# 監視フォルダーとグループ
+
+監視フォルダーを登録すると、そのフォルダーのアセットを指定した Addressables グループへ自動追加できます。
+
+**Project Settings › AchEngine › Addressables › 監視フォルダー** で **+ フォルダーを追加** を押してください。
+
+## 項目
+
+| 項目      | 説明                             |
+| ------- | ------------------------------ |
+| フォルダーパス | `Assets/` から始まる相対パス            |
+| グループ名   | Addressables グループ名。存在しなければ自動作成 |
+| アドレス生成  | ファイル名、監視フォルダー相対、完全パス           |
+| サブフォルダー | 子フォルダーを再帰スキャンするか               |
+| ラベル     | カンマ区切りの Addressables ラベル       |
+
+## `AddressNamingMode`
+
+| 値                  | 例                             |
+| ------------------ | ----------------------------- |
+| `FilenameOnly`     | `icon_sword`                  |
+| `RelativeToFolder` | `Icons/icon_sword`            |
+| `FullPath`         | `Assets/Art/Icons/icon_sword` |
+
+同名ファイルが複数フォルダーにある場合は `RelativeToFolder` を推奨します。
+
+
+> **自動スキャン**
+> 
+> アセットの追加・移動・削除時は `AssetPostprocessor` が監視フォルダーを更新します。既存アセットは **AchEngine › Addressables › Re-scan Watched Folders** で登録できます。
+> 
+
+
+
+
+---
+url: /AchEngine/ja/usage/addressables/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# Addressables — 概要
+
+Addressables モジュールは Unity Addressable Asset System をラップし、ロケーションメタデータ、アセットハンドル、監視フォルダーのキャッシュを提供します。静的な `AddressableManager` で初期化・ロード・解放を一貫して扱えます。
+
+
+> **オプションモジュール**
+> 
+> `com.unity.addressables` がインストールされている場合のみ有効です。
+> 
+
+
+## 主なクラス
+
+| クラス                          | 役割                              |
+| ---------------------------- | ------------------------------- |
+| `AddressableManager`         | `AchTask` ベースのアセット・シーン・リモート API |
+| `AssetHandleCache`           | ロード済みハンドルのキャッシュ                 |
+| `LocationCache`              | アドレスとラベルのロケーションキャッシュ            |
+| `AddressableManagerSettings` | 自動初期化設定                         |
+
+## 基本ルール
+
+- 非同期 API は `AchTask` / `AchTask<T>` を返し、UniTask があれば UniTask、なければ Task を使います。
+- `LoadAsync` は同じアドレス、`LoadAllAsync` は同じラベルのハンドルを再利用します。
+- 要求されたアセット型も確認するため、互換性のない型のハンドルは再利用しません。
+- キャッシュは参照数を数えません。所有者が不要になった時点で `Release(key)` を一度呼びます。
+- `InstantiateAsync` の結果は `ReleaseInstance`、元のプレハブキャッシュは `Release(address)` で解放します。
+- シーンは自動アンロードされないため、`UnloadSceneAsync(address)` を明示的に呼びます。
+
+```csharp
+using AchEngine.Assets;
+
+var sprite = await AddressableManager.LoadAsync<Sprite>("icon_sword");
+spriteRenderer.sprite = sprite;
+var icons = await AddressableManager.LoadAllAsync<Sprite>("ui-icons");
+var hero = await AddressableManager.InstantiateAsync("Characters/Hero", transform);
+AddressableManager.ReleaseInstance(hero);
+AddressableManager.Release("icon_sword");
+AddressableManager.Release("ui-icons");
+```
+
+初期化やカタログ確認などの一時ハンドルは自動解放されます。ロード済みアセットとシーンは明示的に解放してください。
+
+## 次のステップ
+
+- [監視フォルダーとグループ](/AchEngine/ja/usage/addressables/folders.md)
+- [リモートコンテンツ](/AchEngine/ja/usage/addressables/remote.md)
+
+
+
+---
+url: /AchEngine/ja/usage/addressables/remote.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# リモートコンテンツ
+
+## 設定
+
+リモートバンドルの Build Path と Load Path は Unity **Addressables Groups** の Profile とスキーマで設定します。生成されたカタログとバンドルをリモートパスへ配布してください。
+
+**Project Settings › AchEngine › Addressables › リモートコンテンツ** ではプロバイダー、バケット、カタログ URL、バンドル URL を管理できます。
+
+## 推奨フロー
+
+1. リモートグループとダウンロードラベルを設定します。
+2. **AchEngine › Addressables › Build Content** でビルドします。
+3. カタログとバンドルを Load Path へ配布します。
+4. 実行時にカタログを確認し、必要な依存関係をダウンロードします。
+
+## カタログ更新
+
+```csharp
+using AchEngine.Assets;
+
+var catalogs = await AddressableManager.CheckForCatalogUpdatesAsync();
+if (catalogs.Count > 0)
+    await AddressableManager.UpdateCatalogsAsync(catalogs);
+```
+
+更新成功時、古いロケーションキャッシュは自動的にクリアされます。使用中のアセットは保持されるため、変更されたアドレスだけを `Release` して再ロードしてください。
+
+## サイズ確認後にダウンロード
+
+```csharp
+long size = await AddressableManager.GetDownloadSizeAsync("remote_assets");
+if (size > 0)
+    await AddressableManager.DownloadDependenciesAsync("remote_assets", p => progressBar.value = p.Percent);
+```
+
+## ビルドメニュー
+
+**Build Content**、**Clean Build**、**Re-scan Watched Folders** は Project Settings または **AchEngine › Addressables** から実行できます。
+
+
+> **開発時は Fast Mode**
+> 
+> Play Mode を **Use Asset Database (Fast Mode)** にすると、バンドルをビルドせず高速に反復できます。
+> 
+
+
+
+
+---
+url: /AchEngine/ja/usage/async.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# AchTask
+
+`AchTask` は UniTask と `System.Threading.Tasks.Task` を一つの API に統合する非同期ラッパーです。UniTask があれば UniTask、なければ Task にフォールバックします。
+
+## 検出
+
+`com.cysharp.unitask` が存在すると asmdef の `versionDefines` が `ENABLE_UNITASK` を自動定義します。
+
+| 環境         | 実装                       |
+| ---------- | ------------------------ |
+| UniTask あり | `UniTask` / `UniTask<T>` |
+| UniTask なし | `Task` / `Task<T>`       |
+
+## await
+
+```csharp
+await AchTask.Delay(2f);
+await AchTask.WaitUntil(() => isReady);
+```
+
+## 主なファクトリ
+
+```csharp
+await AchTask.Delay(1.5f);
+await AchTask.DelayRealtime(1.5f);
+await AchTask.WaitUntil(() => player.IsGrounded, cts.Token);
+
+var a = AchTask.Delay(1f);
+var b = AchTask.Delay(2f);
+await AchTask.WhenAll(a, b);
+await AchTask.WhenAny(a, b);
+return condition ? DoWorkAsync() : AchTask.CompletedTask;
+```
+
+`Delay` は UniTask 環境で `Time.timeScale` を反映します。実時間で待つ場合は `DelayRealtime` を使います。
+
+## `AchTask<T>` と変換
+
+```csharp
+public static AchTask<string> FetchNameAsync()
+    => AchTask<string>.FromResult("Player");
+
+string name = await FetchNameAsync();
+Task task = someAchTask.AsTask();
+AchTask from = someTask;
+```
+
+## 関連ドキュメント
+
+- [AchTimer](/AchEngine/ja/usage/timer.md)
+- [HttpLink](/AchEngine/ja/usage/web-request.md)
+
+
+
+---
+url: /AchEngine/ja/usage/debug-console.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# AchDebugConsole
+
+`AchDebugConsole` は Android・iOS のネイティブ UI レイヤーに表示するデバッグコンソールです。Editor では IMGUI フォールバックを使います。
+
+## 概要
+
+`Application.logMessageReceivedThreaded` から Log、Warning、Error、Exception、Assert を自動収集します。最大 500 件のリングバッファで、UI スレッドへディスパッチします。
+
+## プラットフォーム
+
+- **Android**: `WindowManager` のフローティングオーバーレイ。ドラッグ可能で `SYSTEM_ALERT_WINDOW` が必要です。
+- **iOS**: `UIWindowLevelAlert + 100` の独立した `UIWindow`。追加権限は不要です。
+- **Editor**: `Show` / `Hide` は内部状態を切り替えます。Game View には `DrawEditorGUI()` を `OnGUI()` から呼び出します。
+
+## API
+
+```csharp
+AchDebugConsole.Show();
+AchDebugConsole.Hide();
+AchDebugConsole.Toggle();
+AchDebugConsole.Clear();
+bool visible = AchDebugConsole.IsVisible;
+```
+
+Android 6.0 以降では `Show()` 前に実行時権限を確認してください。ネイティブ UI スレッドで描画されるため、プロファイリング中にも利用できます。
+
+## 関連ドキュメント
+
+- [UI システム](/AchEngine/ja/usage/ui.md)
+
+
+
+---
+url: /AchEngine/ja/usage/di/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# DI システム — 概要
+
+AchEngine は VContainer を直接公開せず、シンプルな DI 抽象化を提供します。
+
+
+> **オプションモジュール**
+> 
+> `jp.hadashikick.vcontainer` がある場合のみ実際のコンテナが有効です。未導入でも手動設定の `ServiceLocator` は使用できます。
+> 
+
+
+## 主な構成要素
+
+| クラス                  | 役割                                       |
+| -------------------- | ---------------------------------------- |
+| `AchEngineScope`     | VContainer の `LifetimeScope` をラップするシーン入口 |
+| `AchEngineInstaller` | サービス登録を定義する基底クラス                         |
+| `IServiceBuilder`    | VContainer に依存しない登録インターフェース              |
+| `ServiceLocator`     | ランタイム解決用の静的ファサード                         |
+
+## 基本フロー
+
+```mermaid
+flowchart TD
+A([シーンロード]) --> B[AchEngineScope.Awake]
+B --> C["AchEngineInstaller<br/>.Install(builder) × N"]
+C --> D[("VContainer をビルド")]
+D --> E[ServiceLocator.Setup]
+E --> F{ランタイム}
+F --> G["[Inject]<br/>属性注入"]
+F --> H["ServiceLocator<br/>.Resolve<T>()"]
+```
+
+## `ServiceLifetime`
+
+```csharp
+public enum ServiceLifetime
+{
+    Singleton, // コンテナごとに 1 インスタンス
+    Transient, // 要求ごとに新規生成
+    Scoped,    // スコープごとに 1 インスタンス
+}
+```
+
+## 次のステップ
+
+- [AchEngineInstaller](/AchEngine/ja/usage/di/installer.md)
+- [ServiceLocator](/AchEngine/ja/usage/di/locator.md)
+- [DI ライフサイクル](/AchEngine/ja/usage/di/lifecycle.md)
+
+
+
+---
+url: /AchEngine/ja/usage/di/installer.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# AchEngineInstaller
+
+`AchEngineInstaller` は `AchEngineScope` のサービス登録を定義します。
+
+```csharp
+public class GameInstaller : AchEngineInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            .Register<IGameService, GameService>()
+            .Register<IPlayerService, PlayerService>(ServiceLifetime.Transient)
+            .RegisterInstance<GameConfig>(config);
+    }
+}
+```
+
+空の GameObject に `AchEngineScope` を追加し、Inspector の **Installers** 配列へ `GameInstaller` を登録します。
+
+```text
+AchEngineScope
+└── Installers
+    └── GameInstaller
+```
+
+VContainer がある場合は `[Inject]`、どこからでも取得する場合は `ServiceLocator.Resolve<T>()` を使います。
+
+```csharp
+[Inject] private IGameService _game;
+var game = ServiceLocator.Resolve<IGameService>();
+```
+
+Scope は `Awake` でコンテナを構築し、`OnDestroy` で破棄します。グローバル用の永続 Scope と、シーン固有の additive Scope を分けてください。
+
+```mermaid
+sequenceDiagram
+participant Scope as AchEngineScope
+participant Installer
+participant Container as DI Container
+participant Locator as ServiceLocator
+Scope->>Installer: Install(builder)
+Installer->>Container: サービス登録
+Scope->>Container: Build
+Scope->>Locator: Setup(container)
+Locator-->>Scope: ランタイム解決
+Scope->>Container: 破棄
+```
+
+
+
+---
+url: /AchEngine/ja/usage/di/lifecycle.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# DI ライフサイクル設計
+
+シーン遷移、ポップアップ、データ提供、ゲームロジックを DI で接続する設計例です。
+
+## 基本構造
+
+```mermaid
+graph TB
+subgraph Bootstrap["Bootstrap シーン"]
+AES[AchEngineScope]
+UIR[UIRoot]
+end
+subgraph Lobby["Lobby シーン (additive)"]
+LS[LobbyScope]
+LV[LobbyView]
+end
+subgraph InGame["InGame シーン (additive)"]
+GS[GameScope]
+HV[HUDView]
+end
+Bootstrap --> Lobby
+Bootstrap --> InGame
+AES -.->|ServiceLocator| LS
+AES -.->|ServiceLocator| GS
+```
+
+Bootstrap でグローバルサービスを登録し、Lobby / InGame の各 Scope でシーン固有サービスを登録します。シーンアンロード時に `AchEngineScope.OnDestroy()` が呼ばれ、その Scope のサービスが破棄されます。
+
+## シーン遷移
+
+```csharp
+public async Task LoadInGame(int stageId)
+{
+    ServiceLocator.Resolve<IUIService>().CloseAll();
+    await SceneManager.UnloadSceneAsync("Lobby");
+    await SceneManager.LoadSceneAsync("InGame", LoadSceneMode.Additive);
+    ServiceLocator.Resolve<IGameService>().StartStage(stageId);
+}
+```
+
+## ポップアップとデータ
+
+`UIView` を継承したポップアップへ `Show` コールバックでデータを渡します。
+
+```csharp
+var ui = ServiceLocator.Resolve<IUIService>();
+ui.Show<ItemDetailPopup>(popup => popup.SetItem(item, icon, iconAddress));
+```
+
+## データサービス
+
+Table をラップしたサービスを DI で注入し、ビューやゲームサービスが `ITableService` を直接探さないようにします。`MonoBehaviour` からは `ServiceLocator.Resolve<T>()` を使えます。
+
+## 次のステップ
+
+- [モジュール連携](/AchEngine/ja/usage/integration.md)
+- [AchEngineInstaller](/AchEngine/ja/usage/di/installer.md)
+
+
+
+---
+url: /AchEngine/ja/usage/di/locator.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# ServiceLocator
+
+VContainer 未導入でも `ServiceLocator` は手動初期化して使用できます。VContainer 環境では通常 `AchEngineScope` が初期化します。
+
+```csharp
+ServiceLocator.Setup(provider);
+var service = ServiceLocator.Resolve<IGameService>();
+bool exists = ServiceLocator.TryResolve<IGameService>(out var game);
+ServiceLocator.Clear();
+```
+
+Unity が直接生成する `MonoBehaviour` や静的コールバックでは `ServiceLocator` を使い、VContainer が生成するオブジェクトでは `[Inject]` を使います。
+
+ServiceLocator はライフタイム管理ではなく検索ファサードです。VContainer なしの場合は生成と破棄をブートストラップ側で管理してください。
+
+## 関連ドキュメント
+
+- [DI システム](/AchEngine/ja/usage/di.md)
+- [DI ライフサイクル](/AchEngine/ja/usage/di/lifecycle.md)
+
+
+
+---
+url: /AchEngine/ja/usage/ecs/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# ECS ラッパー
+
+Entities と AchEngine の World・サービス抽象化を接続するオプションモジュールです。`com.unity.entities` がある場合のみコンパイルされます。
+
+```csharp
+public partial struct DamageSystem : ISystem
+{
+    public void OnUpdate(ref SystemState state)
+    {
+        var entityManager = state.World.EntityManager;
+        // Entity を Query して更新します。
+    }
+}
+```
+
+## いつ使うか
+
+ゲームデータを Entity として扱い、World、CommandBuffer、Baker、DI を統一したい場合に使います。通常の UI やシーン制御には通常の AchEngine モジュールを使ってください。
+
+## Baker と DI
+
+```csharp
+public class UnitBaker : Baker<UnitAuthoring>
+{
+    public override void Bake(UnitAuthoring authoring)
+    {
+        var entity = GetEntity(TransformUsageFlags.Dynamic);
+        AddComponent(entity, new Health { Value = authoring.health });
+    }
+}
+
+builder.RegisterInstance(World.Default);
+```
+
+
+
+---
+url: /AchEngine/ja/usage/installation.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# インストール
+
+## UPM — Git URL（推奨）
+
+Unity の **Window › Package Manager** で **+ › Add package from git URL...** を選び、次を入力します。
+
+```
+https://github.com/achieveonepark/AchEngine.git
+```
+
+バージョンを固定する場合は `#1.0.0` のようにタグを付けます。
+
+## `manifest.json`
+
+```json
+{
+  "dependencies": {
+    "com.achieve.engine": "https://github.com/achieveonepark/AchEngine.git"
+  }
+}
+```
+
+## オプションパッケージ
+
+| パッケージ        | ID                          | 有効になる機能            |
+| ------------ | --------------------------- | ------------------ |
+| VContainer   | `jp.hadashikick.vcontainer` | DI コンテナ            |
+| MemoryPack   | `com.cysharp.memorypack`    | QuickSave シリアライズ   |
+| Addressables | `com.unity.addressables`    | AddressableManager |
+| R3           | `com.cysharp.r3`            | UIBindingManager   |
+
+VContainer は OpenUPM レジストリへ追加し、MemoryPack と R3 は各 GitHub のインストールガイドを参照してください。
+
+## 確認
+
+Unity Console にエラーがなく、**Window › AchEngine › AchEngine Info** が表示されれば完了です。
+
+
+
+---
+url: /AchEngine/ja/usage/integration.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# モジュール連携
+
+DI、Table Loader、Localization、Addressables、UI を組み合わせる基本パターンです。
+
+```mermaid
+graph TB
+subgraph Bootstrap["Bootstrap シーン"]
+GI[GlobalInstaller]
+GI --> TS[ITableService]
+GI --> UI[IUIService]
+GI --> AU[IAudioService]
+UIR[UIRoot]
+end
+subgraph Lobby["Lobby シーン (additive)"]
+LI[LobbyInstaller]
+LI --> SH[IShopService]
+end
+subgraph InGame["InGame シーン (additive)"]
+GAI[GameInstaller]
+GAI --> GM[IGameService]
+end
+Bootstrap --> Lobby
+Bootstrap --> InGame
+```
+
+## Table と Localization
+
+テーブルには翻訳済み文字列ではなくキーを保存します。
+
+```text
+| Id  | NameKey         | DescKey         | Price |
+|-----|-----------------|-----------------|-------|
+| 101 | item.sword.name | item.sword.desc | 500   |
+```
+
+```csharp
+var item = TableManager.Get<ItemTable>().Get(itemId);
+_nameText.text = LocalizationManager.Get(item.NameKey);
+_descText.text = LocalizationManager.Get(item.DescKey);
+```
+
+## Table と Addressables
+
+`IconAddress` と `SfxAddress` をテーブルで管理し、ロードしたアセットは View の終了時に解放します。
+
+```csharp
+_iconImage.sprite = await AddressableManager.LoadAsync<Sprite>(item.IconAddress);
+AddressableManager.Release(item.IconAddress);
+```
+
+## DI サービス層
+
+静的マネージャーをインターフェースでラップするとテストしやすくなります。`ITableService`、`ILocalizationService`、`IItemService` を GlobalInstaller に登録し、View へ注入します。
+
+## 関連ドキュメント
+
+- [DI](/AchEngine/ja/usage/di/index.md)
+- [Table Loader](/AchEngine/ja/usage/table/index.md)
+- [Localization](/AchEngine/ja/usage/localization/index.md)
+- [Addressables](/AchEngine/ja/usage/addressables/index.md)
+
+
+
+---
+url: /AchEngine/ja/usage/localization/codegen.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# キー定数コード生成
+
+ドット区切りのキーからネストした静的クラスを生成できます。
+
+```json
+{
+  "menu.start": "開始",
+  "item.sword.name": "鉄の剣"
+}
+```
+
+```csharp
+L.Menu.Start
+L.Item.Sword.Name
+```
+
+`LocalizationSettings` の `generatedClassName`、`generatedNamespace`、`generatedOutputPath` とデータベースを設定し、**AchEngine › Localization › Generate Key Class** を実行します。
+
+`LocalizedString` をフィールドに使うと Inspector のキー選択ドロップダウンを利用できます。
+
+```csharp
+[LocalizedString]
+[SerializeField] private LocalizedString _title;
+```
+
+
+
+---
+url: /AchEngine/ja/usage/localization/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# Localization — 概要
+
+AchEngine Localization は JSON ロケールファイルを読み込み、実行時にキーを解決し、型安全なキー定数を生成できます。
+
+## 主な構成要素
+
+| 型                      | 役割                         |
+| ---------------------- | -------------------------- |
+| `LocalizationManager`  | 文字列取得とロケール変更の静的 API        |
+| `LocalizationSettings` | デフォルト・フォールバック設定            |
+| `LocaleDatabase`       | ロケールと JSON `TextAsset` の対応 |
+| `LocalizedString`      | Inspector で選択できるキー         |
+| `LocalizedText`        | `Text` / `TMP_Text` の自動更新  |
+
+## 基本使用
+
+```csharp
+string title = LocalizationManager.Get("menu.title");
+string welcome = LocalizationManager.Get("dialog.welcome", "Player1", 5);
+LocalizationManager.LocaleChanged += OnLocaleChanged;
+LocalizationManager.SetLocale("ja");
+```
+
+```json
+{
+  "menu.title": "設定",
+  "dialog.welcome": "ようこそ、{0}さん"
+}
+```
+
+`LocalizedText` を Text または TMP_Text に追加すると、ロケール変更時に自動更新されます。TMP には `ACHENGINE_LOCALIZATION_TMP` が必要です。
+
+FontAsset Maker ではロケールごとの文字を収集し、言語別 TMP FontAsset を作成できます。
+
+## 次のステップ
+
+- [設定とデータベース](/AchEngine/ja/usage/localization/setup.md)
+- [キー定数生成](/AchEngine/ja/usage/localization/codegen.md)
+
+
+
+---
+url: /AchEngine/ja/usage/localization/setup.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# 設定とデータベース
+
+## 1. `LocalizationSettings` を作成
+
+**Create › Achieve › Localization › Settings** で作成し、`Resources/LocalizationSettings` に置きます。
+
+## 2. `LocaleDatabase` を作成
+
+**Create › Achieve › Localization › Locale Database** で作成し、各ロケールと JSON `TextAsset` の組を登録します。
+
+## 3. JSON を追加
+
+```json
+{
+  "menu.start": "開始",
+  "menu.quit": "終了"
+}
+```
+
+すべてのロケールでキーを同じにし、値だけを翻訳します。
+
+## 4. ロケール設定
+
+`defaultLocaleCode`、`fallbackLocaleCode`、`autoDetectSystemLanguage`、`autoInitialize`、`database` を設定します。
+
+```csharp
+LocalizationManager.Initialize();
+LocalizationManager.SetLocale("en");
+```
+
+**AchEngine › Localization › Localization Table** ではキー編集、CSV/JSON インポート、ロケール間のキー確認ができます。
+
+
+
+---
+url: /AchEngine/ja/usage/managers/ads.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# AdsManager
+
+`AdsManager` は Unity Ads Legacy 4.16.4 を標準プロバイダーとして、全画面、リワード、バナー広告を
+ロード・表示します。`com.unity.ads` は AchEngine 1.3.2 の依存関係なので、パッケージ追加時に Package
+Manager が一緒に解決します。`AchManagerInstaller` は `AdsManager` も自動登録します。
+
+実際の配信には Unity Dashboard の Android/iOS ゲーム ID と広告ユニット ID が必要です。Editor は
+Android ゲーム ID を使います。`testMode` は開発時だけ `true` にしてください。
+
+## クイック設定
+
+ブートストラップで初期化前に一度設定します。VContainer では注入された `AdsManager` に同じ呼び出しを
+行います。
+
+```csharp
+var ads = ServiceLocator.Resolve<AdsManager>();
+
+ads.Configure(new AdsConfiguration(
+    androidGameId: "Android game ID",
+    iosGameId: "iOS game ID",
+    interstitialAdUnitId: "Interstitial_Android",
+    rewardedAdUnitId: "Rewarded_Android",
+    bannerAdUnitId: "Banner_Android",
+    testMode: true));
+
+ads.InitializationFailed += message => Debug.LogError(message);
+
+await ads.Initialize();
+await ads.LoadInterstitialAsync();
+await ads.LoadRewardedAsync();
+```
+
+Android と iOS の広告ユニット ID が異なる場合は、各プラットフォームのブートストラップで対応する
+`AdsConfiguration` を作成します。`Configure()` は初期化開始前にのみ呼び出せます。
+
+## 全画面・リワード広告
+
+表示前にロードし、全画面広告は表示を試行した後で再ロードします。リワードは
+`ShouldGrantReward` が `true` の時だけ付与してください。スキップ・失敗時には付与しません。
+
+```csharp
+var result = await ads.ShowRewardedAsync();
+
+if (result.ShouldGrantReward)
+    GrantCoinsToPlayer();
+else if (!result.IsSuccess)
+    Debug.LogWarning(result.Message);
+
+await ads.LoadRewardedAsync();
+```
+
+## バナー広告
+
+標準 Unity Ads プロバイダーは画面下中央にバナーを表示します。`ShowBannerAsync()` の成功は SDK に
+表示要求を渡したことを示すだけで、インプレッションを意味しません。
+
+```csharp
+await ads.LoadBannerAsync();
+await ads.ShowBannerAsync();
+ads.HideBanner();
+```
+
+## メディエーション
+
+標準プロバイダーは小さな Unity Ads Legacy 統合です。複数ネットワークの競争を行う新規ライブ運用では、
+以下のメディエーションを使えます。
+
+| 選択肢                              | 適するケース                             | AchEngine への接続                                 |
+| -------------------------------- | ---------------------------------- | ---------------------------------------------- |
+| Unity LevelPlay                  | Unity Ads 中心の運用と Unity の現行メディエーション | LevelPlay SDK を `IAdsProvider` でラップします。        |
+| AppLovin MAX                     | 高度な収益化・入札ツールと広いネットワーク運用            | MAX Unity SDK の `IAdsProvider` を実装します。         |
+| Google AdMob / Google Ad Manager | Google 広告、Firebase、GAM レポートを利用中    | AdMob Unity SDK と現在対応の Unity Ads アダプターをラップします。 |
+| Digital Turbine FairBid など       | その提供元の契約・運用ツールを利用中                 | 同じインターフェースで Unity SDK をラップします。                 |
+
+アダプター提供、入札対応、最低 Android/iOS SDK、プライバシー・ATT 要件は頻繁に変わります。導入前に
+選択したメディエーションの最新 Unity Ads アダプターとプラットフォーム要件を確認してください。
+
+```csharp
+var ads = AdsManager.Create(new MyLevelPlayAdsProvider());
+```
+
+`IAdsProvider` は初期化、ロード・表示、バナー非表示だけを定義します。アダプターはコールバックを
+`AdsLoadResult`/`AdsShowResult` に変換し、リワード広告が最後まで完了した時だけ `Completed` を返します。
+同一セッションで Unity Ads Legacy と LevelPlay を同時に初期化しないでください。
+
+## API
+
+| メンバー                                                                    | 説明                             |
+| ----------------------------------------------------------------------- | ------------------------------ |
+| `Configure(configuration)`                                              | 初期化前にゲーム ID と広告ユニット ID を設定します。 |
+| `Initialize()`                                                          | 現在のプラットフォームのゲーム ID で初期化します。    |
+| `LoadInterstitialAsync()` / `LoadRewardedAsync()` / `LoadBannerAsync()` | 表示用に広告をロードします。                 |
+| `ShowInterstitialAsync()` / `ShowRewardedAsync()` / `ShowBannerAsync()` | ロード済み広告を表示して結果を返します。           |
+| `HideBanner()`                                                          | 表示中のバナーを隠します。                  |
+| `IsLoaded(placement)`                                                   | 広告の表示準備状態を確認します。               |
+| `AdsShowResult.ShouldGrantReward`                                       | 完了したリワード広告の場合だけ `true` です。     |
+
+
+
+---
+url: /AchEngine/ja/usage/managers/audio.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# AudioManager
+
+`AudioManager` は BGM、SFX、フェード、ミュート、空間音声を管理します。`SoundManager` の後継です。
+
+```csharp
+builder.Register<AudioManager>();
+var audio = ServiceLocator.Resolve<AudioManager>();
+audio.PlayBgm(lobbyBgmClip, fadeDuration: 1f);
+audio.PlaySfx(buttonClickClip);
+audio.PlaySfxAt(explosionClip, explosionObject.transform.position);
+audio.MuteAll(false);
+```
+
+| API                               | 説明                |
+| --------------------------------- | ----------------- |
+| `BgmVolume` / `SfxVolume`         | 0〜1 の音量           |
+| `PlayBgm` / `StopBgm`             | BGM 再生・停止、フェード対応  |
+| `SetBgmVolume`                    | 指定時間で音量変更         |
+| `MuteBgm` / `MuteSfx` / `MuteAll` | 出力のみミュートし、保存音量は保持 |
+| `PlaySfx`                         | 2D 効果音            |
+| `PlaySfxAt`                       | ワールド座標で 3D 効果音    |
+
+SFX は 8 チャンネルのプールを使い、空きがなければラウンドロビンで最古のチャンネルを再利用します。プールはシーン遷移後も保持されます。
+
+
+
+---
+url: /AchEngine/ja/usage/managers/config.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# ConfigManager
+
+PlayerPrefs ベースのキー・バリュー設定ストアです。
+
+```csharp
+var cfg = ServiceLocator.Resolve<ConfigManager>();
+cfg.AddKey("bgmVolume", 1.0f);
+cfg.AddKey("language", "ja");
+float volume = cfg.GetConfig<float>("bgmVolume", fallback: 1f);
+cfg.SetConfig("bgmVolume", 0.5f);
+```
+
+`AddKey` で登録していないキーへの `SetConfig` は無視されます。
+
+
+
+---
+url: /AchEngine/ja/usage/managers/iap.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# IAPManager
+
+`IAPManager` は Unity IAP 5.4.1 の `StoreController` を使い、接続、商品取得、購入、未確定注文の再試行、復元を管理します。プレイヤービルドでは報酬の永続化が成功するまで注文を確定しません。
+
+```csharp
+var iap = ServiceLocator.Resolve<IAPManager>();
+iap.AddProduct("com.mygame.coins_100", ProductType.Consumable);
+iap.AddProduct("com.mygame.remove_ads", ProductType.NonConsumable);
+iap.ReceiptValidator = new GameReceiptValidator();
+await iap.Initialize();
+```
+
+## Editor Fake Store テスト
+
+Unity Editor では `IAPManager` が Unity IAP の `fake` ストアを明示的に使用します。
+Editor でのみ `ReceiptValidator` と `PurchaseProcessor` の両方が未設定でも Fake Store の注文を自動確定するため、実際の決済やバックエンド通信なしで購入ボタン、完了イベント、ポップアップの流れをテストできます。
+
+この動作は `UNITY_EDITOR` の場合だけ含まれます。Android、iOS、その他のプレイヤービルドでは、購入を開始する前に領収書検証または報酬処理を設定してください。Editor の Fake Store 注文が実際の購入報酬として扱われることはありません。
+
+Full Sample の `PurchasePopup` も Editor では検証コンポーネントなしで購入ボタンを有効にします。実際のビルドでは `Receipt Validator` フィールドにゲーム固有のサーバー検証コンポーネントを設定してください。
+
+ゲーム側で `IIAPReceiptValidator` を実装し、認証済みプレイヤー、取引 ID、レシート、商品をサーバーへ送り、取引 ID を冪等キーとして報酬を保存してください。
+
+```csharp
+var result = await iap.PurchaseAsync("com.mygame.coins_100");
+if (result.IsSuccess)
+    Debug.Log("購入と報酬を確定しました。");
+```
+
+`Confirmed`、`Failed`、`Deferred`、`PendingFulfillment` の状態を確認できます。`RetryPendingFulfillmentsAsync()` は現在セッションの未確定注文を再試行し、`GetPendingListAsync()` はストアの購入履歴を再取得します。
+
+Apple では `RestoreTransactionsAsync()` をユーザー操作の復元ボタンから呼び、`PurchaseRestored` で所有状態を更新します。
+
+
+
+---
+url: /AchEngine/ja/usage/managers/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# マネージャーシステム
+
+AchEngine のマネージャーは共通機能を DI 登録し、`ServiceLocator` から取得できるようにします。
+
+| マネージャー            | 役割                        |
+| ----------------- | ------------------------- |
+| `ConfigManager`   | PlayerPrefs 設定            |
+| `AudioManager`    | BGM / SFX、フェード、ミュート、3D 音声 |
+| `AchSceneManager` | 非同期シーン遷移と `IScene`        |
+| `TimeManager`     | ネットワーク時刻                  |
+| `PoolManager`     | プレハブのプール                  |
+| `PlayerManager`   | プレイヤーデータコンテナ              |
+| `SaveManager`     | `ISaveService` による保存      |
+| `IAPManager`      | Unity IAP 購入・復元・検証        |
+
+## クイックスタート
+
+`AchEngineScope` の Installers 配列へ `AchManagerInstaller` を追加すると、組み込みマネージャーがシングルトン登録されます。
+
+```csharp
+var config = ServiceLocator.Resolve<ConfigManager>();
+var audio = ServiceLocator.Resolve<AudioManager>();
+```
+
+`IScene` を実装した MonoBehaviour をシーンルートへ置くと、`AchSceneManager` が `OnSceneStart` / `OnSceneEnd` を呼び出します。
+
+
+
+---
+url: /AchEngine/ja/usage/managers/player-data.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# PlayerManager とプレイヤーデータ
+
+`PlayerManager` は `PlayerDataContainerBase<TKey, TValue>` を型ごとに保持します。
+
+```csharp
+public class InventoryContainer : PlayerDataContainerBase<int, ItemData>
+{
+    public InventoryContainer()
+    {
+        DataKey = nameof(InventoryContainer);
+        _dataDic = new Dictionary<int, ItemData>();
+    }
+}
+
+var player = ServiceLocator.Resolve<PlayerManager>();
+player.AddContainer(new InventoryContainer());
+var inventory = player.GetContainer<InventoryContainer>();
+inventory.Add(101, new ItemData { Id = 101, Name = "Sword" });
+```
+
+保存と読み込みは `SaveManager` が担当します。
+
+
+
+---
+url: /AchEngine/ja/usage/managers/pool.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# PoolManager
+
+Unity `ObjectPool<GameObject>` をラップし、弾やパーティクルの生成・破棄による GC 負荷を減らします。
+
+```csharp
+var pool = ServiceLocator.Resolve<PoolManager>();
+pool.RegisterPool("Bullet", bulletPrefab, defaultCapacity: 20, maxSize: 100);
+var bullet = pool.Get<BulletComponent>("Bullet");
+var gameObject = pool.Get("Bullet");
+pool.Release("Bullet", gameObject);
+pool.ClearPool("Bullet");
+pool.ClearAll();
+```
+
+
+
+---
+url: /AchEngine/ja/usage/managers/save.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# SaveManager と保存システム
+
+`SaveManager` は保存・読み込み・削除を `ISaveService` の背後へ抽象化します。ローカル実装を Firestore / AWS / Cloudflare D1 に交換してもゲームコードを変更せずに済みます。
+
+```csharp
+builder.Register<PlayerManager>();
+builder.Register<ISaveService, LocalSaveService>();
+builder.Register<SaveManager>();
+
+var service = ServiceLocator.Resolve<ISaveService>();
+service.Configure(encryptionKey: "myKey12345678!", version: 1);
+var save = ServiceLocator.Resolve<SaveManager>();
+await save.SaveAsync();
+var loaded = await save.LoadAsync();
+await save.DeleteAsync();
+```
+
+`encryptionKey` は 16 文字以上、`version` はマイグレーション用です。カスタムバックエンドは `ISaveService` を実装して登録します。
+
+
+
+---
+url: /AchEngine/ja/usage/managers/scene.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# AchSceneManager
+
+非同期シーン遷移を提供し、`IScene` でライフサイクルを管理します。
+
+```csharp
+public class GameScene : MonoBehaviour, IScene
+{
+    public async Task OnSceneStart() { }
+    public Task OnSceneEnd() => Task.CompletedTask;
+}
+
+var scenes = ServiceLocator.Resolve<AchSceneManager>();
+await scenes.LoadSceneAsync("Lobby");
+await scenes.ReloadSceneAsync();
+await scenes.UnloadSceneAsync("SubScene");
+```
+
+Unity の `SceneManager` と区別するため `Ach` 接頭辞を使用しています。
+
+
+
+---
+url: /AchEngine/ja/usage/mcp/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# Unity MCP スキル — 概要
+
+AchEngine には Unity AI Assistant (MCP) 用の Skill 定義が同梱され、Assistant が既存の AchEngine 機能を使うように案内します。
+
+```text
+AchEngine/AIAssistantSkills/
+├── ach-mover-movement/
+├── addressables/
+├── localization/
+└── ...
+```
+
+Editor 起動またはドメインリロード後に検出されます。`Edit > Preferences > AI > Skills` の **Package skills** で AchEngine の Skill を `Deny` から `Allow` に変更し、反映のため新しい Assistant 会話を開始してください。
+
+Skill は AchMover、AchTask、ECS、Localization、A\*、Singleton、HttpLink、UI、Timer、Manager、VContainer、Addressables を優先するように指示します。
+
+
+
+---
+url: /AchEngine/ja/usage/mcp/skills.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# Skill 一覧
+
+| Skill                 | 対象                    |
+| --------------------- | --------------------- |
+| `ach-mover-movement`  | AchMover の移動と衝突       |
+| `ach-task-async`      | AchTask 非同期処理         |
+| `ach-timer`           | AchTimer / UIAchTimer |
+| `addressables`        | AddressableManager    |
+| `ecs-ingame-logic`    | ECS ゲームロジック           |
+| `httplink-webrequest` | HttpLink HTTP 通信      |
+| `imanager-managers`   | Manager 群             |
+| `localization`        | LocalizationManager   |
+| `pathfinding-astar`   | A\* グリッド              |
+| `singleton`           | Singleton 基底クラス       |
+| `ui-catalog`          | UIView Catalog        |
+| `vcontainer-di`       | DI / VContainer       |
+
+共通ルールは「すでにある AchEngine 機能を再実装せず利用する」です。正確な指示は `AIAssistantSkills/<skill-name>/SKILL.md` が正本です。
+
+
+
+---
+url: /AchEngine/ja/usage/movement.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# AchMover
+
+`AchMover` は 2D キャラクター用の移動コンポーネントです。**Rigidbody2D は使用せず**、衝突スライド、重力、斜面、段差、接地スナップを実装します。
+
+## 基本
+
+キャラクターへ `AchMover` と `CapsuleCollider2D` を追加し、入力を設定します。
+
+```csharp
+var mover = GetComponent<AchMover>();
+mover.SetMoveInput(new Vector2(horizontal, vertical));
+mover.Jump();
+bool grounded = mover.IsGrounded;
+```
+
+`MaxSlopeAngle` と `StepHeight` で歩行可能な斜面と段差を設定します。毎フレーム、入力・重力・ジャンプを計算し、最大 4 回の Move-and-Slide、段差処理、接地判定、スナップ、貫通補正を行います。
+
+```csharp
+mover.Move(Vector2.right);
+mover.AddImpulse(knockbackDirection * 8f);
+```
+
+別システムが垂直移動を管理する場合は `UseGravity` を無効にします。
+
+## `AchFollower` と `AchProjectile`
+
+`AchFollower` は `AchMover` に依存しないターゲット追跡コンポーネントです。`AchProjectile` は Rigidbody2D なしで直進・追尾弾を実装します。
+
+```csharp
+GetComponent<AchFollower>().SetTarget(playerTransform);
+projectile.Launch(direction);
+projectile.SetTarget(target);
+```
+
+衝突・トリガーイベントではダメージなどのゲーム反応をリスナー側で処理します。
+
+
+
+---
+url: /AchEngine/ja/usage/pathfinding.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# A* 経路探索
+
+`AStarPathfinder` はグリッド上で A\* を使い、4 方向または 8 方向の最短経路を探索します。
+
+## クイックスタート
+
+空の GameObject に _*A* Grid Baker_\* を追加し、サイズと障害物レイヤーを設定します。
+
+```csharp
+var baker = GetComponent<AStarGridBaker>();
+var start = baker.WorldToCell(player.position);
+var end = baker.WorldToCell(targetPosition);
+var path = AStarPathfinder.FindPath(baker.Grid, start, end, diagonal: true);
+foreach (var cell in path)
+    MoveTo(baker.CellToWorld(cell));
+```
+
+経路がなければ空の `List<Vector2Int>` を返します。コードからは `new AStarGrid(20, 20)` を作成し、`SetWalkable` と `SetCost` で障害物・地形コストを設定できます。
+
+## 設定と API
+
+`Width` / `Height`、`CellSize`、`Origin`、`ObstacleLayer`、`DetectionRadius`、`CostZones`、`DrawGizmos` を設定します。動的障害物変更後は `baker.Bake()` を呼びます。
+
+```csharp
+var grid = new AStarGrid(20, 20);
+grid.SetWalkable(5, 3, false);
+grid.SetCost(4, 4, 3f);
+var path = AStarPathfinder.FindPath(grid, new Vector2Int(0, 0), new Vector2Int(10, 10), true);
+```
+
+戻り値は開始セルを除き、目的セルを含みます。対角移動ではコーナーカットが発生するため、必要なら無効化するか隣接セルを検査してください。
+
+
+
+---
+url: /AchEngine/ja/usage/singleton/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# シングルトン
+
+## `Singleton<T>` — 純粋 C\#
+
+Unity ライフサイクルが不要なサービス向けです。
+
+```csharp
+public sealed class GameRules : Singleton<GameRules> { }
+var rules = GameRules.Instance;
+```
+
+## `MonoSingleton<T>` — シーン内
+
+```csharp
+public class ObjectTouchManager : MonoSingleton<ObjectTouchManager> { }
+```
+
+## `PersistentMonoSingleton<T>` — 永続
+
+```csharp
+public class AudioRoot : PersistentMonoSingleton<AudioRoot> { }
+```
+
+シーンをまたいで保持するコンポーネントは `PersistentMonoSingleton<T>` を使います。
+
+
+
+---
+url: /AchEngine/ja/usage/table/codegen.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# コード生成とランタイム
+
+CSV から型安全な C# データクラスを生成します。
+
+```text
+Id,Name,Price,IsActive
+101,Iron Sword,500,TRUE
+```
+
+```csharp
+[MemoryPackable]
+public partial class ItemData : ITableData
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int Price { get; set; }
+    public bool IsActive { get; set; }
+}
+```
+
+**Generate Code** を Table Loader ウィンドウまたは Project Settings から実行します。MemoryPack があれば `.bytes`、なければ `.json` を `binaryOutputPath` に生成します。実行時は `Resources/` 配下へ置いてください。
+
+```csharp
+var table = TableManager.Get<ItemTable>();
+var item = table.Get(101);
+foreach (var row in table.All)
+    Debug.Log(row.Name);
+```
+
+`ITableService` を DI 登録すれば、ゲームサービスからテーブルを注入できます。
+
+
+
+---
+url: /AchEngine/ja/usage/table/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# Table Loader — 概要
+
+Table Loader は Google Sheets のデータを CSV として取得し、C# 型を生成してランタイムデータへベイクします。
+
+
+> **オプションパッケージ**
+> 
+> `com.cysharp.memorypack` があれば `.bytes`、なければ JSON を使用します。
+> 
+
+
+```mermaid
+flowchart LR
+A[Google Sheets] --> B[Download CSV]
+B --> C[Generate C#]
+C --> D[Bake data]
+D --> E[Resources]
+E --> F[TableManager]
+```
+
+主な設定は Spreadsheet ID、CSV・コード・バイナリ出力パス、シート名/GID/クラス名、処理の自動化です。
+
+## 次のステップ
+
+- [設定とダウンロード](/AchEngine/ja/usage/table/setup.md)
+- [JSON → CSV](/AchEngine/ja/usage/table/json-to-csv.md)
+- [コード生成とランタイム](/AchEngine/ja/usage/table/codegen.md)
+
+
+
+---
+url: /AchEngine/ja/usage/table/json-to-csv.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# JSON → CSV エクスポート
+
+**AchEngine › Table JSON to CSV** を開きます。配列または `items` などの配列プロパティを持つ JSON を変換できます。
+
+```json
+[
+  { "Id": 101, "Name": "Iron Sword", "Price": 500 },
+  { "Id": 102, "Name": "Magic Wand", "Price": 1200 }
+]
+```
+
+```csv
+Id,Name,Price
+101,Iron Sword,500
+102,Magic Wand,1200
+```
+
+**Select JSON** と **Select CSV Location** で単一ファイルを変換します。フォルダー単位では入力・出力フォルダーを選び、必要なら **Include Subfolders** を有効にして **Convert Folder** を押します。
+
+
+
+---
+url: /AchEngine/ja/usage/table/setup.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# 設定とダウンロード
+
+**Project Settings › AchEngine › Table Loader** で Spreadsheet ID、CSV/コード/バイナリ出力パス、シート名・GID・クラス名を設定し、**Save Settings** を押します。
+
+Google Sheets は **リンクを知っている全員 → 閲覧者** に共有し、URL の Spreadsheet ID と各シートの `gid=` をコピーします。
+
+```text
+| Id  | Name       | Price | IsActive |
+|-----|------------|-------|----------|
+| 101 | Iron Sword | 500   | TRUE     |
+| 102 | Magic Wand | 1200  | TRUE     |
+```
+
+対応型は `int`、`float`、`bool`、`string`、`long` です。`Id` 列がデフォルトキーになります。
+
+**Download CSV**、自動コード生成、自動ベイクを組み合わせると **Download → Generate → Bake** を一度に実行できます。
+
+
+
+---
+url: /AchEngine/ja/usage/timer.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# AchTimer
+
+`AchTimer` は async/await ベースの待機・進行追跡ユーティリティです。
+
+```csharp
+await AchTimer.Wait(3f);
+await AchTimer.WaitRealtime(3f);
+
+var timer = AchTimer.Start(5f);
+await timer;
+```
+
+`Wait` はゲーム時間、`WaitRealtime` は timeScale に依存しない実時間を使います。`AchTimerHandle` には `Duration`、`Elapsed`、`Remaining`、`Progress`、`IsDone`、`IsCancelled`、`Task` があります。
+
+```csharp
+var cts = new CancellationTokenSource();
+var castTimer = AchTimer.Start(2f, cancellationToken: cts.Token);
+castBar.Bind(castTimer);
+try { await castTimer; FireSkill(); }
+catch (TaskCanceledException) { ShowCancelMessage(); }
+```
+
+`useUnscaledTime: true` で実時間にし、`UIAchTimer.Bind(handle)` で Text と Slider に表示できます。完了時は自動 Unbind されます。
+
+## 関連ドキュメント
+
+- [UI システム](/AchEngine/ja/usage/ui.md)
+- [ボタン拡張](/AchEngine/ja/usage/ui/button-extras.md)
+
+
+
+---
+url: /AchEngine/ja/usage/ui/binding.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# UIBindingManager *(ACHENGINE_R3)*
+
+R3 の `Subject<T>` を使う型安全な pub/sub バスです。`com.cysharp.r3` がある場合のみ有効です。
+
+```csharp
+public struct GoldChangedMessage { public int Amount; }
+UIBindingManager.Publish(new GoldChangedMessage { Amount = 500 });
+
+private IDisposable _subscription;
+private void OnEnable()
+    => _subscription = UIBindingManager.Subscribe<GoldChangedMessage>(m => goldLabel.text = m.Amount.ToString());
+private void OnDisable() => _subscription?.Dispose();
+```
+
+`Contains<T>()` で Subject の有無を確認し、`ClearAll()` で全 Subject を削除できます。
+
+
+
+---
+url: /AchEngine/ja/usage/ui/button-extras.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# ボタン拡張コンポーネント
+
+`AchButtonCooldown` と `AchButtonHold` は通常の `Button` と同じ GameObject に追加します。
+
+## `AchButtonCooldown`
+
+クリック後にボタンを無効化し、指定時間後に再有効化します。`Cooldown`、`Show Countdown`、`Countdown Label`、開始・終了 UnityEvent を設定できます。
+
+```csharp
+var cooldown = GetComponent<AchButtonCooldown>();
+cooldown.StartCooldown();
+cooldown.ResetCooldown();
+bool ready = !cooldown.IsCoolingDown;
+```
+
+## `AchButtonHold`
+
+長押し中に `On Hold Fire` を一定間隔で繰り返します。`Initial Delay` と `Repeat Interval` を設定でき、状態は `IsHolding` で確認できます。
+
+```csharp
+public void IncreaseVolume()
+    => AudioManager.Volume = Mathf.Clamp01(AudioManager.Volume + 0.05f);
+```
+
+## 併用
+
+同じ Button に両方のコンポーネントを追加できます。
+
+関連: [UI](/AchEngine/ja/usage/ui.md)、[AchTimer](/AchEngine/ja/usage/timer.md)
+
+
+
+---
+url: /AchEngine/ja/usage/ui/draggable.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# Draggable とタッチオブジェクト
+
+## `Draggable`
+
+`Draggable` を継承するとマウス・タッチでドラッグできます。必要な `Physics2DRaycaster` はメインカメラへ自動追加されます。
+
+```csharp
+public class CardView : Draggable
+{
+    protected override void Start()
+    {
+        base.Start();
+        OnTouchDown += () => Debug.Log("Picked up");
+        OnTouching += position => Debug.Log(position);
+        OnTouchUp += hits => Debug.Log(hits.Length);
+    }
+}
+```
+
+`OnTouchDown`、`OnTouching`、`OnTouchUp` を使い、`originalPos` でドラッグ開始位置を参照します。
+
+## `TouchableObject` / `ObjectTouchManager`
+
+`TouchableObject.OnTouched()` をオーバーライドしてタップ処理を実装します。シーンに `ObjectTouchManager` を 1 つ置くと 2D レイキャストで検出します。
+
+
+
+---
+url: /AchEngine/ja/usage/ui/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# UI システム — 概要
+
+AchEngine UI はレイヤー別 View 管理、プール、トランジション、バインディング、エディター支援を提供します。
+
+| コンポーネント                          | 役割                   |
+| -------------------------------- | -------------------- |
+| `UIRoot`                         | UI レイヤーと Catalog を管理 |
+| `UIView`                         | 画面とポップアップの基底クラス      |
+| `UIViewCatalog`                  | ID とプレハブ・設定の対応       |
+| `UIBootstrapper`                 | 起動時に View を開く        |
+| `UIOpenButton` / `UICloseButton` | Inspector ナビゲーション    |
+| `UISafeAreaFitter`               | ノッチ領域を回避             |
+
+```mermaid
+flowchart TB
+Root[UIRoot] --> Background
+Root --> Screen
+Root --> Popup
+Root --> Tooltip
+Root --> Overlay
+```
+
+```csharp
+var ui = ServiceLocator.Resolve<IUIService>();
+ui.Show<MainMenuView>();
+ui.Show("SettingsPopup");
+ui.Close<MainMenuView>();
+ui.CloseAll();
+```
+
+## 次のステップ
+
+- [UIView とライフサイクル](/AchEngine/ja/usage/ui/views.md)
+- [UI Workspace](/AchEngine/ja/usage/ui/workspace.md)
+
+
+
+---
+url: /AchEngine/ja/usage/ui/red-dot.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# RedDot システム
+
+`RedDot` は通知バッジを管理する静的ファサードです。`/` 区切りのキーは階層になり、子の数が親へ集計されます。
+
+```csharp
+RedDot.Set("Shop/New", 3);
+RedDot.Add("Quest/Daily", 1);
+int count = RedDot.Get("Shop");
+bool visible = RedDot.HasDot("Shop");
+RedDot.Clear("Quest/Daily");
+RedDot.ClearAll();
+```
+
+`RedDotBadge` を UI に追加し、`Key`、`Dot`、任意の `Count Label`、`Button`、`Clear On Click` を設定します。`OnEnable` で購読し、`OnDisable` で解除します。
+
+```csharp
+private void OnEnable() => RedDot.Subscribe("Shop", OnShopChanged);
+private void OnDisable() => RedDot.Unsubscribe("Shop", OnShopChanged);
+```
+
+Enter Play Mode で Domain Reload を無効にしても `SubsystemRegistration` で状態を初期化します。
+
+
+
+---
+url: /AchEngine/ja/usage/ui/views.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# UIView とライフサイクル
+
+`UIView` は AchEngine UI のすべての画面の基底クラスです。
+
+## ライフサイクル
+
+```mermaid
+stateDiagram-v2
+direction TB
+[*] --> Unborn
+Unborn --> Initializing : 初回生成
+Initializing --> Idle : OnInitialize()
+Pool --> Idle : Pool から取得
+Idle --> Opening : Show()
+Opening --> Visible : OnOpened()
+Visible --> Closing : Close()
+Closing --> Idle : OnClosed()
+Idle --> Pool : Pool Size > 0
+Idle --> [*] : Pool Size = 0
+```
+
+```csharp
+public class ItemDetailView : UIView
+{
+    protected override void OnInitialize()
+        => _closeButton.onClick.AddListener(CloseSelf);
+
+    protected override void OnOpened(object payload)
+        => _nameText.text = _item.Name;
+
+    protected override void OnClosed() => _item = null;
+}
+```
+
+Catalog の **Single Instance** を有効にすると同じ View を一つだけ保持できます。**Pool Size** を 1 以上にすると閉じた View を再利用します。
+
+Prefab は `Canvas Group`、`UIView`、UI 要素で構成し、`UIViewCatalog` に登録して `UIRoot` の Catalog へ割り当てます。
+
+`UICloseButton`、`UIOpenButton`、`UISafeAreaFitter`、`UIBootstrapper` が利用できます。`OnBeforeOpen(object payload)` / `OnBeforeClose()` でカスタムトランジションを開始します。
+
+
+
+---
+url: /AchEngine/ja/usage/ui/workspace.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# UI Workspace の使い方
+
+## 初期設定
+
+1. **Project Settings › AchEngine › UI Workspace** で **Create UI Root** を押すか、`UIRoot` プレハブを配置します。
+2. **Create › Achieve › UI View Catalog** で Catalog を作成し、`UIRoot` に割り当てます。
+3. View プレハブの ID、レイヤー、Pool Size、Single Instance を登録します。
+
+```csharp
+var ui = ServiceLocator.Resolve<IUIService>();
+ui.Show<MainMenuView>();
+ui.Show("SettingsPopup");
+ui.Close<MainMenuView>();
+ui.CloseAll();
+```
+
+`UIBootstrapper` の Auto Open Views でシーン開始時に開く View を指定できます。Unity 6 の Scene Navigator は Build Settings のシーン、未保存状態、Play Mode を確認します。
+
+Workspace ウィンドウでは登録 View の一覧、Editor Play Mode 中の強制開閉、レイヤー別状態、未登録 UIView の警告を確認できます。
+
+
+
+---
+url: /AchEngine/ja/usage/web-request.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# HttpLink
+
+`HttpLink` は UnityWebRequest をビルダーパターンでラップし、GET/POST、JSON、ヘッダー、タイムアウトを扱います。
+
+```csharp
+var result = await new HttpLink.Builder()
+    .SetUrl("https://api.example.com/users/1")
+    .AddHeader("Authorization", "Bearer token123")
+    .SetTimeout(10)
+    .GetAsync<UserData>();
+
+bool success = await new HttpLink.Builder()
+    .SetUrl("https://api.example.com/login")
+    .SetJsonBody(json)
+    .PostAsync();
+```
+
+`Build().SendAsync()` では `Success`、`Result`、`ReceiveDataString`、`ReceiveData`、`DownloadSize`、`DownloadProgress` を直接確認できます。`SetMethod` は GET と POST のみ対応し、JSON は Newtonsoft.Json を使います。
+
+

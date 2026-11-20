@@ -1,0 +1,775 @@
+---
+url: /npc-mentality/ja/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ja/llms.txt, the full documentation bundle is available at /npc-mentality/ja/llms-full.txt.
+
+# インストールとクイックスタート
+
+## Package Manager（Git URL）
+
+Unity エディターで **Window → Package Manager → + → Add package from git URL**:
+
+```
+https://github.com/achieveonepark/npc-mentality.git
+```
+
+## manifest.json に直接追加
+
+`Packages/manifest.json` を開き、`dependencies` に追加します:
+
+```json
+{
+  "dependencies": {
+    "com.achieveonepark.npc-mentality": "https://github.com/achieveonepark/npc-mentality.git"
+  }
+}
+```
+
+***
+
+## クイックスタート
+
+### 1. NPC にコンポーネントを追加
+
+Inspector で NPC の GameObject に必要なコンポーネントを追加します。
+
+```
+Add Component → NPC Mentality → NPC Memory
+Add Component → NPC Mentality → Emotion Controller
+Add Component → NPC Mentality → Crowd NPC
+```
+
+### 2. プレイヤー行動を記録
+
+```csharp
+using NpcMentality;
+
+public class PlayerInteraction : MonoBehaviour
+{
+    public NPCMemory targetNpc;
+
+    void StealItem()
+    {
+        targetNpc.Remember(EventType.Steal, weight: -3f);
+    }
+
+    void HelpVillager()
+    {
+        targetNpc.Remember(EventType.Help, weight: 5f);
+    }
+}
+```
+
+### 3. NPC の反応を読む
+
+```csharp
+float attitude = targetNpc.GetAttitude();
+
+if (attitude < -5f)
+    dialogue.Say("また来たのか…荷物に触るなよ。");
+else if (attitude > 5f)
+    dialogue.Say("前回は助かったよ。");
+else
+    dialogue.Say("いらっしゃいませ。");
+```
+
+### 4. 時間システムを登録
+
+シーンに空の GameObject を作り、`WorldTimeSystem` コンポーネントを追加します。
+
+```csharp
+void Start()
+{
+    WorldTimeSystem.Instance.Register("Shop",
+        openHour: 8,
+        closeHour: 22,
+        onOpen:  () => Debug.Log("店が開いた"),
+        onClose: () => Debug.Log("店が閉まった")
+    );
+}
+```
+
+***
+
+## エディターウィンドウ
+
+**Tools → NPC Mentality** メニューで 7 つのシステムの API リファレンスを確認できます。
+
+## サンプル
+
+Package Manager で **Samples → Basic Demo** をインポートすると `DemoUsage.cs` が追加されます。7 つのシステムを 1 つのシーンで接続したサンプルコードです。
+
+
+
+---
+url: /npc-mentality/ja/index.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ja/llms.txt, the full documentation bundle is available at /npc-mentality/ja/llms-full.txt.
+
+# 概要
+
+**NPC Mentality** は、Unityゲームの NPC を生きているように感じさせる 7 つの AI システムパッケージです。
+
+## なぜ作ったのか
+
+従来の NPC は次の 3 パターンのどれかです。
+
+- 目標地点へ移動する
+- あらかじめ用意されたセリフを出力する
+- プレイヤーに向かって突進する
+
+NPC Mentality はここに **記憶・関係・感情・時間** のレイヤーを追加します。プレイヤーが商人の物を盗めば商人が覚えており、親しい隣人に噂が広がり、村の雰囲気が変わります。コード 1 行でです。
+
+## システム構成
+
+| # | システム                                                 | 主な役割                |
+| - | ---------------------------------------------------- | ------------------- |
+| 1 | [NPC記憶](/npc-mentality/ja/usage/memory.md)           | プレイヤー行動の蓄積、態度の計算    |
+| 2 | [関係伝染](/npc-mentality/ja/usage/relationship.md)      | 友人ネットワークを通じた感情の伝播   |
+| 3 | [群衆AI](/npc-mentality/ja/usage/crowd-ai.md)          | NavMeshベースの自律的な群衆行動 |
+| 4 | [感情アニメーション](/npc-mentality/ja/usage/emotion.md)      | 感情 → 速度・アニメーター自動連動  |
+| 5 | [クエスト生成](/npc-mentality/ja/usage/quest-generator.md) | 行動ベースのクエスト自動生成      |
+| 6 | [時間世界](/npc-mentality/ja/usage/world-time.md)        | ゲーム内時間スケジュール管理      |
+| 7 | [噂システム](/npc-mentality/ja/usage/rumor.md)            | NPC間の情報伝播と変形        |
+
+## 要件
+
+- **Unity** 2021.3 LTS 以上
+- **NavMesh** — 群衆AI・感情アニメーション使用時
+- **.NET Standard 2.1**
+
+
+
+---
+url: /npc-mentality/ja/usage/crowd-ai.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ja/llms.txt, the full documentation bundle is available at /npc-mentality/ja/llms-full.txt.
+
+# 自然な群衆AI
+
+NavMeshAgent を利用して NPC が自律的で自然な群衆行動を行います。
+
+## 概要
+
+```
+一般的な NPC:
+  目標地点へ移動
+
+NPC Mentality:
+  - お互いを避ける
+  - お店を見て回る
+  - 周囲の人を眺める
+  - 突然立ち止まる
+  - 道を迂回する
+```
+
+## コンポーネント
+
+`CrowdNPC` — MonoBehaviour。**NavMeshAgent** が必要です。
+
+| フィールド                    | 型                   | デフォルト | 説明            |
+| ------------------------ | ------------------- | ----- | ------------- |
+| `WanderRadius`           | `float`             | `10f` | 徘徊半径（メートル）    |
+| `BehaviorChangeCooldown` | `float`             | `3f`  | 行動切替間隔（秒）     |
+| `CurrentBehavior`        | `CrowdBehaviorType` | —     | 現在の行動（読み取り専用） |
+
+***
+
+## CrowdBehaviorType 列挙型
+
+```csharp
+public enum CrowdBehaviorType
+{
+    Wander,          // 半径内をランダム移動
+    BrowseShop,      // 周辺の店へゆっくり移動
+    LookAround,      // 止まって周囲を見渡す (1-3秒)
+    StopAndObserve,  // 完全停止 (1-2秒)
+    AvoidObstacle,   // 障害物を迂回
+    Hurt,            // ぶつかったように少しよろめく
+    Idle             // その場で待機
+}
+```
+
+***
+
+## ヒント
+
+- `BehaviorChangeCooldown` を低くするとより落ち着きなく、高くするとより目的を持って見えます。
+- [WorldTimeSystem](/npc-mentality/ja/usage/world-time.md) と連携して夜は Idle の割合を増やせます。
+- [EmotionController](/npc-mentality/ja/usage/emotion.md) と組み合わせて感情に応じた移動速度変化も可能です。
+
+
+
+---
+url: /npc-mentality/ja/usage/emotion.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ja/llms.txt, the full documentation bundle is available at /npc-mentality/ja/llms-full.txt.
+
+# 感情ベースのアニメーションシステム
+
+感情設定の 1 行で移動速度・アニメーター・まばたきが自動で変わります。
+
+## 概要
+
+```
+従来:
+  anim.Play("Idle");
+
+NPC Mentality:
+  emotion.Set(Emotion.Angry);
+  → 自動: 歩行速度増加 / 頭が揺れる / 表情変化 / まばたき減少
+```
+
+## EmotionType 列挙型
+
+```csharp
+public enum EmotionType
+{
+    Neutral, Happy, Angry, Sad, Afraid, Surprised, Disgusted
+}
+```
+
+## 感情別エフェクト
+
+| 感情        | NavMesh速度 | アニメータートリガー | BlinkRate |
+| --------- | --------- | ---------- | --------- |
+| `Neutral` | ×1.0      | `"Idle"`   | `1.0`     |
+| `Happy`   | ×1.0      | `"Happy"`  | `1.0`     |
+| `Angry`   | ×1.5      | `"Angry"`  | `0.3`（減少） |
+| `Sad`     | ×0.7      | `"Sad"`    | `0.8`     |
+| `Afraid`  | ×1.3      | `"Afraid"` | `1.5`（増加） |
+
+***
+
+## サンプル
+
+```csharp
+using NpcMentality;
+
+public class NPCReaction : MonoBehaviour
+{
+    private NPCMemory _memory;
+    private EmotionController _emotion;
+
+    private void Awake()
+    {
+        _memory  = GetComponent<NPCMemory>();
+        _emotion = GetComponent<EmotionController>();
+    }
+
+    public void OnTalkWithPlayer()
+    {
+        float attitude = _memory.GetAttitude();
+
+        if (attitude < -8f)      _emotion.Set(EmotionType.Angry);
+        else if (attitude < -2f) _emotion.Set(EmotionType.Disgusted);
+        else if (attitude > 8f)  _emotion.Set(EmotionType.Happy);
+        else                     _emotion.Set(EmotionType.Neutral);
+    }
+
+    public void OnCombatStart() => _emotion.Set(EmotionType.Afraid);
+    public void OnCombatEnd()   => _emotion.Set(EmotionType.Neutral);
+}
+```
+
+
+
+---
+url: /npc-mentality/ja/usage/memory.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ja/llms.txt, the full documentation bundle is available at /npc-mentality/ja/llms-full.txt.
+
+# NPC記憶システム
+
+NPC がプレイヤーの行動を記憶し、累積態度（Attitude）を計算します。
+
+## 概要
+
+```
+プレイヤー:
+- 商人の物を3回盗んだ
+- 村人を助けた
+
+NPC:
+  商人: "また来たのか…荷物に触るなよ。"
+  村人: "前回は助かったよ。"
+```
+
+## コンポーネント
+
+`NPCMemory` — MonoBehaviour。NPC の GameObject に追加します。
+
+| フィールド         | 型                   | デフォルト | 説明                     |
+| ------------- | ------------------- | ----- | ---------------------- |
+| `MaxMemories` | `int`               | `20`  | 最大記憶数。超過時は最も古いものを削除    |
+| `memories`    | `List<MemoryEvent>` | —     | 記憶リスト（Inspector で確認可能） |
+
+## API
+
+### Remember
+
+```csharp
+void Remember(EventType type, float weight = 1f, string context = "")
+```
+
+プレイヤー行動を記録します。
+
+| パラメーター    | 説明                     |
+| --------- | ---------------------- |
+| `type`    | 行動タイプ（`EventType` 列挙型） |
+| `weight`  | 態度への影響。正 = 友好的、負 = 敵対的 |
+| `context` | 任意の説明文字列               |
+
+```csharp
+npc.Remember(EventType.Steal,  weight: -3f);
+npc.Remember(EventType.Help,   weight:  5f);
+npc.Remember(EventType.Attack, weight: -10f);
+npc.Remember(EventType.Gift,   weight:  3f);
+```
+
+### GetAttitude
+
+```csharp
+float GetAttitude()
+```
+
+全記憶の weight 合計を返します。
+
+```csharp
+float attitude = npc.GetAttitude();
+// attitude > 0  → 友好的
+// attitude == 0 → 中立
+// attitude < 0  → 敵対的
+```
+
+### HasMemory
+
+```csharp
+bool HasMemory(EventType type)
+```
+
+特定タイプの記憶が存在するか確認します。
+
+```csharp
+if (npc.HasMemory(EventType.Steal))
+    dialogue.Say("また来たのか…");
+```
+
+### ForgetOldest
+
+```csharp
+void ForgetOldest()
+```
+
+最も古い記憶を手動で削除します。`MaxMemories` 超過時に自動呼び出しされます。
+
+***
+
+## EventType 列挙型
+
+```csharp
+public enum EventType
+{
+    None, Steal, Help, Attack, Trade,
+    Talk, Threaten, Gift, Kill, Rescue
+}
+```
+
+***
+
+## サンプル
+
+```csharp
+using NpcMentality;
+
+public class ShopKeeper : MonoBehaviour
+{
+    private NPCMemory _memory;
+
+    private void Awake() => _memory = GetComponent<NPCMemory>();
+
+    public void OnPlayerSteals()
+    {
+        _memory.Remember(EventType.Steal, weight: -3f, context: "貴重な薬草");
+
+        if (_memory.GetAttitude() < -6f)
+            GuardSystem.Alert(transform.position);
+    }
+
+    public string GetGreeting()
+    {
+        return _memory.GetAttitude() switch
+        {
+            < -5f => "出て行け。",
+            < 0f  => "何が入り用だ？",
+            < 5f  => "いらっしゃいませ。",
+            _     => "あなたのようなお客様が増えるといいですね！"
+        };
+    }
+}
+```
+
+
+
+---
+url: /npc-mentality/ja/usage/quest-generator.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ja/llms.txt, the full documentation bundle is available at /npc-mentality/ja/llms-full.txt.
+
+# AIクエスト生成器
+
+プレイヤーの行動パターンを分析して、文脈に合ったクエストを自動生成します。
+
+## 概要
+
+```
+プレイヤー:
+  - 森によく行く
+  - オオカミをたくさん倒す
+
+生成:
+  "森の近くに奇妙なオオカミが現れた。"
+
+ランダムクエストよりもずっと自然。
+```
+
+## API
+
+### GenerateQuest
+
+```csharp
+QuestData GenerateQuest(EventType trigger, string subject = "creature")
+```
+
+```csharp
+QuestData q = generator.GenerateQuest(EventType.Kill, "wolf");
+// → "森の近くに奇妙なwolfが現れた。"
+```
+
+### OnQuestGenerated イベント
+
+```csharp
+generator.OnQuestGenerated += quest =>
+{
+    QuestUI.Show(quest.Title, quest.Description);
+    QuestLog.Add(quest);
+};
+```
+
+***
+
+## デフォルトテンプレート
+
+| EventType | 生成例                         |
+| --------- | --------------------------- |
+| `Kill`    | "森の近くに奇妙な \{subject} が現れた。" |
+| `Steal`   | "商人地区から荷物が消えた。"             |
+| `Help`    | "また助けの手が必要だ。"               |
+| `Rescue`  | "危険にさらされた人がいる。"             |
+
+***
+
+## サンプル
+
+```csharp
+using NpcMentality;
+
+public class PlayerBehaviorTracker : MonoBehaviour
+{
+    public AIQuestGenerator questGenerator;
+    private int _wolfKillCount = 0;
+
+    public void OnWolfKilled()
+    {
+        _wolfKillCount++;
+        if (_wolfKillCount >= 5)
+        {
+            questGenerator.GenerateQuest(EventType.Kill, "wolf");
+            _wolfKillCount = 0;
+        }
+    }
+}
+```
+
+
+
+---
+url: /npc-mentality/ja/usage/relationship.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ja/llms.txt, the full documentation bundle is available at /npc-mentality/ja/llms-full.txt.
+
+# 関係伝染システム
+
+NPC 間の友人関係を通じて感情が伝播します。
+
+## 概要
+
+```
+A がプレイヤーを嫌う
+    ↓
+A の友人 B も影響を受ける (×0.5)
+    ↓
+B の友人 C も少し影響を受ける (×0.25)
+
+結果: 商人の村全体が敵対的になる
+```
+
+## RelationshipGraph
+
+NPC 間の友人関係を保存する ScriptableObject です。
+
+**作成:** Project パネルで右クリック → Create → NPC Mentality → Relationship Graph
+
+### API
+
+```csharp
+graph.AddFriendship("merchant_a", "villager_b");
+graph.AddFriendship("villager_b", "blacksmith_c");
+
+List<string> friends = graph.GetFriends("merchant_a");
+```
+
+***
+
+## RelationshipContagion
+
+静的ヘルパークラス。態度変化を友人ネットワーク全体に伝播します。
+
+### Propagate
+
+```csharp
+static void Propagate(
+    string sourceNpcId,
+    float attitudeChange,
+    RelationshipGraph graph,
+    Dictionary<string, NPCMemory> allNpcs,
+    int depth = 2,
+    float decay = 0.5f
+)
+```
+
+| パラメーター           | 説明                     |
+| ---------------- | ---------------------- |
+| `sourceNpcId`    | 態度変化の発生源 NPC ID        |
+| `attitudeChange` | 伝播する態度変化量              |
+| `graph`          | 友人関係グラフ                |
+| `allNpcs`        | 全 NPC の `NPCMemory` 辞書 |
+| `depth`          | 伝播深度（デフォルト 2）          |
+| `decay`          | 段階ごとの減衰率（デフォルト 0.5）    |
+
+***
+
+## サンプル
+
+```csharp
+using NpcMentality;
+using System.Collections.Generic;
+
+public class VillageManager : MonoBehaviour
+{
+    public RelationshipGraph graph;
+    private Dictionary<string, NPCMemory> _npcs = new();
+
+    private void Start()
+    {
+        graph.AddFriendship("merchant", "innkeeper");
+        graph.AddFriendship("innkeeper", "blacksmith");
+
+        foreach (var npc in FindObjectsOfType<NPCMemory>())
+            _npcs[npc.gameObject.name] = npc;
+    }
+
+    public void OnPlayerAttacksMerchant()
+    {
+        _npcs["merchant"].Remember(EventType.Attack, weight: -10f);
+
+        RelationshipContagion.Propagate(
+            sourceNpcId: "merchant",
+            attitudeChange: -10f,
+            graph: graph,
+            allNpcs: _npcs,
+            depth: 2,
+            decay: 0.5f
+        );
+        // merchant: -10, innkeeper: -5, blacksmith: -2.5
+    }
+}
+```
+
+
+
+---
+url: /npc-mentality/ja/usage/rumor.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ja/llms.txt, the full documentation bundle is available at /npc-mentality/ja/llms-full.txt.
+
+# 噂システム
+
+情報が NPC の間を流れるにつれて内容が変化していきます。
+
+## 概要
+
+```
+プレイヤーがボスを倒す
+    ↓
+NPC1: "誰かがドラゴンを倒したって？"
+    ↓
+NPC2: "違うよ、魔法使いらしいよ"
+    ↓
+NPC3: "魔王が死んだらしい"
+```
+
+## コンポーネント
+
+`RumorSystem` — MonoBehaviour。
+
+| フィールド              | 型                 | デフォルト   | 説明          |
+| ------------------ | ----------------- | ------- | ----------- |
+| `MutationChance`   | `float`           | `0.3f`  | 変形確率（0〜1）   |
+| `MutationSuffixes` | `List<string>`    | デフォルト4つ | 変形時に追加される文章 |
+| `ActiveRumors`     | `List<RumorData>` | —       | 現在進行中の噂リスト  |
+
+***
+
+## API
+
+```csharp
+rumorSystem.SpreadRumor("誰かがドラゴンを倒した", sourceNpcId: "player");
+
+var rumor = rumorSystem.ActiveRumors[^1];
+rumorSystem.PassRumor(rumor, "npc_01");
+```
+
+***
+
+## サンプル
+
+```csharp
+using NpcMentality;
+
+public class RumorDemo : MonoBehaviour
+{
+    public RumorSystem rumorSystem;
+    public string[] npcIds = { "blacksmith", "innkeeper", "farmer", "guard" };
+
+    public void OnPlayerKillsDragon()
+    {
+        rumorSystem.SpreadRumor("誰かがドラゴンを倒した", "player");
+        StartCoroutine(SpreadToVillage());
+    }
+
+    private System.Collections.IEnumerator SpreadToVillage()
+    {
+        var rumor = rumorSystem.ActiveRumors[^1];
+        foreach (string npcId in npcIds)
+        {
+            yield return new WaitForSeconds(2f);
+            rumorSystem.PassRumor(rumor, npcId);
+        }
+    }
+}
+```
+
+***
+
+## ヒント
+
+- `MutationChance = 0f` — 変形なしで事実のみ伝播します。
+- `MutationChance = 1f` — 毎回必ず変形します。
+- [RelationshipContagion](/npc-mentality/ja/usage/relationship.md) と組み合わせると噂の内容と感情が同時に広がります。
+
+
+
+---
+url: /npc-mentality/ja/usage/world-time.md
+---
+
+> For AI agents: the complete documentation index is available at /npc-mentality/ja/llms.txt, the full documentation bundle is available at /npc-mentality/ja/llms-full.txt.
+
+# 時間流れの世界システム
+
+ゲーム内の時間の流れに応じて、店の開閉や NPC のスケジュールを自動管理します。
+
+## 概要
+
+```
+08:00 → 店が開く
+12:00 → NPC が昼食
+22:00 → 店が閉まる
+02:00 → 盗賊が登場
+```
+
+## コンポーネント
+
+`WorldTimeSystem` — MonoBehaviour シングルトン。シーンに 1 つだけ配置します。
+
+| フィールド         | 型       | デフォルト | 説明                |
+| ------------- | ------- | ----- | ----------------- |
+| `TimeScale`   | `float` | `1f`  | 時間倍速              |
+| `CurrentHour` | `float` | `0f`  | 現在時刻（0〜24、読み取り専用） |
+
+***
+
+## API
+
+### Register
+
+```csharp
+WorldTimeSystem.Instance.Register(
+    "Shop",
+    openHour: 8,
+    closeHour: 22,
+    onOpen:  () => shopkeeper.Open(),
+    onClose: () => shopkeeper.Close()
+);
+```
+
+### IsOpen
+
+```csharp
+if (WorldTimeSystem.Instance.IsOpen("Shop"))
+    ShowShopUI();
+```
+
+### OnHourChanged イベント
+
+```csharp
+WorldTimeSystem.Instance.OnHourChanged += hour =>
+    Debug.Log($"現在時刻: {Mathf.FloorToInt(hour):D2}:00");
+```
+
+***
+
+## サンプル
+
+```csharp
+using NpcMentality;
+
+public class VillageScheduler : MonoBehaviour
+{
+    public CrowdNPC[] villagers;
+    public GameObject thiefPrefab;
+
+    private void Start()
+    {
+        var wt = WorldTimeSystem.Instance;
+        wt.Register("Day", openHour: 6, closeHour: 22,
+            onOpen:  () => { foreach (var v in villagers) v.enabled = true; },
+            onClose: () => { foreach (var v in villagers) v.enabled = false; });
+
+        wt.Register("Thief", openHour: 2, closeHour: 4,
+            onOpen:  () => Instantiate(thiefPrefab, GetAlleyPosition(), Quaternion.identity),
+            onClose: () => DespawnThieves());
+    }
+}
+```
+
+

@@ -1,0 +1,5059 @@
+---
+url: /AchEngine/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 변경 내역
+
+## 1.3.2
+
+**신기능**
+
+- Unity Ads Legacy 4.16.4 기본 공급자로 초기화와 전면·보상형·배너 광고의 비동기 로드·표시를 관리하는 `AdsManager`를 추가했습니다.
+- `AdsShowResult.ShouldGrantReward`가 `true`일 때만 보상형 광고 보상을 지급하도록 했습니다.
+- Unity LevelPlay, AppLovin MAX, Google AdMob/Google Ad Manager, FairBid 등 미디에이션 SDK로 바꿀 수 있는 공개 `IAdsProvider` 경계를 추가했습니다.
+- `com.unity.ads` 4.16.4 의존성과 `AchManagerInstaller`의 `AdsManager` 자동 등록을 추가했습니다.
+
+**문서**
+
+- 직접 설정과 미디에이션 전환 조건을 포함한 4개 언어 `AdsManager` 가이드를 추가했습니다.
+
+## 1.3.1
+
+**개선**
+
+- Unity 에디터에서 `IAPManager`가 Unity IAP Fake Store를 명시적으로 사용합니다.
+- 에디터에서는 `ReceiptValidator` 또는 `PurchaseProcessor` 없이도 가짜 주문을 자동 확정하여 구매 UI 흐름을 테스트할 수 있습니다.
+- Full Sample의 구매 팝업이 에디터 Fake Store 테스트에서 검증기 없이도 활성화됩니다. 실제 빌드에서는 기존처럼 보상 처리 검증이 필요합니다.
+
+## 1.3.0
+
+**신기능**
+
+- Unity 6000.3 이상에서 Build Settings의 씬 목록을 보여 주고 현재 편집 씬을 추적하는 `AchEngine/Scene Navigator` 메인 툴바 컨트롤을 추가했습니다. 이동 전 저장하지 않은 변경 사항도 확인합니다.
+- `Screen`, `Popup`, `Tooltip` UI 레이어에 `UISafeAreaFitter`를 자동으로 추가합니다. `Background`와 `Overlay` 레이어는 전체 화면을 유지합니다.
+
+**개선**
+
+- Addressables 에셋·위치 캐시가 요청한 에셋 타입을 함께 확인하여 호환되지 않는 타입의 핸들을 잘못 재사용하지 않도록 했습니다.
+- 초기화, 다운로드 크기 조회, 종속성 다운로드, 카탈로그 확인·업데이트에 사용하는 임시 Addressables 핸들을 작업 완료 후 해제합니다.
+- 도메인 재로드를 끈 상태에서 Play Mode를 재진입해도 디버그 콘솔 로그 콜백이 중복 등록되지 않도록 했습니다.
+- 런타임 오브젝트 탐색을 `FindFirstObjectByType`으로 갱신하고, 자식 `UIRoot`에 `DontDestroyOnLoad`를 중복 호출하지 않도록 했습니다.
+- `IScene`을 선택적 씬 라이프사이클 훅으로 취급하여 구현하지 않은 씬에는 경고를 출력하지 않습니다.
+
+**문서**
+
+- 1.2.0 및 1.3.0 변경 내역과 Addressables, UI Safe Area, Scene Navigator, AI Assistant 스킬 문서를 갱신했습니다.
+
+## 1.2.0
+
+**신기능**
+
+- Addressables를 정적 `AddressableManager` 중심으로 재구성하고 `AchTask` 기반 에셋·씬·인스턴스화·해제·원격 다운로드·카탈로그 API를 제공했습니다.
+- 위치 메타데이터·에셋 핸들 캐시, 명시적 씬 핸들 추적, Addressables 에디터 설정·감시 폴더 도구를 추가하고 Addressables 샘플을 갱신했습니다.
+
+**문서**
+
+- 정적 매니저와 명시적 캐시 해제 흐름에 맞춰 Addressables 가이드, 통합 가이드, 샘플 문서를 갱신했습니다.
+
+## 1.1.2
+
+**삭제**
+
+- iOS 네이티브 디버그 콘솔을 제거했습니다. Android 오버레이와 에디터 IMGUI 오버레이는 유지됩니다.
+
+## 1.1.1
+
+**신기능**
+
+- `HttpIAPReceiptValidator`를 게임별 `IIAPReceiptValidator` 구현 지점(및 샘플용 `IAPReceiptValidatorBehaviour` 베이스 클래스)으로 대체했습니다. 게임 서버 전송 방식·플레이어 인증·영수증 검증·거래 ID 기준의 멱등 보상 저장은 게임 프로젝트에서 구현하고, 모두 성공한 경우에만 주문을 확정합니다.
+- Apple StoreKit 2의 JWS 거래 정보와 앱 계정 토큰을 `IAPPurchase` 및 영수증 검증 요청 계약에 추가했습니다.
+- Apple 수동 복원용 `RestoreTransactionsAsync()`와 같은 앱 실행 중 미확정 주문을 재처리하는 `RetryPendingFulfillmentsAsync()`를 추가했습니다.
+- 같은 상품의 기존 미확정 주문 결과가 새 구매 작업을 완료하지 않도록 거래 ID 기준으로 구매 요청을 연결했습니다.
+- `IAPManager` 단위 테스트를 위한 `AchEngine.IAP.Tests` 어셈블리를 추가했습니다.
+
+**버그 수정**
+
+- `AchDebugConsolePlugin.mm`에서 존재하지 않는 프로퍼티 호출과 `_AchConsole_Hide`의 언어 링키지 불일치로 발생하던 Xcode 빌드 실패를 수정했습니다.
+
+**문서**
+
+- IAPManager 가이드와 Full Sample을 게임별 `IIAPReceiptValidator` 구현, Apple JWS 검증, 수동 복원, 같은 세션 재시도 흐름에 맞춰 갱신했습니다.
+
+## 1.1.0
+
+**신기능**
+
+- Unity IAP 5.4.1 기반 `IAPManager`를 추가했습니다. 상점 연결, 상품 조회, 구매 요청, 지연 구매 처리, 구매 복원, 보상 지급 뒤 명시적 주문 확정을 지원합니다.
+- `HttpIAPReceiptValidator`를 추가했습니다. `HttpLink`로 거래 ID·Unity IAP 영수증·상품 목록을 게임 서버에 전달하며, 서버가 영수증 유효성 및 거래 ID 기준의 멱등 보상 저장을 모두 성공으로 응답할 때만 주문을 확정합니다.
+- `AchManagerInstaller`가 `IAPManager`를 자동 등록하며, `com.unity.purchasing` 5.4.1 의존성을 패키지에 선언했습니다.
+
+**문서**
+
+- IAPManager 가이드를 실제 Unity IAP 5.4.1 API, 서버 영수증 검증 JSON 계약, 미확정 주문 재처리 및 복원 흐름에 맞춰 전면 갱신했습니다.
+
+## 1.0.8
+
+**신기능**
+
+- `AIAssistantSkills/`를 추가했습니다. Unity Editor에 내장된 AI Assistant(Unity MCP)가 패키지 설치만으로 AchEngine의 내장 시스템을 자동 인식하도록, 패키지 루트에 12개의 `SKILL.md`(`ach-mover-movement`, `ach-task-async`, `ach-timer`, `addressables`, `ecs-ingame-logic`, `httplink-webrequest`, `imanager-managers`, `localization`, `pathfinding-astar`, `singleton`, `ui-catalog`, `vcontainer-di`)를 배포합니다. 자세한 내용은 [Unity MCP 스킬](/AchEngine/usage/mcp.md) 문서를 참고하세요.
+
+## 1.0.6
+
+**브레이킹 변경**
+
+- `AchEngine.Extensions` 어셈블리와 `Runtime/Extensions` 확장 메서드 소스 파일을 제거했습니다. 관련 확장 메서드 가이드 문서도 삭제했습니다.
+
+## 1.0.5
+
+**신기능**
+
+- `AchTask` / `AchTask<T>`를 추가했습니다. UniTask와 `System.Threading.Tasks.Task`를 단일 API로 통합하는 비동기 래퍼입니다. `com.cysharp.unitask` 패키지 감지 시 `ENABLE_UNITASK` 심볼이 자동 정의되어 UniTask로 동작하고, 없으면 `Task`로 폴백합니다. `Delay`, `DelayRealtime`, `WaitUntil`, `WhenAll`, `WhenAny`, `CompletedTask`, 암묵적 변환을 제공합니다.
+
+**문서**
+
+- `AchTask` 한국어·영어 문서를 추가했습니다 (`guide/async`).
+
+## 1.0.4
+
+**브레이킹 체인지**
+
+- `SoundManager`를 제거했습니다. 모든 사용처를 새로운 `AudioManager`로 교체해야 합니다.
+
+**신기능**
+
+- `AudioManager`를 추가했습니다. `SoundManager`를 대체하며 BGM 크로스페이드(`PlayBgm(clip, fadeDuration)`, `StopBgm(fadeDuration)`), BGM 볼륨 페이드(`SetBgmVolume(volume, fadeDuration)`), 채널별 뮤트(`MuteBgm`, `MuteSfx`, `MuteAll`), 8채널 동시 재생 SFX 풀, 3D 공간 음향(`PlaySfxAt(clip, worldPosition)`)을 제공합니다.
+- `AchTimer`를 추가했습니다. `AchTimer.Wait(seconds)` / `AchTimer.WaitRealtime(seconds)`으로 단순 대기를 처리하고, `AchTimer.Start(duration)`은 `Elapsed`, `Remaining`, `Progress`(0–1), `IsDone`, `Cancel()`, 직접 `await` 등을 제공하는 `AchTimerHandle`을 반환합니다. `CancellationToken`과 `useUnscaledTime`을 지원합니다. 내부 `AchTimerRunner`는 앱 시작 시 자동 생성되므로 씬 설치가 불필요합니다.
+- `UIAchTimer` 컴포넌트를 추가했습니다. `Bind(handle)` / `Unbind()`로 `AchTimerHandle`을 `Text`와 `Slider`에 연결해 실시간으로 진행 상황을 표시합니다.
+- `AchButtonCooldown` 컴포넌트를 추가했습니다. 클릭 직후 `Button`을 비활성화하고 지정된 시간 뒤 자동으로 재활성화합니다. 카운트다운 `Text` 레이블과 `OnCooldownStart` / `OnCooldownEnd` UnityEvent를 내장하고 있으며, `StartCooldown()`, `ResetCooldown()`, `IsCoolingDown`을 제공합니다.
+- `AchButtonHold` 컴포넌트를 추가했습니다. 버튼을 누르고 있는 동안 설정된 간격으로 UnityEvent를 반복 발동합니다. `InitialDelay`와 `RepeatInterval`을 조절할 수 있습니다.
+- `AchDebugConsole`을 추가했습니다. Unity 렌더 스레드에 영향을 주지 않는 네이티브 UI 오버레이 디버그 콘솔입니다. Android에서는 드래그 가능한 `WindowManager` 오버레이(`SYSTEM_ALERT_WINDOW` 권한 필요), iOS에서는 `UIWindowLevelAlert + 100`의 `UIWindow`, 에디터에서는 `DrawEditorGUI()`를 통한 IMGUI 폴백으로 동작합니다. API: `Show()`, `Hide()`, `Toggle()`, `Clear()`, `IsVisible`.
+- `RedDot.ClearAll()`을 추가했습니다. 모든 노드의 카운트를 한 번에 0으로 초기화합니다.
+- `RedDotBadge`에 클릭 클리어 기능을 추가했습니다. `Clear On Click`(기본값 `true`)과 `Button` 필드를 추가했으며, 연결된 버튼을 누르면 해당 키의 `RedDot.Clear(key)`가 자동 호출됩니다.
+
+**문서**
+
+- 소스 코드와 불일치하는 API 오류 15개를 수정했습니다. `ServiceLocator.Get<T>()` → `Resolve<T>()`, `UIView` 수명 주기 훅 시그니처 수정(`object payload`), `CloseSelf()` 교정, 존재하지 않는 `Show<T>()` / `Close<T>()` / `CloseLayer()` 오버로드 제거, `AchEngineScope` ↔ `ServiceLocator` 수명 주기 다이어그램 수정, `IServiceBuilder` 등록 문법 수정, `ISaveService.Configure()` 소유권 명시, 길찾기 문서에서 `Rigidbody2D.MovePosition()` 참조 제거, `Selectable<T>.mChanged` 이벤트명 수정, `Build()`의 GET/POST 전용 제한 명시.
+- 신규 기능 전체에 대한 한국어·영어 문서를 추가했습니다: `AudioManager`, `AchTimer` + `UIAchTimer`, `AchButtonCooldown` + `AchButtonHold`, `AchDebugConsole`.
+- RedDot 문서에 `ClearAll()` 및 클릭 클리어 배지 사용법을 추가했습니다.
+
+## 1.0.3
+
+- `SaveManager`, `ISaveService`, `LocalSaveService`를 추가했습니다. 저장 로직을 `PlayerManager`에서 분리한 추상화 레이어로, 동기/비동기 API를 모두 제공하며 향후 Firestore, AWS 등 클라우드 백엔드로 교체할 수 있도록 설계했습니다.
+- `PlayerManager`에서 저장·불러오기 로직을 제거했습니다. 이제 타입별 데이터 컨테이너 관리(`Add`, `Get`, `Remove`)만 담당합니다.
+- `AchProjectile`을 추가했습니다. Rigidbody2D가 필요 없는 직선·유도탄 통합 발사체 컴포넌트입니다.
+- `AchFollower`를 완전한 독립 컴포넌트로 리팩터했습니다. `AchMover` 의존성을 제거했습니다.
+- FontAsset Maker에 다국어 FontAsset 빌드 기능을 추가했습니다. 한국어·영어·일어를 멀티체크로 선택해 각각 별도의 `*_TMP.asset` 파일을 생성할 수 있습니다.
+- 모든 런타임 비동기 API를 `System.Threading.Tasks.Task`로 통일했습니다. 중간 추상화인 `AchTask`를 제거했습니다.
+
+## 1.0.2
+
+- Unity Entities용 선택 ECS 헬퍼를 추가했습니다. World, CommandBuffer, Baker, System, DI 래퍼를 포함합니다.
+- Managers, Singleton, Log, WebRequest, PlayerData, QuickSave 등 게임 프레임워크 런타임 모듈을 추가했습니다.
+- Unity 오브젝트, UI 컴포넌트, 컬렉션, 문자열, 델리게이트, Task, 공통 유틸리티를 다루는 Runtime Extensions 어셈블리를 추가했습니다.
+- A\* Pathfinding 유틸리티와 Grid Baker를 추가했습니다.
+- AchMover 기반 이동 헬퍼를 추가했습니다.
+- RedDot 알림 배지 런타임 기능을 추가했습니다.
+- Drag, Object Touch, Binding, Open/Close Button 등 UI 컴포넌트 헬퍼를 추가했습니다.
+- AchEngine 주요 시스템을 함께 보여주는 3개 씬 구성의 Full Sample을 추가했습니다.
+- Addressables, DI, Localization, Table, UI 문서를 한국어/영어 양쪽에서 보강했습니다.
+- Domain Reload가 꺼진 Enter Play Mode에서도 정적 상태가 초기화되도록 처리했습니다.
+- 문서 사이트, Mermaid 다이어그램, 교차 링크, JSON 처리 관련 문제를 수정했습니다.
+- Editor Decorators 모듈과 관련 문서를 제거했습니다.
+- 루트 README를 문서 링크 중심의 간단한 랜딩 페이지로 정리했습니다.
+
+## 1.0.1
+
+- Table JSON 데이터를 Google Sheets 임포트용 CSV로 내보내는 도구를 추가했습니다. 개별 파일과 폴더 단위 변환을 지원합니다.
+
+
+
+---
+url: /AchEngine/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 시작하기
+
+AchEngine의 핵심 기능을 5분 안에 경험해보는 가이드입니다.
+
+## 1. DI 스코프 설정
+
+씬에 빈 GameObject를 생성하고 `AchEngineScope` 컴포넌트를 추가합니다.
+
+```
+Hierarchy
+└── [AchEngineScope]   ← AchEngineScope 컴포넌트 추가
+```
+
+## 2. Installer 작성
+
+```csharp
+using AchEngine.DI;
+using UnityEngine;
+
+public class GameInstaller : AchEngineInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            .Register<IGameService, GameService>()
+            .Register<IPlayerService, PlayerService>(ServiceLifetime.Transient);
+    }
+}
+```
+
+`AchEngineScope` Inspector의 **Installers** 배열에 `GameInstaller`를 드래그합니다.
+
+## 3. UI Root 생성
+
+**Project Settings › AchEngine › UI Workspace** 에서 **UI Root 생성** 버튼을 클릭하거나,
+씬에 `UIRoot` 프리팹을 배치합니다.
+
+## 4. UIView 정의
+
+```csharp
+using AchEngine.UI;
+
+public class MainMenuView : UIView
+{
+    protected override void OnInitialize()
+    {
+        // 최초 생성 시 1회 호출
+    }
+
+    protected override void OnOpened()
+    {
+        // Show() 후 트랜지션 완료 시 호출
+    }
+
+    protected override void OnClosed()
+    {
+        // Close() 후 Pool에 반환됨
+    }
+}
+```
+
+## 5. View 표시
+
+```csharp
+// [Inject] 사용 (VContainer 필요)
+[Inject] readonly IUIService _ui;
+_ui.Show<MainMenuView>();
+
+// ServiceLocator 사용 (MonoBehaviour 등)
+ServiceLocator.Resolve<IUIService>().Show("MainMenu");
+
+// 닫기
+_ui.Close<MainMenuView>();
+```
+
+## 6. 테이블 데이터 로드
+
+```csharp
+// TableManager를 통해 타입-세이프하게 접근
+var itemTable = TableManager.Get<ItemTable>();
+var sword = itemTable.Get(101);
+Debug.Log(sword.Name); // "Iron Sword"
+```
+
+## 다음 단계
+
+각 모듈의 상세 설명은 좌측 사이드바를 통해 확인하세요.
+
+- [DI 시스템 자세히 보기](/AchEngine/usage/di.md)
+- [UI System 자세히 보기](/AchEngine/usage/ui.md)
+- [Table Loader 자세히 보기](/AchEngine/usage/table.md)
+- [Addressables 자세히 보기](/AchEngine/usage/addressables.md)
+- [Localization 자세히 보기](/AchEngine/usage/localization.md)
+- [모듈 연계 가이드](/AchEngine/usage/integration.md)
+
+
+
+---
+url: /AchEngine/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 소개
+
+AchEngine는 Unity 개발에서 자주 쓰는 기능들을 하나의 UPM 패키지로 묶은 **통합 개발 툴킷**입니다.
+
+각 모듈은 독립적으로 사용할 수 있고, VContainer, MemoryPack, Addressables 같은 선택 패키지가 없어도 코어 기능은 계속 동작합니다.
+
+## 모듈 구성
+
+| 모듈               | 설명                              | 선택 패키지                       |
+| ---------------- | ------------------------------- | ---------------------------- |
+| **DI**           | VContainer 래퍼, ServiceLocator   | `jp.hadashikick.vcontainer`  |
+| **UI System**    | 레이어 기반 View 관리, 풀링, 전환          | -                            |
+| **Table Loader** | Google Sheets에서 C# 데이터 파이프라인 생성 | `com.cysharp.memorypack`     |
+| **Addressables** | 에셋 캐싱, 자동 그룹 관리, 원격 배포          | `com.unity.addressables`     |
+| **Localization** | JSON 로컬라이제이션, 키 코드 생성           | `com.unity.textmeshpro` (선택) |
+
+## 패키지 정보
+
+- **Package ID:** `com.achieve.engine`
+- **버전:** 1.0.1
+- **최소 Unity 버전:** 6000.3
+- **필수 의존성:** `com.unity.ugui`
+
+## 선택 패키지
+
+아래 패키지를 설치하면 해당 심볼이 **자동으로 정의**되어 고급 AchEngine 기능이 활성화됩니다.
+설치하지 않아도 컴파일 에러는 나지 않고, 해당 기능만 비활성화됩니다.
+
+```
+jp.hadashikick.vcontainer   -> DI 컨테이너 활성화        → ACHENGINE_VCONTAINER
+com.cysharp.memorypack      -> 바이너리 직렬화 활성화    → ACHENGINE_MEMORYPACK
+com.unity.addressables      -> Addressables 모듈 활성화  → ACHENGINE_ADDRESSABLES
+com.unity.textmeshpro       -> TMP Localization 활성화   → ACHENGINE_LOCALIZATION_TMP
+com.unity.entities          -> ECS 래퍼 활성화            → ACHENGINE_ENTITIES
+```
+
+
+> **Info**
+> 
+> 선택 패키지 설치 여부는 **Project Settings > AchEngine** Overview에서 한눈에 확인할 수 있고, 버튼으로 바로 설치할 수 있습니다.
+> 
+
+
+
+
+---
+url: /AchEngine/usage/addressables/folders.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 감시 폴더 & 그룹
+
+감시 폴더를 등록하면 해당 폴더의 에셋이 지정한 Addressables 그룹에 자동으로 추가됩니다.
+
+**Project Settings › AchEngine › Addressables › 감시 폴더** 섹션에서
+**+ 폴더 추가** 버튼을 눌러 항목을 추가합니다.
+
+## 감시 폴더 항목 구성
+
+| 항목           | 설명                                            |
+| ------------ | --------------------------------------------- |
+| **폴더 경로**    | `Assets/`로 시작하는 상대 경로 (예: `Assets/Art/Icons`) |
+| **그룹 이름**    | Addressables 그룹 이름 (없으면 자동 생성)                |
+| **주소 생성 방식** | 파일명 / 감시 폴더 기준 상대 경로 / 전체 경로 중 선택             |
+| **하위 폴더 포함** | 재귀적으로 하위 폴더 스캔 여부                             |
+| **라벨**       | 쉼표로 구분된 Addressables 라벨 목록                    |
+
+## 주소 생성 방식 (AddressNamingMode)
+
+| 값                  | 생성되는 주소 예시                               |
+| ------------------ | ---------------------------------------- |
+| `FilenameOnly`     | `icon_sword`                             |
+| `RelativeToFolder` | `Icons/icon_sword` (`Assets/Art`를 감시할 때) |
+| `FullPath`         | `Assets/Art/Icons/icon_sword`            |
+
+`FilenameOnly`는 서로 다른 폴더에 같은 파일명이 있으면 주소가 충돌할 수 있습니다. 여러 폴더를 운영한다면 `RelativeToFolder`를 권장합니다.
+
+
+> **자동 스캔**
+> 
+> 에셋을 추가·이동·삭제하면 Unity의 AssetPostprocessor가 감시 폴더를 반영합니다. 기존 에셋은 **Rescan** 또는 **AchEngine › Addressables › Re-scan Watched Folders** 메뉴로 한 번에 등록할 수 있습니다.
+> 
+
+
+
+
+---
+url: /AchEngine/usage/addressables/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# Addressables — 개요
+
+AchEngine Addressables 모듈은 Unity Addressable Asset System을 래핑하여
+**위치 메타데이터 캐싱**, **에셋 핸들 캐싱**, **감시 폴더 자동 그룹화**를 제공합니다.
+정적 `AddressableManager`만 사용하면 초기화·로드·해제를 한 흐름으로 처리할 수 있습니다.
+
+
+> **선택적 모듈**
+> 
+> `com.unity.addressables` 패키지가 설치된 경우에만 활성화됩니다.
+> **Project Settings › AchEngine** Overview에서 **설치** 버튼으로 바로 설치할 수 있습니다.
+> 
+
+
+## 핵심 구성 요소
+
+| 클래스                          | 역할                                      |
+| ---------------------------- | --------------------------------------- |
+| `AddressableManager`         | `AchTask` 기반 에셋·씬·원격 콘텐츠 API            |
+| `AssetHandleCache`           | 로드된 핸들 캐싱                               |
+| `LocationCache`              | 주소와 라벨의 위치 메타데이터 캐싱                     |
+| `AddressableManagerSettings` | Addressables 자동 초기화 설정 ScriptableObject |
+
+## 사용 원칙
+
+- 모든 비동기 API는 `AchTask` 또는 `AchTask<T>`를 반환하므로 일반적인 `await` 문법으로 사용할 수 있습니다. UniTask가 설치되어 있으면 UniTask로, 없으면 `Task`로 동작합니다.
+- `LoadAsync`는 같은 주소의 로드 핸들을, `LoadAllAsync`는 같은 라벨의 다건 로드 핸들을 재사용합니다.
+- 캐시된 핸들은 요청한 에셋 타입까지 확인합니다. 같은 주소나 라벨을 다른 타입으로 요청하면 호환되지 않는 핸들을 재사용하지 않습니다.
+- 캐시는 참조 횟수를 세지 않습니다. 에셋의 소유자가 더 이상 사용하지 않을 때 한 번 `Release(key)`를 호출합니다.
+- `InstantiateAsync`로 만든 오브젝트는 `ReleaseInstance`로 제거하고, 원본 프리팹 캐시는 `Release(address)`로 별도 해제합니다.
+- 씬은 자동으로 언로드되지 않습니다. `UnloadSceneAsync(address)`를 명시적으로 호출합니다.
+
+초기화, 다운로드 크기 조회, 종속성 다운로드, 카탈로그 확인·업데이트에 사용하는 임시 Addressables 작업 핸들은 작업이 끝나면 자동으로 해제됩니다. 반면 로드된 에셋과 씬은 명시적으로 `Release` 또는 `UnloadSceneAsync`를 호출해야 합니다.
+
+## 기본 사용
+
+```csharp
+using AchEngine.Assets;
+
+// 에셋 로드: 초기화는 자동으로 보장됨
+var sprite = await AddressableManager.LoadAsync<Sprite>("icon_sword");
+spriteRenderer.sprite = sprite;
+
+// 라벨의 에셋을 한 번에 로드
+var icons = await AddressableManager.LoadAllAsync<Sprite>("ui-icons");
+
+// 프리팹 생성과 해제
+var hero = await AddressableManager.InstantiateAsync("Characters/Hero", transform);
+AddressableManager.ReleaseInstance(hero);
+
+// 사용이 끝난 캐시 해제
+AddressableManager.Release("icon_sword");
+AddressableManager.Release("ui-icons");
+AddressableManager.Release("Characters/Hero");
+```
+
+### 씬 로드와 언로드
+
+```csharp
+await AddressableManager.LoadSceneAsync("Scenes/GameLevel");
+
+// 씬에서 별도로 로드한 에셋이 있다면 먼저 Release(...) 합니다.
+var unloaded = await AddressableManager.UnloadSceneAsync("Scenes/GameLevel");
+```
+
+`UnloadSceneAsync`는 이 API로 로드한 씬만 언로드하며, 관리 중이지 않은 주소에는 `false`를 반환합니다.
+
+### 원격 콘텐츠 다운로드
+
+```csharp
+await AddressableManager.DownloadDependenciesAsync(
+    "remote_assets",
+    progress => progressBar.value = progress.Percent);
+```
+
+## 캐시를 비울 때
+
+화면이나 씬의 수명이 끝날 때 필요한 주소만 `Release`하는 것이 기본입니다. 전체 전환이나 로그아웃처럼 모든 캐시를 버려도 되는 시점에는 `AddressableManager.ReleaseAll()`을 사용할 수 있습니다.
+
+## 다음 단계
+
+- [감시 폴더 & 그룹](/AchEngine/usage/addressables/folders.md)
+- [원격 콘텐츠](/AchEngine/usage/addressables/remote.md)
+
+
+
+---
+url: /AchEngine/usage/addressables/remote.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 원격 콘텐츠
+
+## 원격 콘텐츠 설정
+
+원격 번들의 실제 빌드·로드 경로는 Unity **Addressables Groups**의 Profile과 그룹 스키마에서 설정합니다. 먼저 원격으로 배포할 그룹의 Build Path와 Load Path를 Remote로 지정하고, 콘텐츠를 빌드한 뒤 생성된 파일을 해당 경로에 배포하세요.
+
+**Project Settings › AchEngine › Addressables › 원격 콘텐츠**에서는 배포 환경 정보를 함께 관리할 수 있습니다.
+
+| 항목              | 설명                                     |
+| --------------- | -------------------------------------- |
+| **클라우드 공급자**    | AWS S3, Google Cloud Storage 또는 Custom |
+| **버킷 이름 / 리전**  | S3·GCS 기본 URL 생성에 사용하는 값               |
+| **Catalog URL** | 자동 생성 URL 대신 사용할 카탈로그 URL              |
+| **Bundle URL**  | 자동 생성 URL 대신 사용할 번들 URL                |
+
+## 권장 흐름
+
+1. 원격 그룹과 다운로드 대상 라벨을 Unity Addressables에 설정합니다.
+2. **AchEngine › Addressables › Build Content**로 콘텐츠를 빌드합니다.
+3. 생성된 카탈로그와 번들을 원격 Load Path에 배포합니다.
+4. 런타임에서 카탈로그를 확인하고, 필요한 라벨의 종속성을 다운로드합니다.
+
+## 카탈로그 업데이트 확인
+
+```csharp
+using AchEngine.Assets;
+
+// 새 카탈로그가 있으면 업데이트
+var catalogs = await AddressableManager.CheckForCatalogUpdatesAsync();
+if (catalogs.Count > 0)
+{
+    await AddressableManager.UpdateCatalogsAsync(catalogs);
+}
+```
+
+카탈로그 업데이트가 성공하면 이전 위치 메타데이터 캐시는 자동으로 비워집니다. 이미 로드해 둔 에셋 캐시는 유지되므로, 변경된 에셋을 다시 받아야 하면 해당 주소를 `Release`한 뒤 다시 로드하세요.
+
+초기화·다운로드 크기 조회·종속성 다운로드·카탈로그 확인·업데이트 작업에 사용하는 임시 핸들은 작업 완료 후 자동으로 해제됩니다. 업데이트 후에도 사용 중인 에셋은 캐시에 남아 있으므로, 더 이상 필요하지 않은 주소만 명시적으로 `Release`하세요.
+
+## 원격 에셋 크기 확인 후 다운로드
+
+```csharp
+using AchEngine.Assets;
+
+long size = await AddressableManager.GetDownloadSizeAsync("remote_assets");
+if (size > 0)
+{
+    // 사용자 확인 후 다운로드하고 진행률 표시
+    await AddressableManager.DownloadDependenciesAsync(
+        "remote_assets",
+        progress => progressBar.value = progress.Percent);
+}
+```
+
+`GetDownloadSizeAsync`의 반환값은 바이트 단위이며, 이미 캐시된 종속성은 크기에 포함되지 않습니다.
+
+## 빌드 설정
+
+**Project Settings › AchEngine › Addressables** 또는 **AchEngine › Addressables** 메뉴에서 콘텐츠를 빌드합니다.
+
+| 항목                          | 설명                               |
+| --------------------------- | -------------------------------- |
+| **Build Content**           | 현재 Addressables 설정으로 콘텐츠를 빌드     |
+| **Clean Build**             | 기존 빌드 결과를 정리한 뒤 콘텐츠를 다시 빌드       |
+| **Re-scan Watched Folders** | 감시 폴더를 다시 스캔해 Addressable 항목을 갱신 |
+
+
+> **개발 중 Fast Mode 사용**
+> 
+> 개발 중에는 Play Mode를 **Use Asset Database (Fast Mode)** 로 설정하면
+> 빌드 없이 에셋을 직접 참조해 빠르게 반복 작업할 수 있습니다.
+> 
+
+
+
+
+---
+url: /AchEngine/usage/async.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# AchTask
+
+`AchTask`는 UniTask와 `System.Threading.Tasks.Task`를 하나의 API로 통합하는 비동기 래퍼입니다.
+프로젝트에 UniTask가 설치되어 있으면 자동으로 UniTask를 사용하고, 없으면 `Task`로 폴백합니다.
+
+## 설치 감지
+
+`com.cysharp.unitask` 패키지가 프로젝트에 존재하면 `ENABLE_UNITASK` 심볼이 자동 정의됩니다.
+별도 설정 없이 asmdef의 `versionDefines`가 감지하므로 코드와 문서를 바꿀 필요가 없습니다.
+
+| 환경          | 내부 구현                                     |
+| ----------- | ----------------------------------------- |
+| UniTask 설치됨 | `UniTask` / `UniTask<T>`                  |
+| UniTask 없음  | `System.Threading.Tasks.Task` / `Task<T>` |
+
+## await 지원
+
+`AchTask`는 직접 `await`할 수 있습니다.
+
+```csharp
+await AchTask.Delay(2f);
+await AchTask.WaitUntil(() => isReady);
+```
+
+## 정적 팩토리
+
+### Delay / DelayRealtime
+
+```csharp
+// 게임 시간 기준 대기 (UniTask: Time.timeScale 반영 / Task 폴백: 벽시계)
+await AchTask.Delay(1.5f);
+
+// 실제 경과 시간 기준 대기 (timeScale 무관)
+await AchTask.DelayRealtime(1.5f);
+
+// CancellationToken 지원
+var cts = new CancellationTokenSource();
+await AchTask.Delay(5f, cts.Token);
+```
+
+> **주의**: `Delay`는 UniTask 환경에서 `Time.timeScale`을 반영합니다.
+> 슬로우모션 중에도 실제 시간으로 대기하려면 `DelayRealtime`을 사용하세요.
+
+### WaitUntil
+
+```csharp
+// 조건이 참이 될 때까지 대기
+await AchTask.WaitUntil(() => player.IsGrounded);
+
+// 취소 가능
+await AchTask.WaitUntil(() => dialogueFinished, cts.Token);
+```
+
+### WhenAll / WhenAny
+
+```csharp
+var a = AchTask.Delay(1f);
+var b = AchTask.Delay(2f);
+var c = AchTask.Delay(3f);
+
+// 셋 모두 완료될 때까지
+await AchTask.WhenAll(a, b, c);
+
+// 가장 먼저 끝나는 하나가 완료될 때까지
+await AchTask.WhenAny(a, b, c);
+```
+
+### CompletedTask
+
+```csharp
+// 이미 완료된 태스크 (조건 분기 반환 등에 유용)
+return condition ? DoWorkAsync() : AchTask.CompletedTask;
+```
+
+## 반환값 — AchTask\<T>
+
+```csharp
+public static AchTask<string> FetchNameAsync()
+{
+    return AchTask<string>.FromResult("Player");
+}
+
+string name = await FetchNameAsync();
+```
+
+## 암묵적 변환
+
+UniTask 또는 Task와 상호 변환할 수 있습니다.
+
+```csharp
+// UniTask 환경
+UniTask uniTask = someAchTask;          // AchTask → UniTask
+AchTask achTask = someUniTask;          // UniTask → AchTask
+
+// Task 폴백 환경
+Task task      = someAchTask.AsTask();  // AchTask → Task
+AchTask from   = someTask;              // Task → AchTask (암묵적)
+```
+
+## 전체 예시
+
+```csharp
+// 단순 순차 대기
+async AchTask LoadSequenceAsync(CancellationToken ct)
+{
+    await AchTask.Delay(0.5f, ct);      // 페이드 인
+    await AchTask.WaitUntil(() => dataLoaded, ct);
+    await AchTask.Delay(0.2f, ct);      // 전환 여유
+}
+
+// 여러 작업 병렬 실행
+async AchTask InitAllAsync()
+{
+    await AchTask.WhenAll(
+        LoadAudioAsync(),
+        LoadTableAsync(),
+        LoadUserDataAsync()
+    );
+}
+
+// 먼저 끝나는 쪽으로 분기
+async AchTask RaceAsync()
+{
+    await AchTask.WhenAny(
+        AchTask.Delay(3f),              // 타임아웃
+        AchTask.WaitUntil(() => input)  // 유저 입력
+    );
+}
+```
+
+## 관련 문서
+
+- [AchTimer — 진행 추적 타이머](/AchEngine/usage/timer.md)
+- [WebRequest — 비동기 HTTP 요청](/AchEngine/usage/web-request.md)
+
+
+
+---
+url: /AchEngine/usage/debug-console.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# AchDebugConsole
+
+`AchDebugConsole`는 Android·iOS 네이티브 UI 레이어에 렌더링되는 디버그 콘솔입니다.
+Unity 메인 스레드와 완전히 독립되어 있으므로 성능 프로파일링 중에도 안전하게 사용할 수 있습니다.
+에디터에서는 IMGUI 폴백으로 동작합니다.
+
+## 개요
+
+`Application.logMessageReceivedThreaded`를 통해 Unity의 모든 로그(`Log`, `Warning`, `Error`, `Exception`, `Assert`)를 자동으로 수신합니다.
+별도의 초기화 코드 없이 `[RuntimeInitializeOnLoadMethod]`로 자동 등록되므로,
+게임 시작과 동시에 로그 수집이 시작됩니다.
+
+| 항목         | 내용                                                      |
+| ---------- | ------------------------------------------------------- |
+| 최대 보관 로그 수 | 500개 (원형 버퍼)                                            |
+| 로그 색상      | Error·Exception·Assert → 빨간색 / Warning → 노란색 / Log → 흰색 |
+| 스레드 안전     | 모든 플랫폼에서 UI 스레드 디스패치 처리                                 |
+
+## 플랫폼별 동작
+
+### Android
+
+`WindowManager`를 사용한 플로팅 오버레이 창으로 표시됩니다.
+
+- Unity 렌더링 위에 독립적으로 그려지며 게임 루프에 영향을 주지 않습니다.
+- 툴바를 드래그하여 창 위치를 자유롭게 이동할 수 있습니다.
+- 화면의 95% 너비, 50% 높이로 상단에 표시됩니다.
+- **`SYSTEM_ALERT_WINDOW` 권한이 필요합니다.** ([권한 섹션](#플랫폼별-동작) 참고)
+
+### iOS
+
+`UIWindowLevelAlert + 100` 레벨의 별도 `UIWindow`로 표시됩니다.
+
+- Unity의 키 윈도우와 독립적으로 동작하며 Unity 렌더링에 영향을 주지 않습니다.
+- 드래그 제스처로 창 위치를 이동할 수 있습니다.
+- 화면의 95% 너비, 45% 높이로 표시됩니다.
+- UITableView 기반으로 로그를 표시하므로 대량의 로그도 부드럽게 스크롤됩니다.
+- 별도 권한이 필요하지 않습니다.
+
+### Editor
+
+Unity 에디터에는 이미 Console 창이 있으므로 `Show()`/`Hide()`는 내부 플래그만 토글합니다.
+게임 뷰에 오버레이를 그리려면 [에디터 폴백](#에디터-폴백) 섹션을 참고하세요.
+
+## API
+
+```csharp
+namespace AchEngine
+{
+    public static class AchDebugConsole
+    {
+        // 콘솔이 현재 표시 중인지 여부
+        public static bool IsVisible { get; }
+
+        // 콘솔 표시
+        public static void Show();
+
+        // 콘솔 숨기기
+        public static void Hide();
+
+        // 표시/숨김 토글
+        public static void Toggle();
+
+        // 로그 항목 전체 삭제
+        public static void Clear();
+    }
+}
+```
+
+## 빠른 시작
+
+4손가락 탭으로 콘솔을 열고 닫는 예시입니다.
+
+```csharp
+using UnityEngine;
+using AchEngine;
+
+public class DebugConsoleTrigger : MonoBehaviour
+{
+    private void Update()
+    {
+        // 4손가락 탭 감지
+        if (Input.touchCount == 4)
+        {
+            bool allBegan = true;
+            for (int i = 0; i < 4; i++)
+            {
+                if (Input.GetTouch(i).phase != TouchPhase.Began)
+                {
+                    allBegan = false;
+                    break;
+                }
+            }
+
+            if (allBegan)
+                AchDebugConsole.Toggle();
+        }
+    }
+}
+```
+
+씬에 빈 GameObject를 만들고 이 컴포넌트를 붙이면 됩니다.
+키보드 단축키를 원한다면 `Input.GetKeyDown(KeyCode.BackQuote)` 등으로 대체하세요.
+
+## 에디터 폴백
+
+에디터에서 게임 뷰에 오버레이를 표시하려면 `DrawEditorGUI()`를 `OnGUI()`에서 호출하는 MonoBehaviour가 필요합니다.
+
+```csharp
+using UnityEngine;
+using AchEngine;
+
+public class AchDebugConsoleEditorOverlay : MonoBehaviour
+{
+#if UNITY_EDITOR
+    private void OnGUI()
+    {
+        AchDebugConsole.DrawEditorGUI();
+    }
+#endif
+}
+```
+
+이 컴포넌트를 씬의 아무 GameObject에나 붙여두면 에디터 재생 중에 게임 뷰 오버레이로 콘솔을 확인할 수 있습니다.
+
+
+> **Android 권한**
+> 
+> Android에서 오버레이 창을 표시하려면 `SYSTEM_ALERT_WINDOW` 권한이 필요합니다.
+> `AchDebugConsoleManifest.xml`이 패키지에 포함되어 있으므로 `AndroidManifest.xml`을 별도로 편집하지 않아도 자동으로 권한이 선언됩니다.
+> 단, Android 6.0(API 23) 이상에서는 사용자에게 **런타임 권한 요청**이 필요합니다.
+> `Show()`를 호출하기 전에 다음과 같이 권한을 확인하고 요청하세요.
+> ```csharp
+> #if UNITY_ANDROID && !UNITY_EDITOR
+> using UnityEngine.Android;
+> 
+> if (!Permission.HasUserAuthorizedPermission("android.permission.SYSTEM_ALERT_WINDOW"))
+> {
+>     Permission.RequestUserPermission("android.permission.SYSTEM_ALERT_WINDOW");
+>     // 권한 승인 후 Show() 호출
+> }
+> else
+> {
+>     AchDebugConsole.Show();
+> }
+> #endif
+> ```
+> 
+
+
+
+> **성능**
+> 
+> Android와 iOS 모두 네이티브 UI 스레드에서 렌더링됩니다.
+> Unity 메인 스레드나 렌더 스레드에 추가 부하가 없으므로
+> 성능 프로파일링 중에도 콘솔을 열어 두어도 무방합니다.
+> 
+
+
+## 관련 문서
+
+- [UI 시스템 개요](/AchEngine/usage/ui/index.md)
+
+
+
+---
+url: /AchEngine/usage/di/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# DI 시스템 — 개요
+
+AchEngine의 DI 레이어는 [VContainer](https://github.com/hadashiA/VContainer)를 직접 노출하지 않고,
+간단한 추상화 레이어를 제공합니다.
+
+
+> **선택적 모듈**
+> 
+> VContainer(`jp.hadashikick.vcontainer`)가 설치된 경우에만 실제 DI 컨테이너가 활성화됩니다.
+> 미설치 시에도 `ServiceLocator`는 수동 설정으로 사용할 수 있습니다.
+> 
+
+
+## 핵심 구성 요소
+
+| 클래스                  | 역할                                   |
+| -------------------- | ------------------------------------ |
+| `AchEngineScope`     | VContainer의 LifetimeScope를 래핑한 씬 진입점 |
+| `AchEngineInstaller` | 서비스 등록을 정의하는 추상 클래스                  |
+| `IServiceBuilder`    | 서비스 등록 인터페이스 (VContainer 비의존)        |
+| `ServiceLocator`     | 런타임에 서비스를 조회하는 정적 파사드                |
+
+## 기본 사용 흐름
+
+```mermaid
+flowchart TD
+A([씬 로드]) --> B[AchEngineScope.Awake]
+B --> C[/"AchEngineInstaller<br/>.Install(builder) × N"/]
+C --> D[(VContainer<br/>컨테이너 빌드)]
+D --> E[ServiceLocator.Setup]
+E --> F{런타임}
+F --> G["[Inject]<br/>어노테이션 주입"]
+F --> H["ServiceLocator<br/>.Resolve<T>()"]
+
+style A fill:#1e3a5f,stroke:#3b82f6,color:#e2e8f0
+style B fill:#1e3a5f,stroke:#3b82f6,color:#e2e8f0
+style C fill:#0f2d4a,stroke:#3b82f6,color:#93c5fd
+style D fill:#0f2d4a,stroke:#10b981,color:#6ee7b7
+style E fill:#1e3a5f,stroke:#10b981,color:#6ee7b7
+style F fill:#162032,stroke:#64748b,color:#cbd5e1
+style G fill:#1e3a5f,stroke:#8b5cf6,color:#c4b5fd
+style H fill:#1e3a5f,stroke:#f59e0b,color:#fcd34d
+```
+
+## ServiceLifetime
+
+```csharp
+public enum ServiceLifetime
+{
+    Singleton,   // 컨테이너당 1개 인스턴스 (기본값)
+    Transient,   // 요청마다 새 인스턴스
+    Scoped,      // 스코프당 1개 인스턴스
+}
+```
+
+## 다음 단계
+
+- [AchEngineInstaller 자세히 보기](/AchEngine/usage/di/installer.md)
+- [ServiceLocator 자세히 보기](/AchEngine/usage/di/locator.md)
+- [DI 라이프사이클 가이드](/AchEngine/usage/di/lifecycle.md)
+
+
+
+---
+url: /AchEngine/usage/di/installer.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# AchEngineInstaller
+
+`AchEngineInstaller`는 서비스 등록을 캡슐화하는 추상 `MonoBehaviour`입니다.
+VContainer의 `IInstaller`를 직접 상속하지 않아 VContainer 비의존 환경에서도 코드를 작성할 수 있습니다.
+
+## IServiceBuilder API
+
+```csharp
+public interface IServiceBuilder
+{
+    // 인터페이스 없이 구체 타입 등록
+    IServiceBuilder Register<T>(ServiceLifetime lifetime = ServiceLifetime.Singleton)
+        where T : class;
+
+    // 인터페이스 → 구현체 매핑 등록
+    IServiceBuilder Register<TInterface, TImpl>(ServiceLifetime lifetime = ServiceLifetime.Singleton)
+        where TImpl : class, TInterface;
+
+    // 이미 생성된 인스턴스 등록
+    IServiceBuilder RegisterInstance<T>(T instance)
+        where T : class;
+
+    // MonoBehaviour / Component 등록
+    IServiceBuilder RegisterComponent<T>(T component)
+        where T : UnityEngine.Component;
+}
+```
+
+## 1. Installer 작성
+
+```csharp
+using AchEngine.DI;
+
+public class GameInstaller : AchEngineInstaller
+{
+    [SerializeField] private GameConfig _config;
+
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            // 인터페이스 → 구현체 (Singleton)
+            .Register<IGameService, GameService>()
+            // 구체 타입만 (Transient)
+            .Register<PlayerController>(ServiceLifetime.Transient)
+            // ScriptableObject 인스턴스
+            .RegisterInstance<IConfig>(_config)
+            // 씬의 MonoBehaviour
+            .RegisterComponent(GetComponent<AudioManager>());
+    }
+}
+```
+
+## 2. AchEngineScope에 등록
+
+씬의 `AchEngineScope` 컴포넌트 Inspector에서
+**Installers** 배열에 `GameInstaller`를 드래그하세요.
+
+```
+[AchEngineScope]
+  Installers:
+    ├── GameInstaller
+    ├── UIInstaller
+    └── AudioInstaller
+```
+
+## 3. 서비스 사용
+
+### \[Inject] 어노테이션 (VContainer 필요)
+
+```csharp
+public class PlayerController : MonoBehaviour
+{
+    [Inject] private readonly IGameService _gameService;
+    [Inject] private readonly IConfig _config;
+
+    private void Start()
+    {
+        _gameService.Initialize(_config);
+    }
+}
+```
+
+### ServiceLocator (어디서든 사용 가능)
+
+```csharp
+var service = ServiceLocator.Resolve<IGameService>();
+```
+
+## 스코프 수명 주기
+
+`AchEngineScope`는 VContainer가 설치된 환경(`ACHENGINE_VCONTAINER` 심볼 정의 시)에서만 컴파일됩니다.
+씬 로드 시 컨테이너를 빌드하고, 씬 언로드(`OnDestroy`) 시 컨테이너를 해제합니다.
+
+
+> **ServiceLocator와의 관계**
+> 
+> `ServiceLocator`는 `ACHENGINE_VCONTAINER`가 **정의되지 않은** 환경에서만 컴파일됩니다.
+> 즉 `AchEngineScope`(VContainer 사용)와 `ServiceLocator`(VContainer 미사용)는
+> 서로 다른 빌드 경로이며 동시에 사용되지 않습니다.
+> VContainer 환경에서는 `[Inject]`로 서비스를 주입받으세요.
+> 
+
+
+```mermaid
+sequenceDiagram
+participant Scene as 씬
+participant Scope as AchEngineScope
+participant Container as VContainer
+
+Scene->>Scope: Awake() — Configure() 호출
+Scope->>Container: 컨테이너 빌드 (IContainerBuilder)
+Container-->>Scope: IObjectResolver 준비 완료
+
+Note over Scene,Container: 런타임 동작 중...
+
+Scene->>Scope: OnDestroy()
+Scope->>Container: Dispose()
+```
+
+
+> **멀티 씬 주의**
+> 
+> `makePersistent = true`(기본값)이면 `AchEngineScope`는 `DontDestroyOnLoad`로 유지됩니다.
+> 부모-자식 스코프가 필요한 경우 VContainer 공식 문서를 참고하세요.
+> 
+
+
+
+
+---
+url: /AchEngine/usage/di/lifecycle.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# DI 라이프사이클 설계
+
+AchEngine에서 씬 전환, 팝업, 데이터 서빙, 인게임 로직을 DI로 연결하는 전체 흐름을 다룹니다.
+
+## 전체 구조
+
+```mermaid
+graph TB
+subgraph Bootstrap["🌐 Bootstrap 씬 (항상 유지)"]
+AES[AchEngineScope<br/>전역 서비스 등록]
+UIR[UIRoot<br/>레이어 Canvas 관리]
+end
+
+subgraph Lobby["🏠 Lobby 씬 (additive)"]
+LS[LobbyScope<br/>로비 전용 서비스]
+LV[LobbyView<br/>ShopPopup ...]
+end
+
+subgraph InGame["⚔ InGame 씬 (additive)"]
+GS[GameScope<br/>게임 전용 서비스]
+HV[HUDView<br/>PausePopup ...]
+end
+
+Bootstrap --> Lobby
+Bootstrap --> InGame
+AES -.->|ServiceLocator| LS
+AES -.->|ServiceLocator| GS
+
+style Bootstrap fill:#0f2d4a,stroke:#3b82f6,color:#93c5fd
+style Lobby     fill:#0f3a1f,stroke:#10b981,color:#6ee7b7
+style InGame    fill:#3a1010,stroke:#ef4444,color:#fca5a5
+style AES       fill:#1e3a5f,stroke:#3b82f6,color:#e2e8f0
+style UIR       fill:#1e3a5f,stroke:#8b5cf6,color:#e2e8f0
+style LS        fill:#1a4a2a,stroke:#10b981,color:#e2e8f0
+style LV        fill:#1a4a2a,stroke:#10b981,color:#e2e8f0
+style GS        fill:#4a1a1a,stroke:#ef4444,color:#e2e8f0
+style HV        fill:#4a1a1a,stroke:#ef4444,color:#e2e8f0
+```
+
+## 1. Bootstrap 씬 — 전역 서비스 등록
+
+게임 전체 수명 동안 유지되는 서비스를 `Bootstrap` 씬에서 등록합니다.
+
+```csharp
+// 전역 서비스 설치자
+public class GlobalInstaller : AchEngineInstaller
+{
+    [SerializeField] private GameConfig _config;
+
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            // 설정 데이터
+            .RegisterInstance<IGameConfig>(_config)
+            // 테이블 데이터 서비스
+            .Register<ITableService, TableService>()
+            // UI 서비스 (자동 등록되지만 명시도 가능)
+            .Register<IUIService, UIService>()
+            // 사운드, 네트워크 등 전역 서비스
+            .Register<IAudioService, AudioService>()
+            .Register<INetworkService, NetworkService>();
+    }
+}
+```
+
+```
+[Bootstrap 씬]
+ └── [AchEngineScope]  Installers: [GlobalInstaller]
+ └── [UIRoot]
+```
+
+## 2. 씬 전환 — Lobby → InGame
+
+씬 단위로 별도 `AchEngineScope`를 두어 씬 전용 서비스를 등록·해제합니다.
+
+```csharp
+// Bootstrap 씬에 등록하는 전역 씬 서비스
+public class SceneService : ISceneService
+{
+    public async Task LoadLobby()
+    {
+        // 기존 게임 씬 언로드
+        await UnloadCurrentGameScene();
+
+        // Lobby 씬을 Additive로 로드
+        await SceneManager.LoadSceneAsync("Lobby", LoadSceneMode.Additive);
+
+        // 로비 진입 UI 표시
+        ServiceLocator.Resolve<IUIService>().Show<LobbyView>();
+    }
+
+    public async Task LoadInGame(int stageId)
+    {
+        // 로비 UI 닫기
+        ServiceLocator.Resolve<IUIService>().CloseAll();
+
+        // 로비 씬 언로드 → InGame 씬 로드
+        await SceneManager.UnloadSceneAsync("Lobby");
+        await SceneManager.LoadSceneAsync("InGame", LoadSceneMode.Additive);
+
+        // 게임 시작
+        ServiceLocator.Resolve<IGameService>().StartStage(stageId);
+    }
+}
+```
+
+```csharp
+// Lobby 씬 전용 설치자
+public class LobbyInstaller : AchEngineInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            .Register<IShopService, ShopService>()
+            .Register<IFriendService, FriendService>();
+    }
+}
+```
+
+```csharp
+// InGame 씬 전용 설치자
+public class GameInstaller : AchEngineInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            .Register<IGameService, GameService>()
+            .Register<IEnemySpawner, EnemySpawner>()
+            .Register<IStageService, StageService>();
+    }
+}
+```
+
+
+> **씬 Scope 수명 주기**
+> 
+> 씬이 언로드되면 `AchEngineScope.OnDestroy()`가 호출되어
+> 해당 씬의 서비스가 자동으로 컨테이너에서 해제됩니다.
+> 
+
+
+## 3. 팝업 생성 — 데이터 전달
+
+팝업은 `UIView`를 상속하고, `Show()` 콜백으로 데이터를 주입합니다.
+
+```csharp
+// 아이템 상세 팝업
+public class ItemDetailPopup : UIView
+{
+    [SerializeField] private Text _nameText;
+    [SerializeField] private Text _descText;
+    [SerializeField] private Text _priceText;
+    [SerializeField] private Image _iconImage;
+
+    private ItemData _item;
+    private string _iconAddress;
+
+    public override UILayerId Layer => UILayerId.Popup;
+
+    protected override void OnInitialize()
+    {
+        // 닫기 버튼 등 한 번만 세팅
+    }
+
+    // 외부에서 데이터 주입 (Show 콜백에서 호출)
+    public void SetItem(ItemData item, Sprite icon, string iconAddress)
+    {
+        if (!string.IsNullOrEmpty(_iconAddress))
+            AddressableManager.Release(_iconAddress);
+
+        _item = item;
+        _iconAddress = iconAddress;
+        _nameText.text  = LocalizationManager.Get(L.Item.Name(item.Id));
+        _descText.text  = LocalizationManager.Get(L.Item.Desc(item.Id));
+        _priceText.text = $"{item.Price:N0} G";
+        _iconImage.sprite = icon;
+    }
+
+    protected override void OnClosed()
+    {
+        _item = null;
+        _iconImage.sprite = null;
+
+        if (!string.IsNullOrEmpty(_iconAddress))
+        {
+            AddressableManager.Release(_iconAddress);
+            _iconAddress = null;
+        }
+    }
+}
+```
+
+```csharp
+// 팝업 열기 (인벤토리 등에서 호출)
+var ui   = ServiceLocator.Resolve<IUIService>();
+var iconAddress = $"icon_{item.Id}";
+var icon = await AddressableManager.LoadAsync<Sprite>(iconAddress);
+
+ui.Show<ItemDetailPopup>(popup => popup.SetItem(item, icon, iconAddress));
+```
+
+## 4. 데이터 서빙 — Table → Service
+
+`TableService`가 베이크된 데이터를 래핑하고, 다른 서비스가 이를 주입받아 사용합니다.
+
+```csharp
+// 게임 서비스
+public class GameService : IGameService
+{
+    private readonly ITableService _tables;
+    private readonly IUIService    _ui;
+
+    // DI 생성자 주입
+    public GameService(ITableService tables, IUIService ui)
+    {
+        _tables = tables;
+        _ui     = ui;
+    }
+
+    public void StartStage(int stageId)
+    {
+        var stageData = _tables.Get<StageTable>().Get(stageId);
+        var enemies   = _tables.Get<EnemyTable>().GetByStage(stageId);
+
+        _ui.Show<GameHUDView>(hud => hud.SetStage(stageData));
+
+        foreach (var enemy in enemies)
+            SpawnEnemy(enemy);
+    }
+}
+```
+
+## 5. 인게임 — MonoBehaviour에서 접근
+
+`MonoBehaviour`는 DI 컨테이너가 직접 생성하지 않으므로 `ServiceLocator`를 사용합니다.
+
+```csharp
+// 플레이어 컨트롤러
+public class PlayerController : MonoBehaviour
+{
+    private IGameService   _gameService;
+    private IAudioService  _audioService;
+
+    private void Start()
+    {
+        // ServiceLocator로 런타임 조회
+        _gameService  = ServiceLocator.Resolve<IGameService>();
+        _audioService = ServiceLocator.Resolve<IAudioService>();
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.TryGetComponent<IEnemy>(out var enemy))
+        {
+            _gameService.OnPlayerHit(enemy.Damage);
+            _audioService.PlaySFX("hit");
+        }
+    }
+}
+```
+
+
+> **[Inject] 사용 가능한 경우**
+> 
+> 컨테이너가 생성하는 객체(`Register<PlayerController>()` 후 `Instantiate` 없이
+> VContainer가 직접 생성)는 `[Inject]`를 사용할 수 있습니다.
+> 
+
+
+## 전체 흐름 요약
+
+```
+앱 시작
+ └── Bootstrap 씬 로드
+      └── AchEngineScope → GlobalInstaller → 전역 서비스 등록
+           └── ServiceLocator 초기화
+
+씬 전환
+ └── ISceneService.LoadLobby()
+      └── Lobby 씬 additive 로드
+           └── LobbyScope → LobbyInstaller → 로비 서비스 추가 등록
+
+팝업
+ └── IUIService.Show<ItemDetailPopup>(popup => popup.SetItem(...))
+
+인게임
+ └── MonoBehaviour → [Inject] 속성 주입
+```
+
+## 다음 단계
+
+- [전체 모듈 연계 예시](/AchEngine/usage/integration.md)
+- [AchEngineInstaller 자세히 보기](/AchEngine/usage/di/installer.md)
+
+
+
+---
+url: /AchEngine/usage/di/locator.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# ServiceLocator
+
+> **VContainer 미설치 전용**
+> 
+> `ACHENGINE_VCONTAINER` 심볼이 정의된 환경(VContainer 설치 시)에서는 `ServiceLocator`가 컴파일되지 않습니다.
+> VContainer 프로젝트에서는 `[Inject]`를 사용하세요.
+> 
+
+
+`ServiceLocator`는 VContainer 없이 런타임에 서비스를 타입으로 조회하는 정적 파사드입니다.
+
+## API
+
+```csharp
+namespace AchEngine.DI
+{
+    public static class ServiceLocator
+    {
+        // 컨테이너가 준비되었는지 여부
+        public static bool IsReady { get; }
+
+        // 서비스 조회 (없으면 InvalidOperationException)
+        public static T Resolve<T>();
+
+        // 안전한 서비스 조회 (없으면 false 반환)
+        public static bool TryResolve<T>(out T result);
+    }
+}
+```
+
+## 사용 예시
+
+```csharp
+// 기본 조회
+var ui = ServiceLocator.Resolve<IUIService>();
+ui.Show<MainMenuView>();
+
+// 안전한 조회
+if (ServiceLocator.TryResolve<IAudioService>(out var audio))
+{
+    audio.PlayBGM("main_theme");
+}
+
+// 준비 여부 확인
+if (!ServiceLocator.IsReady)
+{
+    Debug.LogWarning("서비스 컨테이너가 아직 초기화되지 않았습니다.");
+    return;
+}
+```
+
+## `[Inject]` vs `ServiceLocator`
+
+|            | `[Inject]`      | `ServiceLocator`            |
+| ---------- | --------------- | --------------------------- |
+| VContainer | ✅ 필요            | ❌ VContainer 미설치 시만 사용 가능   |
+| 사용 위치      | DI 컨테이너가 생성한 객체 | 어디서든 (VContainer 없는 환경)     |
+| 권장 상황      | 모든 서비스·View     | VContainer 없는 MonoBehaviour |
+| 테스트 용이성    | 높음              | 중간                          |
+
+## 수동 초기화 (VContainer 없는 경우)
+
+VContainer 없이 `ServiceLocator`를 사용하려면 엔진 내부에서 `Setup()`이 호출됩니다.
+직접 호출하는 퍼블릭 API는 제공되지 않으며, `AchEngineScope`와 같은 내부 부트스트랩 코드가
+컨테이너 준비 시 자동으로 연결합니다.
+
+
+> **비 VContainer 환경**
+> 
+> `ACHENGINE_VCONTAINER` 심볼 없이 빌드할 경우, 커스텀 `AchEngineInstaller`를 구현하여
+> `IServiceBuilder`에 서비스를 등록하면 런타임에 `ServiceLocator.Resolve<T>()`로 접근할 수 있습니다.
+> 
+
+
+## 관련 문서
+
+- [DI 시스템 개요](/AchEngine/usage/di/index.md)
+- [DI 라이프사이클 설계](/AchEngine/usage/di/lifecycle.md)
+
+
+
+---
+url: /AchEngine/usage/ecs/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# ECS 래퍼
+
+AchEngine ECS 모듈은 Unity Entities의 `World`, `EntityManager`, `EntityCommandBuffer`, `Baker`, `SystemBase`를 얇게 감싼 편의 API입니다.
+
+`com.unity.entities` 패키지가 설치되어 있으면 `AchEngine.ECS` 어셈블리가 자동으로 활성화됩니다.
+
+```csharp
+using AchEngine.ECS;
+using Unity.Entities;
+```
+
+## 언제 사용하나요?
+
+| 타입                        | 용도                                                                   |
+| ------------------------- | -------------------------------------------------------------------- |
+| `AchSystemBase`           | `SystemBase`에서 CommandBuffer와 Query 헬퍼를 짧게 사용                        |
+| `AchBaker<TAuthoring>`    | Baker에서 Primary Entity에 컴포넌트나 버퍼를 간단히 추가                             |
+| `IEcsWorld`               | DI 서비스에서 ECS World와 EntityManager를 직접 참조하지 않고 사용                     |
+| `EntityManagerExtensions` | `TryGetComponent`, `SetOrAddComponent`, `GetOrAddBuffer` 같은 반복 코드 제거 |
+
+## 시스템에서 사용하기
+
+`SystemBase` 대신 `AchSystemBase`를 상속합니다.
+
+```csharp
+public struct Health : IComponentData
+{
+    public int Value;
+}
+
+public sealed partial class DamageSystem : AchSystemBase
+{
+    protected override void OnUpdate()
+    {
+        using var ecb = CreateCommandBuffer();
+
+        foreach (var (health, entity) in
+                 SystemAPI.Query<RefRW<Health>>().WithEntityAccess())
+        {
+            health.ValueRW.Value -= 1;
+
+            if (health.ValueRO.Value <= 0)
+            {
+                ecb.Destroy(entity);
+            }
+        }
+
+        ecb.Playback(EntityManager);
+    }
+}
+```
+
+## EntityManager 확장 메서드
+
+기존 `EntityManager`에 편의 메서드를 추가합니다.
+
+```csharp
+EntityManager.SetOrAddComponent(entity, new Health { Value = 100 });
+
+if (EntityManager.TryGetComponent<Health>(entity, out var health))
+{
+    UnityEngine.Debug.Log(health.Value);
+}
+
+EntityManager.RemoveComponentIfExists<Health>(entity);
+```
+
+## Baker에서 사용하기
+
+`Baker<T>` 대신 `AchBaker<T>`를 상속하면 Primary Entity에 컴포넌트를 붙이는 코드가 짧아집니다.
+
+```csharp
+using AchEngine.ECS;
+using Unity.Entities;
+using UnityEngine;
+
+public class CharacterAuthoring : MonoBehaviour
+{
+    public int Health = 100;
+}
+
+public class CharacterBaker : AchBaker<CharacterAuthoring>
+{
+    public override void Bake(CharacterAuthoring authoring)
+    {
+        AddComponentToPrimary(new Health { Value = authoring.Health });
+    }
+}
+```
+
+## DI에서 ECS World 주입받기
+
+씬의 `AchEngineScope` Installers에 `AchEngineEcsInstaller`를 추가하면 `IEcsWorld`를 서비스로 받을 수 있습니다.
+
+```csharp
+using AchEngine.ECS;
+using Unity.Entities;
+
+public class SpawnService
+{
+    private readonly IEcsWorld _ecs;
+
+    public SpawnService(IEcsWorld ecs)
+    {
+        _ecs = ecs;
+    }
+
+    public Entity Spawn(Entity prefab)
+    {
+        return _ecs.Instantiate(prefab);
+    }
+}
+```
+
+`AchEngineEcsInstaller`의 World Name을 비워두면 `World.DefaultGameObjectInjectionWorld`를 사용하고, 값을 입력하면 같은 이름의 World를 찾아 등록합니다.
+
+
+
+---
+url: /AchEngine/usage/installation.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 설치
+
+## UPM — Git URL로 설치 (권장)
+
+Unity 에디터에서 **Window › Package Manager** 를 열고,
+**`+` 버튼 → Add package from git URL...** 을 선택한 뒤 아래 URL을 입력하세요.
+
+```
+https://github.com/achieveonepark/AchEngine.git
+```
+
+특정 버전을 고정하려면 태그를 붙입니다.
+
+```
+https://github.com/achieveonepark/AchEngine.git#1.0.0
+```
+
+## manifest.json으로 설치
+
+프로젝트의 `Packages/manifest.json` 을 직접 수정하는 방법입니다.
+
+```json
+{
+  "dependencies": {
+    "com.achieve.engine": "https://github.com/achieveonepark/AchEngine.git",
+    ...
+  }
+}
+```
+
+## 선택적 패키지 설치
+
+AchEngine은 아래 패키지를 선택적으로 지원합니다. 패키지를 설치하면 해당 기능이 자동으로 활성화됩니다.
+**Window › AchEngine › AchEngine Info** 창에서 각 패키지의 설치 여부와 활성화 기능을 확인할 수 있습니다.
+
+| 패키지          | Package ID                  | 활성화 기능                                   |
+| ------------ | --------------------------- | ---------------------------------------- |
+| VContainer   | `jp.hadashikick.vcontainer` | DI 컨테이너 (AchEngineScope, ServiceLocator) |
+| MemoryPack   | `com.cysharp.memorypack`    | QuickSave 직렬화 (`USE_QUICK_SAVE`)         |
+| Addressables | `com.unity.addressables`    | AddressableManager, RemoteContentManager |
+| R3           | `com.cysharp.r3`            | UIBindingManager (Reactive pub/sub)      |
+
+### VContainer 수동 설치
+
+`Packages/manifest.json` 의 `scopedRegistries` 에 아래를 추가하세요.
+
+```json
+{
+  "scopedRegistries": [
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": ["jp.hadashikick.vcontainer"]
+    }
+  ],
+  "dependencies": {
+    "jp.hadashikick.vcontainer": "1.15.0"
+  }
+}
+```
+
+### MemoryPack 수동 설치
+
+[MemoryPack GitHub](https://github.com/Cysharp/MemoryPack) 의 설치 가이드를 참고하세요.
+
+### R3 설치
+
+[R3 GitHub](https://github.com/Cysharp/R3) 의 설치 가이드를 참고하세요.
+
+## 설치 확인
+
+설치가 완료되면 Unity 콘솔에 에러가 없어야 하며,
+메뉴에 **Window › AchEngine › AchEngine Info** 항목이 보여야 합니다.
+패키지 설치 상태는 이 창에서 한눈에 확인할 수 있습니다.
+
+
+
+---
+url: /AchEngine/usage/integration.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 모듈 연계
+
+AchEngine의 DI, Table Loader, Localization, Addressables 모듈을 함께 사용하는 통합 패턴을 다룹니다.
+
+## 전체 구조
+
+```mermaid
+graph TB
+subgraph Bootstrap["🌐 Bootstrap 씬"]
+GI["GlobalInstaller"]
+GI --> TS["ITableService"]
+GI --> UI["IUIService"]
+GI --> AU["IAudioService"]
+GI --> NW["INetworkService"]
+UIR["UIRoot"]
+end
+
+subgraph Lobby["🏠 Lobby 씬 (additive)"]
+LI["LobbyInstaller"]
+LI --> SH["IShopService"]
+LI --> FR["IFriendService"]
+end
+
+subgraph InGame["⚔ InGame 씬 (additive)"]
+GAI["GameInstaller"]
+GAI --> GM["IGameService"]
+GAI --> ST["IStageService"]
+GAI --> ES["IEnemySpawner"]
+end
+
+Bootstrap --> Lobby
+Bootstrap --> InGame
+
+style Bootstrap fill:#0f2d4a,stroke:#3b82f6,color:#93c5fd
+style Lobby     fill:#0f3a1f,stroke:#10b981,color:#6ee7b7
+style InGame    fill:#3a1010,stroke:#ef4444,color:#fca5a5
+style GI  fill:#1e3a5f,stroke:#3b82f6,color:#e2e8f0
+style TS  fill:#162032,stroke:#f59e0b,color:#fcd34d
+style UI  fill:#162032,stroke:#8b5cf6,color:#c4b5fd
+style AU  fill:#162032,stroke:#64748b,color:#94a3b8
+style NW  fill:#162032,stroke:#64748b,color:#94a3b8
+style UIR fill:#1e3a5f,stroke:#8b5cf6,color:#e2e8f0
+style LI  fill:#1a4a2a,stroke:#10b981,color:#e2e8f0
+style SH  fill:#162032,stroke:#10b981,color:#94a3b8
+style FR  fill:#162032,stroke:#10b981,color:#94a3b8
+style GAI fill:#4a1a1a,stroke:#ef4444,color:#e2e8f0
+style GM  fill:#162032,stroke:#ef4444,color:#94a3b8
+style ST  fill:#162032,stroke:#ef4444,color:#94a3b8
+style ES  fill:#162032,stroke:#ef4444,color:#94a3b8
+```
+
+***
+
+## TableLoader + Localization 연계
+
+아이템 이름·설명을 로컬라이제이션 키로 관리하는 패턴입니다.
+
+### 1. 스프레드시트 설계
+
+```
+| Id  | NameKey           | DescKey           | Price |
+|-----|-------------------|-------------------|-------|
+| 101 | item.sword.name   | item.sword.desc   | 500   |
+| 102 | item.wand.name    | item.wand.desc    | 1200  |
+```
+
+### 2. 생성된 데이터 클래스
+
+```csharp
+public partial class ItemData : ITableData
+{
+    public int    Id      { get; set; }
+    public string NameKey { get; set; }
+    public string DescKey { get; set; }
+    public int    Price   { get; set; }
+}
+```
+
+### 3. 런타임 조합
+
+```csharp
+using AchEngine;
+using AchEngine.Localization;
+
+public class ItemDetailView : UIView
+{
+    [SerializeField] private Text _nameText;
+    [SerializeField] private Text _descText;
+    [SerializeField] private Text _priceText;
+
+    public void SetItem(int itemId)
+    {
+        var item = TableManager.Get<ItemTable>().Get(itemId);
+        _nameText.text  = LocalizationManager.Get(item.NameKey);
+        _descText.text  = LocalizationManager.Get(item.DescKey);
+        _priceText.text = $"{item.Price:N0} G";
+    }
+}
+```
+
+### 4. 타입-세이프 키 사용
+
+로컬라이제이션 코드 생성(`L` 클래스) 후:
+
+```csharp
+// 키를 상수로 직접 참조하는 경우
+_nameText.text = LocalizationManager.Get(L.Item.Sword.Name);
+
+// 또는 테이블 키를 그대로 사용하는 경우 (동적)
+_nameText.text = LocalizationManager.Get(item.NameKey);
+```
+
+***
+
+## TableLoader + Addressables 연계
+
+아이콘·사운드 주소를 테이블에서 관리하는 패턴입니다.
+
+### 1. 스프레드시트 설계
+
+```
+| Id  | Name       | IconAddress       | SfxAddress     |
+|-----|------------|-------------------|----------------|
+| 101 | Iron Sword | icon_sword        | sfx_sword_hit  |
+| 102 | Magic Wand | icon_wand         | sfx_wand_cast  |
+```
+
+### 2. 런타임 로드
+
+```csharp
+using AchEngine;
+using AchEngine.Assets;
+
+public class ItemDetailView : UIView
+{
+    [SerializeField] private Image _iconImage;
+
+    private string _loadedAddress;
+
+    public async void SetItem(int itemId)
+    {
+        var item = TableManager.Get<ItemTable>().Get(itemId);
+
+        // 이전 아이콘 해제
+        if (_loadedAddress != null)
+        {
+            AddressableManager.Release(_loadedAddress);
+        }
+
+        // 새 아이콘 로드
+        _loadedAddress = item.IconAddress;
+        var icon = await AddressableManager.LoadAsync<Sprite>(_loadedAddress);
+        _iconImage.sprite = icon;
+    }
+
+    protected override void OnClosed()
+    {
+        // 뷰를 닫을 때 에셋 해제
+        if (_loadedAddress != null)
+        {
+            AddressableManager.Release(_loadedAddress);
+            _loadedAddress = null;
+        }
+    }
+}
+```
+
+***
+
+## 세 모듈 통합 예시
+
+팝업을 열 때 테이블에서 데이터를 가져오고,
+로컬라이제이션으로 텍스트를 표시하고,
+Addressables로 스프라이트를 비동기 로드합니다.
+
+```csharp
+public class ItemDetailPopup : UIView
+{
+    [SerializeField] private Text  _nameText;
+    [SerializeField] private Text  _descText;
+    [SerializeField] private Text  _priceText;
+    [SerializeField] private Image _iconImage;
+
+    private string _iconAddress;
+
+    public override UILayerId Layer => UILayerId.Popup;
+
+    public async void SetItem(int itemId)
+    {
+        var item = TableManager.Get<ItemTable>().Get(itemId);
+
+        // 로컬라이제이션
+        _nameText.text  = LocalizationManager.Get(item.NameKey);
+        _descText.text  = LocalizationManager.Get(item.DescKey);
+        _priceText.text = $"{item.Price:N0} G";
+
+        // Addressables 에셋
+        if (_iconAddress != null)
+            AddressableManager.Release(_iconAddress);
+
+        _iconAddress = item.IconAddress;
+        var icon = await AddressableManager.LoadAsync<Sprite>(_iconAddress);
+        _iconImage.sprite = icon;
+    }
+
+    protected override void OnClosed()
+    {
+        if (_iconAddress != null)
+        {
+            AddressableManager.Release(_iconAddress);
+            _iconAddress = null;
+        }
+    }
+}
+```
+
+### 팝업 열기
+
+```csharp
+// 인벤토리 화면에서 아이템 클릭 시
+var ui = ServiceLocator.Resolve<IUIService>();
+ui.Show<ItemDetailPopup>(popup => popup.SetItem(selectedItemId));
+```
+
+***
+
+## DI로 서비스 레이어 구성
+
+직접 정적 메서드(`TableManager.Get`, `LocalizationManager.Get`)를 호출하는 대신
+서비스 인터페이스로 감싸 테스트 용이성을 높일 수 있습니다.
+
+```csharp
+// 서비스 인터페이스
+public interface IItemService
+{
+    ItemData GetItem(int id);
+    string GetItemName(int id);
+    string GetItemDesc(int id);
+}
+
+// 구현체 — TableService + LocalizationService 주입
+public class ItemService : IItemService
+{
+    private readonly ITableService        _tables;
+    private readonly ILocalizationService _loc;
+
+    public ItemService(ITableService tables, ILocalizationService loc)
+    {
+        _tables = tables;
+        _loc    = loc;
+    }
+
+    public ItemData GetItem(int id)     => _tables.Get<ItemTable>().Get(id);
+    public string GetItemName(int id)   => _loc.Get(GetItem(id).NameKey);
+    public string GetItemDesc(int id)   => _loc.Get(GetItem(id).DescKey);
+}
+```
+
+```csharp
+// 등록
+public class GlobalInstaller : AchEngineInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            .Register<ITableService, TableService>()
+            .Register<ILocalizationService, LocalizationService>()
+            .Register<IItemService, ItemService>();
+    }
+}
+```
+
+```csharp
+// 사용
+public class ItemDetailPopup : UIView
+{
+    [Inject] private IItemService _items;
+
+    public void SetItem(int itemId)
+    {
+        _nameText.text = _items.GetItemName(itemId);
+        _descText.text = _items.GetItemDesc(itemId);
+    }
+}
+```
+
+***
+
+## 씬 전환 + UI 통합 전체 흐름
+
+```mermaid
+sequenceDiagram
+participant App  as 앱 시작
+participant Boot as Bootstrap 씬
+participant SL   as ServiceLocator
+participant SS   as SceneService
+participant GS   as GameService
+participant UI   as IUIService
+participant TBL  as TableManager
+participant LOC  as LocalizationManager
+participant ADDR as AddressableManager
+
+App->>Boot: 씬 로드
+Boot->>SL: Setup(전역 서비스)
+Note over SL: 전역 서비스 준비 완료
+
+Note over SS,UI: 씬 전환: Lobby → InGame
+SS->>UI: CloseAll()
+SS->>Boot: UnloadScene("Lobby")
+SS->>Boot: LoadScene("InGame")
+Boot->>SL: GameScope 서비스 추가
+SS->>GS: StartStage(stageId)
+GS->>TBL: Get<StageTable>().Get(stageId)
+TBL-->>GS: StageData
+GS->>UI: Show<GameHUDView>()
+
+Note over UI,ADDR: 팝업 흐름
+UI->>UI: Show<ItemDetailPopup>(p => p.SetItem(id))
+UI->>TBL: Get<ItemTable>().Get(itemId)
+TBL-->>UI: ItemData
+UI->>LOC: Get(item.NameKey)
+LOC-->>UI: "철 검"
+UI->>ADDR: LoadAsync<Sprite>(item.IconAddress)
+ADDR-->>UI: Sprite
+```
+
+## 관련 문서
+
+- [DI 시스템](/AchEngine/usage/di/index.md)
+- [Table Loader](/AchEngine/usage/table/index.md)
+- [Localization](/AchEngine/usage/localization/index.md)
+- [Addressables](/AchEngine/usage/addressables/index.md)
+
+
+
+---
+url: /AchEngine/usage/localization/codegen.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 키 상수 코드 생성
+
+문자열 키를 하드코딩하면 오타가 발생하기 쉽습니다.
+AchEngine은 JSON 키를 **타입-세이프 중첩 클래스**로 변환하는 코드 생성기를 제공합니다.
+
+## 변환 예시
+
+JSON 키:
+
+```json
+{
+  "menu.start": "게임 시작",
+  "menu.settings": "설정",
+  "dialog.confirm": "확인",
+  "item.sword.name": "철 검"
+}
+```
+
+생성된 C# 클래스:
+
+```csharp
+// 자동 생성 — 직접 수정하지 마세요
+public static class L
+{
+    public static class Menu
+    {
+        public const string Start    = "menu.start";
+        public const string Settings = "menu.settings";
+    }
+
+    public static class Dialog
+    {
+        public const string Confirm = "dialog.confirm";
+    }
+
+    public static class Item
+    {
+        public static class Sword
+        {
+            public const string Name = "item.sword.name";
+        }
+    }
+}
+```
+
+## 코드 생성 설정
+
+**Project Settings › AchEngine › Localization › 키 상수 코드 생성** 에서:
+
+| 항목         | 기본값                 |
+| ---------- | ------------------- |
+| **클래스 이름** | `L`                 |
+| **네임스페이스** | (비어있으면 전역 네임스페이스)   |
+| **출력 경로**  | `Assets/Generated/` |
+
+**키 상수 생성** 버튼을 클릭하면 `{출력경로}/{클래스명}.cs` 파일이 생성됩니다.
+
+## LocalizedString 컴포넌트
+
+Inspector에서 키를 지정할 때는 `LocalizedString` 타입을 사용합니다.
+
+```csharp
+public class ItemNameDisplay : MonoBehaviour
+{
+    [SerializeField] private LocalizedString _nameKey;
+
+    private void Start()
+    {
+        GetComponent<Text>().text = _nameKey.Value;
+    }
+}
+```
+
+Inspector에서 `_nameKey` 필드에 키를 입력하면 커스텀 PropertyDrawer가
+현재 로케일의 번역 미리보기를 보여줍니다.
+
+
+
+---
+url: /AchEngine/usage/localization/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# Localization — 개요
+
+AchEngine Localization은 **JSON/CSV 기반** 다국어 시스템입니다.
+로케일 전환, 폴백, 시스템 언어 자동 감지, 타입-세이프 키 상수 코드 생성을 지원합니다.
+
+## 핵심 구성 요소
+
+| 클래스                    | 역할                                 |
+| ---------------------- | ---------------------------------- |
+| `LocalizationManager`  | 로케일 전환, 텍스트 조회 파사드                 |
+| `LocalizationSettings` | 설정 ScriptableObject (Resources 배치) |
+| `LocaleDatabase`       | 로케일 목록 및 JSON 파일 매핑                |
+| `LocalizedString`      | 런타임 다국어 텍스트 래퍼                     |
+| `L` (생성 클래스)           | 타입-세이프 키 상수 (코드 생성 결과)             |
+
+## 기본 사용
+
+```csharp
+using AchEngine.Localization;
+
+// 현재 로케일의 텍스트 조회
+string text = LocalizationManager.Get("menu.start");
+
+// 타입-세이프 키 (코드 생성 후)
+string text2 = LocalizationManager.Get(L.Menu.Start);
+
+// 로케일 변경
+LocalizationManager.SetLocale("ja");
+
+// 로케일 변경 이벤트 구독
+LocalizationManager.OnLocaleChanged += OnLocaleChanged;
+```
+
+## JSON 형식
+
+```json
+// ko.json — 한국어
+{
+  "menu.start": "게임 시작",
+  "menu.settings": "설정",
+  "dialog.confirm": "확인",
+  "item.sword.name": "철 검",
+  "item.sword.desc": "평범한 철 검입니다."
+}
+```
+
+JSON 키는 **dot-notation**으로 중첩 없이 평탄하게 작성합니다.
+
+## TMP 컴포넌트 자동 갱신
+
+`LocalizedText` 컴포넌트를 TextMeshPro 오브젝트에 추가하면
+로케일이 바뀔 때 자동으로 텍스트를 갱신합니다.
+
+```
+[TextMeshProUGUI]
+  └── LocalizedText  ← 키: "menu.start"
+```
+
+
+> **TMP 지원**
+> 
+> TextMeshPro(`com.unity.textmeshpro`)가 설치된 경우 `LocalizedText` 컴포넌트가 활성화됩니다.
+> 
+
+
+## FontAsset Maker
+
+**AchEngine › Localization › FontAsset Maker**에서 폰트를 하나 넣고 버튼을 누르면
+LocaleDatabase의 실제 번역 문자열, 프로젝트의 CSV/JSON/TXT TextAsset, 기본 ASCII를 모아 정적 TMP FontAsset을 생성합니다.
+런타임에서 새 한글 문자열을 조합하는 경우에는 `Include Korean glyph preset`을 켜서 한글 전체 프리셋도 함께 구울 수 있습니다.
+
+생성된 FontAsset은 `Assets/Fonts/Generated`에 저장됩니다.
+
+## 다음 단계
+
+- [설정 & 데이터베이스](/AchEngine/usage/localization/setup.md)
+- [키 상수 코드 생성](/AchEngine/usage/localization/codegen.md)
+
+
+
+---
+url: /AchEngine/usage/localization/setup.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 설정 & 데이터베이스
+
+## 1. LocalizationSettings 생성
+
+**Project Settings › AchEngine › Localization** 을 열면
+설정이 없을 때 `Assets/Resources/LocalizationSettings.asset`을 자동 생성합니다.
+
+## 2. LocaleDatabase 생성
+
+**Database 생성** 버튼을 클릭하고 저장 위치를 선택합니다.
+
+```
+Assets/
+└── GameData/
+    └── LocaleDatabase.asset
+```
+
+## 3. JSON 파일 추가
+
+각 로케일의 JSON 파일을 `LocaleDatabase`에 등록합니다.
+
+```json
+// ko.json — 한국어
+{
+  "menu.start": "게임 시작",
+  "menu.settings": "설정",
+  "dialog.confirm": "확인",
+  "item.sword.name": "철 검",
+  "item.sword.desc": "평범한 철 검입니다."
+}
+```
+
+```json
+// en.json — English
+{
+  "menu.start": "Start Game",
+  "menu.settings": "Settings",
+  "dialog.confirm": "OK",
+  "item.sword.name": "Iron Sword",
+  "item.sword.desc": "A plain iron sword."
+}
+```
+
+JSON 키는 **dot-notation**으로 중첩 없이 평탄하게 작성합니다.
+
+## 4. 로케일 설정
+
+**Project Settings › AchEngine › Localization › 로케일 설정** 에서:
+
+| 항목                | 설명                                                |
+| ----------------- | ------------------------------------------------- |
+| **기본 로케일**        | 앱 최초 실행 시 사용할 로케일                                 |
+| **폴백 로케일**        | 현재 로케일에 키가 없을 때 사용할 로케일                           |
+| **시스템 언어 자동 감지**  | 기기 언어와 일치하는 로케일로 자동 설정                            |
+| **앱 시작 시 자동 초기화** | `LocalizationManager.Initialize()`를 Awake 시 자동 호출 |
+
+## 런타임 초기화
+
+자동 초기화가 꺼진 경우 직접 초기화합니다.
+
+```csharp
+private async void Start()
+{
+    await LocalizationManager.InitializeAsync();
+    Debug.Log("Localization 준비 완료");
+}
+```
+
+## 편집기 창
+
+**편집기 열기** 버튼을 클릭하면 `LocalizationEditorWindow`가 열립니다.
+모든 로케일의 번역을 테이블 형식으로 편집할 수 있습니다.
+
+| 기능             | 설명                       |
+| -------------- | ------------------------ |
+| 키 추가/삭제        | 키를 추가하면 모든 로케일에 빈 값이 생성됨 |
+| CSV 가져오기       | 번역 작업 결과 CSV를 임포트        |
+| JSON 내보내기/가져오기 | 로케일 JSON 파일 직접 가져오기/내보내기 |
+
+
+
+---
+url: /AchEngine/usage/managers/ads.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# AdsManager
+
+`AdsManager`는 Unity Ads Legacy 4.16.4를 기본 공급자로 사용해 전면, 보상형, 배너 광고를
+로드하고 표시합니다. `com.unity.ads`는 AchEngine 1.3.2의 의존성으로 선언되어 있으므로 패키지를
+추가하면 Package Manager가 함께 설치합니다. `AchManagerInstaller`도 `AdsManager`를 자동 등록합니다.
+
+실제 송출에는 Unity Dashboard에서 발급한 Android/iOS 게임 ID와 광고 단위 ID가 필요합니다.
+에디터에서는 Android 게임 ID를 사용하므로 Android ID도 설정하세요. `testMode`는 개발 중에만 `true`로
+두고 출시 빌드에서는 반드시 `false`로 바꾸세요.
+
+## 빠른 설정
+
+부트스트랩에서 초기화 전에 한 번 설정합니다. VContainer를 쓰는 프로젝트는 같은 코드를 생성자 주입받은
+`AdsManager`에 적용하면 됩니다.
+
+```csharp
+using AchEngine.DI;
+using AchEngine.Managers;
+
+var ads = ServiceLocator.Resolve<AdsManager>();
+
+ads.Configure(new AdsConfiguration(
+    androidGameId: "Android 게임 ID",
+    iosGameId: "iOS 게임 ID",
+    interstitialAdUnitId: "Interstitial_Android",
+    rewardedAdUnitId: "Rewarded_Android",
+    bannerAdUnitId: "Banner_Android",
+    testMode: true));
+
+ads.InitializationFailed += message => Debug.LogError(message);
+
+await ads.Initialize();
+await ads.LoadInterstitialAsync();
+await ads.LoadRewardedAsync();
+```
+
+Android와 iOS에서 광고 단위 ID가 서로 다르면, 각 플랫폼에 맞는 `AdsConfiguration`을 게임의
+플랫폼별 부트스트랩에서 제공하세요. `Configure()`는 초기화가 시작되기 전에만 호출할 수 있습니다.
+
+## 전면 및 보상형 광고
+
+표시 전에는 항상 해당 광고를 로드합니다. 전면 광고는 표시를 시도한 뒤 다시 로드해야 합니다.
+보상은 `ShouldGrantReward`가 `true`일 때만 지급하세요. `Completed` 이외의 상태에서는 보상을 지급하지
+않습니다.
+
+```csharp
+var result = await ads.ShowRewardedAsync();
+
+if (result.ShouldGrantReward)
+    GrantCoinsToPlayer();
+else if (!result.IsSuccess)
+    Debug.LogWarning(result.Message);
+
+await ads.LoadRewardedAsync();
+```
+
+## 배너 광고
+
+기본 Unity Ads 공급자는 배너를 화면 하단 중앙에 표시합니다. `ShowBannerAsync()`의 성공은 배너 표시
+요청이 SDK에 전달됐다는 뜻이며, 노출 수를 뜻하지는 않습니다.
+
+```csharp
+await ads.LoadBannerAsync();
+await ads.ShowBannerAsync();
+
+// 상점·전투 화면처럼 배너가 필요 없는 시점
+ads.HideBanner();
+```
+
+## 미디에이션
+
+`AdsManager`의 기본 공급자는 단순한 Unity Ads Legacy 구현입니다. 신규 라이브 운영과 여러 광고
+네트워크 경쟁에는 보통 아래 미디에이션 중 하나를 사용합니다.
+
+| 선택지                              | 적합한 경우                                        | AchEngine 연결 방법                                                    |
+| -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------ |
+| Unity LevelPlay                  | Unity Ads 중심으로 운영하고 Unity의 최신 미디에이션을 사용하려는 경우 | LevelPlay SDK를 감싼 `IAdsProvider` 구현을 만듭니다.                         |
+| AppLovin MAX                     | 고급 수익화·입찰 도구와 폭넓은 네트워크 운영이 필요한 경우             | MAX Unity SDK 어댑터를 `IAdsProvider`로 구현합니다.                          |
+| Google AdMob / Google Ad Manager | Google 광고 스택, Firebase, GAM 보고 체계를 이미 쓰는 경우   | AdMob Unity SDK와 현재 지원되는 Unity Ads 네트워크 어댑터를 `IAdsProvider`로 감쌉니다. |
+| Digital Turbine FairBid 등        | 해당 공급자의 운영 도구·계약을 사용하는 경우                     | 공급자의 Unity SDK를 같은 인터페이스로 연결합니다.                                   |
+
+광고 네트워크 어댑터 지원 목록과 입찰 지원 여부는 수시로 바뀝니다. 도입 직전에 선택한 미디에이션의
+최신 Unity Ads 네트워크 어댑터, Android/iOS 최소 SDK, 개인정보 동의·ATT 요구 사항을 확인하세요.
+
+```csharp
+// 미디에이션 SDK를 감싼 구현으로 기본 공급자를 교체하는 예시입니다.
+var ads = AdsManager.Create(new MyLevelPlayAdsProvider());
+```
+
+`IAdsProvider`는 초기화, 광고 로드·표시, 배너 숨김만 정의합니다. 미디에이션 어댑터는 광고 단위 ID와
+콜백을 `AdsLoadResult`/`AdsShowResult`로 변환해야 하며, 보상형 광고 완료만 `Completed`로 반환해야 합니다.
+
+> Unity Ads Legacy는 기본 통합을 위한 SDK입니다. Unity LevelPlay로 전환할 때는 기본 공급자를 유지한 채
+> 앱에 두 SDK를 함께 초기화하지 마세요. 한 세션에는 하나의 광고 SDK 공급자만 사용하세요.
+
+## API
+
+| 멤버                                                                      | 설명                             |
+| ----------------------------------------------------------------------- | ------------------------------ |
+| `Configure(configuration)`                                              | 초기화 전 게임 ID와 광고 단위 ID를 설정합니다.  |
+| `Initialize()`                                                          | 현재 플랫폼의 게임 ID로 광고 SDK를 초기화합니다. |
+| `LoadInterstitialAsync()` / `LoadRewardedAsync()` / `LoadBannerAsync()` | 광고를 표시 가능한 상태로 로드합니다.          |
+| `ShowInterstitialAsync()` / `ShowRewardedAsync()` / `ShowBannerAsync()` | 미리 로드한 광고를 표시하고 결과를 반환합니다.     |
+| `HideBanner()`                                                          | 표시 중인 배너를 숨깁니다.                |
+| `IsLoaded(placement)`                                                   | 특정 광고가 표시 가능한 상태인지 확인합니다.      |
+| `AdsShowResult.ShouldGrantReward`                                       | 보상형 광고를 끝까지 시청했는지 확인합니다.       |
+
+
+
+---
+url: /AchEngine/usage/managers/audio.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# AudioManager
+
+BGM 및 SFX 재생, 페이드, 뮤트, 3D 공간 음향을 통합 관리하는 매니저입니다. 초기화 시 `DontDestroyOnLoad` GameObject를 자동으로 생성하고 BGM용 AudioSource 1개와 SFX용 8채널 풀을 구성합니다.
+
+## DI 등록
+
+```csharp
+// AchManagerInstaller가 자동으로 등록합니다.
+// 선택 등록이 필요한 경우:
+public class MyInstaller : AchManagerInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder.Register<AudioManager>();
+    }
+}
+```
+
+접근할 때는 `ServiceLocator`를 사용합니다.
+
+```csharp
+using AchEngine.DI;
+using AchEngine.Managers;
+
+var audio = ServiceLocator.Resolve<AudioManager>();
+```
+
+## API
+
+| 멤버                                            | 설명                                                                             |
+| --------------------------------------------- | ------------------------------------------------------------------------------ |
+| `BgmVolume`                                   | BGM 볼륨 (0 \~ 1). 뮤트 상태에서 변경해도 내부 값만 갱신됩니다.                                     |
+| `SfxVolume`                                   | SFX 볼륨 (0 \~ 1). 뮤트 상태에서 변경해도 내부 값만 갱신됩니다.                                     |
+| `PlayBgm(clip)`                               | BGM을 즉시 재생합니다. 동일 클립이 이미 재생 중이면 무시합니다.                                         |
+| `PlayBgm(clip, fadeDuration)`                 | 현재 BGM을 페이드 아웃한 뒤 새 클립을 페이드 인합니다. `fadeDuration`은 전체 전환 시간(초)이며 기본값은 `0.5`입니다. |
+| `StopBgm()`                                   | BGM을 즉시 정지합니다.                                                                 |
+| `StopBgm(fadeDuration)`                       | BGM을 페이드 아웃 후 정지합니다. 기본값은 `0.5`초입니다.                                           |
+| `SetBgmVolume(volume, fadeDuration)`          | BGM 볼륨을 지정한 시간 동안 서서히 변경합니다. `fadeDuration`이 `0`이면 즉시 적용됩니다.                   |
+| `MuteBgm(bool)`                               | BGM 뮤트 상태를 설정합니다. 언뮤트 시 이전 볼륨이 복원됩니다.                                          |
+| `MuteSfx(bool)`                               | SFX 뮤트 상태를 설정합니다. 언뮤트 시 이전 볼륨이 복원됩니다.                                          |
+| `MuteAll(bool)`                               | BGM과 SFX를 모두 뮤트/언뮤트합니다.                                                        |
+| `PlaySfx(clip)`                               | SFX를 2D로 재생합니다.                                                                |
+| `PlaySfxAt(clip, worldPosition, volumeScale)` | 지정한 월드 좌표에서 3D 공간 음향으로 SFX를 재생합니다. `volumeScale` 기본값은 `1.0`입니다.                |
+
+## SFX 채널 풀
+
+SFX는 내부적으로 8개의 AudioSource 채널로 구성된 풀을 사용합니다.
+
+- 재생 요청 시 비어 있는 채널을 우선 탐색합니다.
+- 모든 채널이 사용 중이면 **라운드로빈** 방식으로 가장 오래된 채널을 덮어씁니다.
+- 채널 풀은 씬 전환 후에도 유지됩니다(`DontDestroyOnLoad`).
+
+## 뮤트 동작
+
+`MuteBgm` / `MuteSfx`는 내부 볼륨 값(`BgmVolume`, `SfxVolume`)을 **변경하지 않습니다**. AudioSource의 실제 출력만 0으로 만들기 때문에 언뮤트하면 뮤트 이전 볼륨으로 즉시 복원됩니다.
+
+```csharp
+audio.BgmVolume = 0.8f;
+audio.MuteBgm(true);   // 실제 출력: 0, 내부 값: 0.8
+audio.MuteBgm(false);  // 실제 출력: 0.8 복원
+```
+
+## 코드 예시
+
+### BGM 크로스페이드
+
+```csharp
+var audio = ServiceLocator.Resolve<AudioManager>();
+
+// 씬 진입 시 1초 페이드로 BGM 전환
+audio.PlayBgm(lobbyBgmClip, fadeDuration: 1f);
+
+// 보스 전투 구간 — 빠른 전환 (0.3초)
+audio.PlayBgm(bossBgmClip, fadeDuration: 0.3f);
+
+// 2초에 걸쳐 볼륨을 낮춤 (컷씬 연출 등)
+audio.SetBgmVolume(0.3f, fadeDuration: 2f);
+
+// 씬 종료 시 페이드 아웃
+audio.StopBgm(fadeDuration: 1.5f);
+```
+
+### SFX 3D 재생
+
+```csharp
+var audio = ServiceLocator.Resolve<AudioManager>();
+
+// 폭발 위치에서 3D 사운드 재생
+audio.PlaySfxAt(explosionClip, explosionObject.transform.position);
+
+// 볼륨을 절반으로 줄여 재생
+audio.PlaySfxAt(footstepClip, transform.position, volumeScale: 0.5f);
+
+// 2D UI 효과음 재생
+audio.PlaySfx(buttonClickClip);
+```
+
+### 뮤트 토글 (옵션 화면)
+
+```csharp
+var audio = ServiceLocator.Resolve<AudioManager>();
+
+// BGM만 음소거
+audio.MuteBgm(true);
+
+// SFX만 음소거
+audio.MuteSfx(true);
+
+// 전체 음소거 해제
+audio.MuteAll(false);
+```
+
+
+
+---
+url: /AchEngine/usage/managers/config.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# ConfigManager
+
+PlayerPrefs 기반의 키-값 설정 저장소입니다. 앱 볼륨, 언어 설정 등 간단한 옵션값을 저장할 때 사용합니다.
+
+## API
+
+```csharp
+var cfg = ServiceLocator.Resolve<ConfigManager>();
+
+// 키 등록 (초기값 설정)
+cfg.AddKey("bgmVolume", 1.0f);
+cfg.AddKey("language",  "ko");
+
+// 값 읽기
+float vol = cfg.GetConfig<float>("bgmVolume", fallback: 1f);
+
+// 값 쓰기 (자동으로 PlayerPrefs에 저장)
+cfg.SetConfig("bgmVolume", 0.5f);
+```
+
+> 등록(`AddKey`)하지 않은 키에는 `SetConfig`가 동작하지 않습니다.
+
+
+
+---
+url: /AchEngine/usage/managers/iap.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# IAPManager
+
+`IAPManager`는 Unity IAP 5.4.1의 `StoreController` API를 사용해 상점 연결, 상품 조회,
+구매, 미확정 주문 재처리, 복원을 관리합니다. 실제 빌드에서는 보상 지급이 영속화되기 전에는
+주문을 확정하지 않으므로 네트워크 오류나 앱 종료 뒤에도 미확정 주문을 안전하게 재처리할 수 있습니다.
+
+`com.unity.purchasing` 5.4.1은 AchEngine의 패키지 의존성으로 포함되어 있으며,
+`AchManagerInstaller`는 `IAPManager`를 자동으로 등록합니다.
+
+## 빠른 설정
+
+상품 ID는 Google Play Console 또는 App Store Connect에 등록한 값과 정확히 같아야 합니다.
+실제 빌드에서는 초기화 전에 상품과 서버 검증기를 설정하세요. 서버 URL·HTTP 메서드·인증·요청 형식은 게임마다
+다르므로, 패키지는 `IIAPReceiptValidator` 인터페이스로만 결제 서버를 연결합니다.
+
+```csharp
+using AchEngine.DI;
+using AchEngine.Managers;
+using UnityEngine.Purchasing;
+
+var iap = ServiceLocator.Resolve<IAPManager>();
+
+iap.AddProduct("com.mygame.coins_100", ProductType.Consumable);
+iap.AddProduct("com.mygame.remove_ads", ProductType.NonConsumable);
+
+iap.ReceiptValidator = new GameReceiptValidator();
+
+await iap.Initialize();
+```
+
+## 에디터 Fake Store 테스트
+
+Unity 에디터에서는 `IAPManager`가 Unity IAP의 `fake` 스토어를 명시적으로 사용합니다.
+에디터에서만 `ReceiptValidator`와 `PurchaseProcessor`가 모두 비어 있어도 Fake Store 주문을
+자동 확정하므로, 실제 결제 없이 구매 버튼·완료 이벤트·팝업 흐름을 테스트할 수 있습니다.
+
+이 동작은 `UNITY_EDITOR`에서만 포함됩니다. Android, iOS 및 기타 실제 빌드에서는 영수증 검증기
+또는 보상 처리기를 설정하지 않으면 구매가 시작되지 않으며, 에디터 가짜 주문이 실제 보상으로
+처리되지 않습니다.
+
+Full Sample의 `PurchasePopup`도 에디터에서는 검증기 없이 구매 버튼을 활성화합니다. 실제 빌드에서는
+기존과 같이 `Receipt Validator` 필드에 게임별 서버 검증 컴포넌트를 연결하세요.
+
+`GameReceiptValidator`는 게임 프로젝트에서 `IIAPReceiptValidator`를 구현한 클래스입니다.
+검증기 안에서 인증된 플레이어를 확인하고, 플랫폼별 거래 정보를 게임 서버로 전달한 뒤 보상
+지급까지 서버에서 멱등적으로 저장하세요.
+
+```csharp
+using System.Threading.Tasks;
+
+public sealed class GameReceiptValidator : IIAPReceiptValidator
+{
+    public async Task<IAPReceiptValidationResult> ValidateAndFulfillAsync(IAPPurchase purchase)
+    {
+        // 게임의 HTTP 요청 형식과 서버 인증을 여기서 구현합니다.
+        // 서버가 거래 ID 기준으로 검증과 보상 저장을 모두 마친 경우에만 성공을 반환합니다.
+        var response = await SendToGameServerAsync(purchase);
+        return response.IsSuccess
+            ? IAPReceiptValidationResult.Succeeded()
+            : IAPReceiptValidationResult.Failed(response.Message);
+    }
+}
+```
+
+`ReceiptValidator`가 설정되면 `PurchaseProcessor`보다 먼저 사용됩니다. 서버 검증을 사용하지
+않는 특수한 경우에만 `PurchaseProcessor`에서 검증·보상 지급·저장 전체를 직접 처리하세요.
+
+## 구매 요청
+
+`PurchaseAsync`는 상점 결제와 서버 보상 지급, 주문 확정이 모두 끝난 뒤 결과를 반환합니다.
+실제 빌드에서는 검증기나 처리기를 설정하지 않은 상태에서 결제창을 열지 않습니다.
+에디터 Fake Store에서는 앞서 설명한 테스트 흐름을 사용합니다.
+
+```csharp
+var result = await iap.PurchaseAsync("com.mygame.coins_100");
+
+if (result.IsSuccess)
+{
+    Debug.Log("구매와 보상 지급이 확정되었습니다.");
+}
+else
+{
+    Debug.LogWarning($"구매 상태: {result.Status}, 사유: {result.Message}");
+}
+```
+
+| 상태                   | 의미                                           |
+| -------------------- | -------------------------------------------- |
+| `Confirmed`          | 영수증 검증과 보상 저장 후 스토어 주문까지 확정되었습니다.            |
+| `Failed`             | 사용자가 취소했거나 스토어 결제가 실패했습니다.                   |
+| `Deferred`           | 보호자 승인 등으로 결제가 보류되었습니다.                      |
+| `PendingFulfillment` | 서버 검증 또는 보상 저장에 실패했습니다. 주문은 확정하지 않으며 재처리됩니다. |
+
+## 서버 영수증 검증
+
+`IIAPReceiptValidator` 구현은 아래 정보를 서버에 전달해야 합니다. 서버는 인증 토큰으로
+플레이어를 식별하고, **거래 ID를 멱등 키로 보상 지급을 저장한 뒤** 결과를 반환해야 합니다.
+클라이언트에서만 소비성 보상을 저장하면 재설치나 앱 종료 시 복구할 수 없습니다.
+
+```json
+{
+  "transactionId": "스토어 거래 ID",
+  "receipt": "Unity IAP 통합 영수증",
+  "appleJwsRepresentation": "Apple StoreKit 2 JWS, Apple 이외 플랫폼에서는 빈 문자열",
+  "appleAppAccountToken": "Apple 앱 계정 토큰, 설정하지 않은 경우 빈 문자열",
+  "products": [
+    {
+      "productId": "com.mygame.coins_100",
+      "productType": "Consumable",
+      "quantity": 1
+    }
+  ]
+}
+```
+
+Google Play은 `receipt`의 Payload를 검증하고, Apple StoreKit 2는 `appleJwsRepresentation`을
+Apple App Store Server API로 검증하세요. 서버 응답의 거래 ID는 요청값과 일치해야 하며,
+`isValid`와 `isFulfilled`가 모두 `true`일 때만 `IAPManager`가 `ConfirmPurchase`를 호출합니다.
+
+```json
+{
+  "transactionId": "스토어 거래 ID",
+  "isValid": true,
+  "isFulfilled": true,
+  "message": "보상 지급 완료"
+}
+```
+
+서버 오류, 영수증 불일치, 보상 저장 실패는 모두 주문을 미확정 상태로 남깁니다. `IAPManager`는
+현재 세션에서 받은 `PendingOrder`를 보관하므로 아래 메서드로 같은 세션에서도 재시도할 수 있습니다.
+
+```csharp
+var results = await iap.RetryPendingFulfillmentsAsync();
+```
+
+스토어의 최신 구매 내역도 다시 읽고 재시도하려면 아래 메서드를 사용하세요.
+
+```csharp
+await iap.GetPendingListAsync();
+```
+
+## 복원과 이벤트
+
+`Initialize()`는 상품 조회 뒤 기존 구매 내역을 가져옵니다. 비소모품과 구독의 소유 상태는
+`PurchaseRestored` 이벤트에서 갱신하세요. 이미 확정한 소비성 상품은 스토어가 다시 제공하지
+않으므로 서버의 플레이어 인벤토리를 기준으로 표시해야 합니다.
+
+Apple 플랫폼에는 사용자가 누를 수 있는 **구매 복원** 버튼이 필요합니다. 버튼에서는
+`RestoreTransactionsAsync()`를 호출하고, 실제 복원된 소유 상품은 `PurchaseRestored`에서 갱신하세요.
+
+```csharp
+iap.PurchaseRestored += purchase =>
+{
+    foreach (var item in purchase.Items)
+        Debug.Log($"복원된 상품: {item.ProductId}");
+};
+
+iap.PurchasePendingFulfillment += result =>
+{
+    Debug.LogWarning($"미확정 거래를 재처리해야 합니다: {result.Message}");
+};
+
+var restore = await iap.RestoreTransactionsAsync();
+if (!restore.IsSuccess)
+    Debug.LogWarning(restore.Message);
+```
+
+## API
+
+| 멤버                                | 설명                                                          |
+| --------------------------------- | ----------------------------------------------------------- |
+| `AddProduct(id, type)`            | 초기화 전에 스토어에서 조회할 상품을 등록합니다.                                 |
+| `ReceiptValidator`                | 서버 영수증 검증과 멱등 보상 저장을 담당하는 `IIAPReceiptValidator`입니다.        |
+| `PurchaseProcessor`               | 서버 검증기를 사용하지 않을 때의 사용자 정의 비동기 처리기입니다.                       |
+| `Initialize()`                    | 상점 연결, 상품 조회, 기존 구매 내역 조회를 수행합니다.                           |
+| `PurchaseAsync(id)`               | 구매를 시작하고 최종 `IAPPurchaseResult`를 반환합니다.                     |
+| `RetryPendingFulfillmentsAsync()` | 현재 세션에 보관한 미확정 주문을 즉시 재시도합니다.                               |
+| `GetPendingListAsync()`           | 기존 구매를 다시 조회한 뒤 미확정 주문을 재시도합니다.                             |
+| `RestoreTransactionsAsync()`      | Apple 수동 복원 흐름을 시작합니다. 실제 소유 상태는 `PurchaseRestored`에서 받습니다. |
+| `TryGetProduct(id, out product)`  | 조회한 Unity IAP `Product`를 가져옵니다.                             |
+
+> `PurchaseProcessor` 또는 `IIAPReceiptValidator` 구현에서 예외를 던지거나 `false`/실패를
+> 반환하면 주문을 확정하지 않습니다. 동일 거래가 재전달될 수 있으므로 항상 거래 ID 기준의
+> 멱등 처리를 구현하세요.
+
+
+
+---
+url: /AchEngine/usage/managers/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 매니저 시스템
+
+AchEngine의 매니저 시스템은 게임에서 반복적으로 필요한 기능들을 DI로 등록하고, `ServiceLocator`를 통해 어디서든 접근할 수 있게 합니다.
+
+## 제공 매니저
+
+| 매니저               | 역할                                               |
+| ----------------- | ------------------------------------------------ |
+| `ConfigManager`   | PlayerPrefs 기반 설정값 저장/불러오기                       |
+| `AudioManager`    | BGM / SFX 재생, 페이드, 뮤트, 3D 공간 음향                  |
+| `AchSceneManager` | 비동기 씬 전환, IScene 라이프사이클                          |
+| `InputManager`    | 입력 활성화/비활성화 래퍼                                   |
+| `TimeManager`     | 네트워크 동기화 시간, 1초 이벤트                              |
+| `PoolManager`     | 프리팹 기반 오브젝트 풀링                                   |
+| `PlayerManager`   | 플레이어 데이터 컨테이너 관리 (`Add` / `Get` / `Remove`)      |
+| `SaveManager`     | 저장·불러오기·삭제 — `ISaveService` 기반 추상화 (별도 DI 등록 필요) |
+| `IAPManager`      | Unity IAP 5.4.1 구매·복원·서버 영수증 검증·주문 확정            |
+
+## 빠른 시작
+
+### 1. AchManagerInstaller 추가
+
+`AchEngineScope`의 Installers 배열에 `AchManagerInstaller` 컴포넌트를 추가합니다.
+
+```csharp
+// 씬의 AchEngineScope GameObject에 AchManagerInstaller 컴포넌트를 추가하기만 하면 됩니다.
+// 모든 매니저가 자동으로 DI 컨테이너에 싱글톤으로 등록됩니다.
+```
+
+선택적으로 등록하려면 `AchManagerInstaller`를 상속하세요:
+
+```csharp
+public class MyInstaller : AchManagerInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            .Register<ConfigManager>()
+            .Register<AudioManager>();
+        // 필요한 것만 등록
+    }
+}
+```
+
+### 2. 매니저 접근
+
+```csharp
+using AchEngine.DI;
+using AchEngine.Managers;
+
+var config = ServiceLocator.Resolve<ConfigManager>();
+var audio  = ServiceLocator.Resolve<AudioManager>();
+```
+
+## IScene 라이프사이클
+
+씬의 루트 GameObject에 `IScene`을 구현하는 MonoBehaviour를 붙이면 `AchSceneManager`가 씬 전환 시 자동으로 `OnSceneStart` / `OnSceneEnd`를 호출합니다.
+
+```csharp
+using AchEngine.Managers;
+
+public class LobbyScene : MonoBehaviour, IScene
+{
+    public async Task OnSceneStart()
+    {
+        await LoadUserDataAsync();
+    }
+
+    public Task OnSceneEnd() => Task.CompletedTask;
+}
+```
+
+> 런타임 async API는 `System.Threading.Tasks.Task`를 사용합니다.
+
+
+
+---
+url: /AchEngine/usage/managers/player-data.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# PlayerManager & 플레이어 데이터
+
+`PlayerManager`는 `PlayerDataContainerBase<TKey, TValue>`를 상속한 컨테이너들을 타입별로 보관합니다.
+
+## 컨테이너 만들기
+
+```csharp
+using AchEngine.Player;
+
+public class InventoryContainer : PlayerDataContainerBase<int, ItemData>
+{
+    public InventoryContainer()
+    {
+        DataKey = nameof(InventoryContainer);
+        _dataDic = new Dictionary<int, ItemData>();
+    }
+}
+```
+
+## 등록 & 접근
+
+```csharp
+var pm = ServiceLocator.Get<PlayerManager>();
+
+// 등록
+pm.AddContainer(new InventoryContainer());
+
+// 접근
+var inv = pm.GetContainer<InventoryContainer>();
+inv.Add(101, new ItemData { Id = 101, Name = "Sword" });
+var sword = inv.GetInfo(101);
+
+// 제거
+pm.RemoveContainer<InventoryContainer>();
+```
+
+## PlayerDataBase
+
+개별 데이터 항목의 기본 클래스입니다. `int Id` 필드를 포함합니다.
+
+```csharp
+public class ItemData : PlayerDataBase
+{
+    public string Name;
+    public int Quantity;
+}
+```
+
+## PlayerData
+
+기본 플레이어 정보 구조체입니다.
+
+```csharp
+var data = new PlayerData { Id = 1, Name = "Hero", Level = 10 };
+```
+
+## 저장 / 불러오기
+
+저장 기능은 `PlayerManager`에서 분리되어 `SaveManager`가 전담합니다.
+자세한 내용은 [SaveManager](/AchEngine/usage/managers/save.md) 문서를 참고하세요.
+
+
+
+---
+url: /AchEngine/usage/managers/pool.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# PoolManager
+
+Unity `ObjectPool<GameObject>`를 래핑한 오브젝트 풀링 매니저입니다. 총알·파티클처럼 반복 생성/삭제되는 오브젝트의 GC 부하를 줄입니다.
+
+## API
+
+```csharp
+var pool = ServiceLocator.Resolve<PoolManager>();
+
+// 풀 등록
+pool.RegisterPool("Bullet", bulletPrefab, defaultCapacity: 20, maxSize: 100);
+
+// 꺼내기
+var bullet = pool.Get<BulletComponent>("Bullet");
+var go     = pool.Get("Bullet");   // 컴포넌트 없이 GameObject 그대로
+
+// 반환
+pool.Release("Bullet", go);
+
+// 풀 정리
+pool.ClearPool("Bullet");
+pool.ClearAll();
+```
+
+
+
+---
+url: /AchEngine/usage/managers/save.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# SaveManager & 저장 시스템
+
+`SaveManager`는 저장·불러오기·삭제를 `ISaveService` 인터페이스 뒤로 추상화합니다.
+`PlayerManager`에서 분리되어 있으므로, 나중에 로컬 파일 방식을 Firestore / AWS / Cloudflare D1 등 클라우드 백엔드로 교체해도 게임 코드를 손댈 필요가 없습니다.
+
+## 구조
+
+```
+SaveManager          ← DI로 주입
+  └─ ISaveService    ← 인터페이스 (백엔드 교체 지점)
+       └─ LocalSaveService  ← QuickSave 기반 로컬 구현체
+```
+
+## 빠른 시작
+
+### 1. DI 등록
+
+```csharp
+builder.Register<PlayerManager>();
+builder.Register<ISaveService, LocalSaveService>();
+builder.Register<SaveManager>();
+```
+
+### 2. 설정
+
+`Configure()`는 `ISaveService` 인터페이스 메서드입니다. DI로 `ISaveService`를 주입받거나 Resolve하여 호출합니다.
+
+```csharp
+var saveService = ServiceLocator.Resolve<ISaveService>();
+
+// 반드시 Save/Load 전에 한 번 호출
+saveService.Configure(encryptionKey: "myKey12345678!", version: 1);
+
+var save = ServiceLocator.Resolve<SaveManager>();
+```
+
+- `encryptionKey` — 16자 이상의 문자열로 저장 파일을 암호화합니다.
+- `version` — 데이터 구조 변경 시 마이그레이션에 사용합니다.
+
+## 동기 API
+
+```csharp
+save.Save();                      // 현재 상태를 디스크에 저장
+PlayerManager loaded = save.Load(); // 저장된 데이터 불러오기
+save.Delete();                    // 저장 파일 삭제
+```
+
+## 비동기 API
+
+```csharp
+await save.SaveAsync();
+PlayerManager loaded = await save.LoadAsync();
+await save.DeleteAsync();
+```
+
+## 저장 파일 존재 확인
+
+```csharp
+bool hasData = save.IsExist;
+```
+
+## 커스텀 백엔드 연결
+
+`ISaveService`를 구현하면 로컬 외의 백엔드를 연결할 수 있습니다.
+
+```csharp
+public class FirestoreSaveService : ISaveService
+{
+    public bool IsExist { get; set; }
+
+    public void Configure(string encryptionKey = "", int version = 0) { /* ... */ }
+
+    public void Save(PlayerManager manager)          { /* Firestore에 동기 쓰기 */ }
+    public PlayerManager Load()                      { /* Firestore에서 동기 읽기 */ return null; }
+    public void Delete()                             { /* Firestore에서 삭제 */ }
+
+    public async Task SaveAsync(PlayerManager manager)   { /* ... */ }
+    public async Task<PlayerManager> LoadAsync()         { /* ... */ return null; }
+    public async Task DeleteAsync()                      { /* ... */ }
+}
+```
+
+DI 등록 시 `LocalSaveService` 대신 교체하면 됩니다.
+
+```csharp
+builder.Register<ISaveService, FirestoreSaveService>();
+```
+
+## Editor 메뉴 _(USE_QUICK_SAVE)_
+
+QuickSave 패키지가 설치된 경우, Unity 에디터 메뉴 **Achieve → Delete Save** 로 저장 파일(`.acqs`)을 한 번에 삭제할 수 있습니다.
+
+
+
+---
+url: /AchEngine/usage/managers/scene.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# AchSceneManager
+
+비동기 씬 전환을 제공하며, `IScene` 인터페이스를 통해 씬 라이프사이클을 관리합니다.
+
+## IScene 구현
+
+씬 루트 GameObject에 `IScene`을 구현하는 컴포넌트를 붙이세요.
+
+```csharp
+public class GameScene : MonoBehaviour, IScene
+{
+    public async Task OnSceneStart() { /* 초기화 */ }
+    public Task OnSceneEnd() => Task.CompletedTask;
+}
+```
+
+## API
+
+```csharp
+var sm = ServiceLocator.Resolve<AchSceneManager>();
+
+// 씬 전환
+await sm.LoadSceneAsync("Lobby");
+
+// 현재 씬 재로드
+await sm.ReloadSceneAsync();
+
+// 씬 언로드 (멀티씬)
+await sm.UnloadSceneAsync("SubScene");
+
+// 이벤트 구독
+sm.OnSceneLoadStarted += ShowLoadingUI;
+AchSceneManager.OnSceneLoadCompleted += HideLoadingUI;
+```
+
+> `AchSceneManager`는 Unity의 `UnityEngine.SceneManagement.SceneManager`와 이름 충돌을 피하기 위해 접두사를 붙였습니다.
+
+
+
+---
+url: /AchEngine/usage/mcp/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# Unity MCP 스킬 — 개요
+
+AchEngine은 Unity Editor에 내장된 AI Assistant(Unity MCP)가 패키지 기능을 자동으로 인식해서 쓸 수 있도록,
+패키지 루트의 `AIAssistantSkills/` 폴더에 [Agent Skills](https://docs.unity3d.com/Packages/com.unity.ai.assistant@latest/manual/skills/skills-overview.html)
+형식의 `SKILL.md` 파일들을 함께 배포합니다.
+
+
+> **Unity AI Assistant(MCP)란**
+> 
+> Unity 6000.3+에는 Editor 안에서 동작하는 AI Assistant(`com.unity.ai.assistant` 패키지, 내부적으로 MCP를 통해
+> Editor를 조작)가 있고, `Edit > Preferences > AI > Skills`에서 프로젝트/사용자/패키지 단위로 "Skill"을 찾아 등록할 수
+> 있습니다. Skill은 "이런 요청이 오면 이런 방식으로 처리하라"는 지침을 담은 `SKILL.md` 파일 하나로 정의됩니다.
+> 
+
+
+## 어디에 있는가
+
+```text
+Packages/com.achieve.engine/AIAssistantSkills/
+├── ach-mover-movement/SKILL.md
+├── ach-task-async/SKILL.md
+├── ach-timer/SKILL.md
+├── addressables/SKILL.md
+├── ecs-ingame-logic/SKILL.md
+├── httplink-webrequest/SKILL.md
+├── imanager-managers/SKILL.md
+├── localization/SKILL.md
+├── pathfinding-astar/SKILL.md
+├── singleton/SKILL.md
+├── ui-catalog/SKILL.md
+└── vcontainer-di/SKILL.md
+```
+
+AchEngine을 UPM으로 설치하면 이 폴더가 프로젝트의 `Packages/com.achieve.engine/` 아래로 그대로 들어오고,
+Unity Assistant는 이를 **Package skills**로 자동 스캔합니다. `Assets/` 밑에 따로 뭔가를 복사하거나 설정할 필요는
+없습니다.
+
+## 자동 인식 → 수동 활성화
+
+Skill은 다음 시점에 자동으로 스캔됩니다.
+
+- Editor 시작 시
+- 도메인 리로드(스크립트 컴파일) 이후
+
+다만 **스캔되었다고 바로 사용되는 건 아닙니다.** Unity는 안전을 위해 새로 발견된 모든 Skill을 기본값 `Deny`로
+두기 때문에, Assistant가 실제로 사용하게 하려면 사람이 한 번은 직접 켜줘야 합니다.
+
+### 활성화 방법
+
+1. `Edit > Preferences > AI > Skills`를 연다.
+2. `Package skills` 섹션에서 AchEngine이 등록한 12개 Skill 목록을 확인한다.
+3. 각 Skill의 상태 드롭다운을 `Deny` → `Allow`로 바꾼다.
+4. 이미 열려 있던 Assistant 대화가 있다면 **새 대화를 시작**해야 변경 사항이 반영된다 — 기존 대화는 시작 시점의
+   Skill 목록을 그대로 들고 있다.
+
+이 활성화 여부는 프로젝트별 로컬 설정이라 패키지 쪽에서 미리 켜둘 수 없습니다(Unity의 의도된 설계입니다).
+팀에서 이 패키지를 새로 설치할 때마다 위 4단계를 한 번 안내해야 합니다.
+
+## 각 Skill이 하는 일
+
+Skill 하나하나는 "이런 요청이 들어오면 AchEngine의 이 시스템을 쓰라"는 매핑입니다. 전체 목록과 트리거 조건은
+[Skill 목록](/AchEngine/usage/mcp/skills.md) 페이지를 참고하세요.
+
+## 프로젝트 전용 Skill 추가하기
+
+팀 컨벤션처럼 AchEngine과 무관한 규칙을 추가로 등록하고 싶다면, `AIAssistantSkills/`의 형식(`SKILL.md` +
+`name`/`description` frontmatter)을 그대로 참고해서 프로젝트의 `Assets/` 아래에 자체 폴더를 만들면 됩니다 —
+이건 **Project skills**로 별도 등록되며 AchEngine 패키지의 Skill과는 독립적으로 관리됩니다.
+
+
+
+---
+url: /AchEngine/usage/mcp/skills.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# Skill 목록
+
+AchEngine이 배포하는 12개 Skill과 각각이 다루는 범위입니다. 폴더명이 곧 Skill의 `name` frontmatter 값입니다.
+
+| Skill (폴더명)           | 트리거 상황                                | 연결되는 AchEngine 시스템                                                                              |
+| --------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `ach-mover-movement`  | 2D 캐릭터 이동/충돌, 플랫포머·탑다운 조작, 추적 이동, 발사체 | `AchMover`, `AchFollower`, `AchProjectile` — Rigidbody2D 사용 금지                                  |
+| `ach-task-async`      | async/await, 코루틴 대체, 비동기 흐름 제어        | `AchTask` / `AchTask<T>`                                                                        |
+| `ach-timer`           | 딜레이, 쿨다운, 카운트다운, 타이머 진행률 표시           | `AchTimer`, `AchTimerHandle`, `UIAchTimer`                                                      |
+| `addressables`        | Addressable 에셋/씬 로드·해제·다운로드           | `AddressableManager`                                                                            |
+| `ecs-ingame-logic`    | 인게임 로직을 ECS/DOTS로 구현할지 검토             | `AchSystemBase`, `AchBaker<T>`, `IEcsWorld` 등 — **먼저 사용자에게 ECS 사용 여부를 확인한 뒤 적용**                |
+| `httplink-webrequest` | REST API 호출, 서버 통신                    | `HttpLink`                                                                                      |
+| `imanager-managers`   | 컨텐츠 매니저 구현 (오디오, 세이브, 인벤토리 등)         | `IManager`, `AchManagerInstaller`                                                               |
+| `localization`        | 다국어 지원, 문자열/이미지 로컬라이즈                 | `LocalizationManager`, `LocalizedText` 등                                                        |
+| `pathfinding-astar`   | 그리드 기반 길찾기                            | `AStarGrid`, `AStarPathfinder`, `AStarGridBaker`                                                |
+| `singleton`           | 전역 접근 객체, 싱글톤 패턴                      | `Singleton<T>`, `MonoSingleton<T>`, `PersistentMonoSingleton<T>`                                |
+| `ui-catalog`          | 새 화면/팝업 생성, UI 열기/닫기                  | `UIViewCatalog`, `UIView`, `IUIService`, `UI` 파사드                                               |
+| `vcontainer-di`       | 프로젝트 아키텍처/DI 구성                       | `AchEngineScope`, `AchEngineInstaller`, `ServiceLocator` — **먼저 VContainer DI 사용 여부를 확인한 뒤 적용** |
+
+## 공통 규칙
+
+- 모든 Skill의 핵심은 "AchEngine이 이미 구현한 기능을 다시 만들지 말고 이걸 써라"는 지침입니다.
+- `ecs-ingame-logic`과 `vcontainer-di`는 예외적으로 **먼저 사용자에게 되물은 뒤** 적용하도록 되어 있습니다.
+  프로젝트마다 ECS/DOTS와 VContainer DI 채택 여부가 다르기 때문에, Assistant가 임의로 단정하지 않습니다.
+- 각 Skill의 정확한 지침은 패키지 안 `AIAssistantSkills/<skill 이름>/SKILL.md` 원문이 최종 소스입니다 — 이
+  페이지는 요약본이며, 세부 API는 이 문서 사이트의 다른 사용법 페이지([이동](/AchEngine/usage/movement.md),
+  [비동기](/AchEngine/usage/async.md), [DI](/AchEngine/usage/di.md) 등)에 더 자세히 정리되어 있습니다.
+
+
+
+---
+url: /AchEngine/usage/movement.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# AchMover
+
+`AchMover`는 붙이기만 하면 바로 동작하는 2D 캐릭터 이동 컴포넌트입니다.
+**Rigidbody2D를 사용하지 않습니다** — 자체 충돌 처리(Move-and-Slide), 중력, 경사면, 계단, 지면 스냅을 모두 직접 수행합니다.
+필요한 컴포넌트는 `CapsuleCollider2D` 하나뿐이며, 자동으로 추가·관리됩니다.
+
+## 사용법
+
+캐릭터 GameObject에 **Ach Mover** 컴포넌트를 추가하면 끝입니다.
+
+| 모드             | 조작                                      |
+| -------------- | --------------------------------------- |
+| **Platformer** | `A` / `D` 좌우 이동, `Space` / `W` / `↑` 점프 |
+| **TopDown**    | `WASD` / 방향키 상하좌우 이동                    |
+
+> **New Input System** 완전 지원 — Player Settings에서 Input System Package로 전환해도 자동으로 `Keyboard.current` / `Gamepad.current` 경로로 동작합니다.
+
+> 같은 GameObject에 `Rigidbody2D`가 있으면 transform 이동과 충돌하므로 자동으로 `simulated = false` 처리됩니다.
+
+## Inspector
+
+### Movement
+
+| 필드          | 기본값        | 설명                            |
+| ----------- | ---------- | ----------------------------- |
+| `MoveSpeed` | 5          | 이동 속도 (Units/sec)             |
+| `JumpForce` | 12         | 점프 힘 (`UseGravity = true` 전용) |
+| `Mode`      | Platformer | `Platformer` / `TopDown`      |
+
+### Physics
+
+| 필드               | 기본값  | 설명                          |
+| ---------------- | ---- | --------------------------- |
+| `UseGravity`     | true | 중력·지면 감지 활성 여부              |
+| `GravityScale`   | 3    | 중력 배율                       |
+| `FallMultiplier` | 2    | 낙하 시 추가 중력 배율 — 높을수록 묵직한 느낌 |
+| `MaxFallSpeed`   | 20   | 최대 낙하 속도                    |
+
+### Slopes & Stairs
+
+| 필드              | 기본값 | 설명                                              |
+| --------------- | --- | ----------------------------------------------- |
+| `MaxSlopeAngle` | 50° | 등반 가능한 최대 경사 각도. 이 각도를 넘는 표면은 벽으로 처리되어 미끄러져 내려옴 |
+| `StepHeight`    | 0.3 | 자동으로 올라갈 수 있는 최대 계단/턱 높이 (Units)                |
+
+### Control
+
+| 필드           | 기본값  | 설명                                                                 |
+| ------------ | ---- | ------------------------------------------------------------------ |
+| `Movable`    | true | `false`이면 입력 차단, 코드로만 제어 가능                                        |
+| `FlipSprite` | true | 이동 방향에 따라 `transform.localScale.x`를 반전 — 자식(무기·이펙트·히트박스 등)도 함께 뒤집힘 |
+
+## 자체 충돌 시스템
+
+AchMover는 매 `FixedUpdate` 마다 다음 절차를 수행합니다.
+
+1. **속도 계산** — 입력·중력·점프를 종합해 이번 프레임의 속도 결정
+2. **Move-and-Slide** — `CapsuleCollider2D.Cast`로 진행 방향 검사 후, 충돌 표면을 따라 슬라이드. 최대 4회 반복으로 코너·다중 표면 처리
+3. **계단 자동 등반** — 벽에 막혔을 때 `StepHeight` 이내의 턱이라면 자동으로 올라감 (위로 들어 올림 → 가로 이동 → 다시 아래로)
+4. **지면 검사** — 콜라이더 아래로 캡슐 캐스트, 표면 각도가 `MaxSlopeAngle` 이하이면 grounded
+5. **지면 스냅** — 경사면을 내려갈 때 표면에서 떨어지지 않도록 다시 밀착
+6. **페네트레이션 보정** — 마지막에 잔여 겹침 확인 후 밀어냄
+
+## 상태 프로퍼티
+
+```csharp
+bool    isGrounded   = mover.IsGrounded;    // 지면 접지 여부 (UseGravity = true 전용)
+bool    isMoving     = mover.IsMoving;      // 현재 이동 중 여부 (입력 기준)
+Vector2 velocity     = mover.Velocity;      // 현재 속도
+Vector2 groundNormal = mover.GroundNormal;  // 발 밑 표면의 법선 (없으면 Vector2.up)
+```
+
+## 조이스틱 / 커스텀 입력 연결
+
+```csharp
+// 온스크린 조이스틱 연결
+mover.InputProvider = () => joystick.Direction;
+
+// 해제 (키보드로 복귀)
+mover.InputProvider = null;
+```
+
+## 코드 제어 API
+
+`Movable`과 무관하게 언제든 호출할 수 있습니다.
+
+```csharp
+mover.Jump();                                   // 점프 (UseGravity = true 전용)
+mover.Teleport(new Vector2(10f, 0f));           // 순간이동
+mover.SetVelocity(new Vector2(-5f, 4f));        // 속도 직접 설정 (넉백 등)
+mover.AddForce(Vector2.left * 10f);             // Impulse 형태로 속도에 가산
+mover.Stop();                                   // 즉시 정지
+```
+
+> Rigidbody2D가 없으므로 `AddForce`는 항상 즉시 속도에 가산되는 Impulse처럼 동작합니다. `forceMode` 인자는 호환성을 위해 남아 있지만 무시됩니다.
+
+### 넉백 예시
+
+```csharp
+mover.Movable = false;
+mover.SetVelocity(new Vector2(-6f, 5f));
+await Task.Delay(400);
+mover.Movable = true;
+```
+
+## UseGravity 조합
+
+| Mode       | UseGravity | 동작                        |
+| ---------- | ---------- | ------------------------- |
+| Platformer | true       | 중력 + 점프 + 경사면 + 계단, 좌우 이동 |
+| Platformer | false      | 중력 없음, 좌우 이동만 (수직 자유)     |
+| TopDown    | false      | 중력 없음, 4방향 자유 이동          |
+| TopDown    | true       | 4방향 이동 + 자유 낙하 (특수한 경우)   |
+
+## AchFollower — AI 추적
+
+`AchFollower`는 지정한 대상을 향해 이동하는 독립 컴포넌트입니다.
+`AchMover`와 전혀 무관하며, 어떤 GameObject에든 단독으로 사용할 수 있습니다.
+
+| 필드             | 기본값  | 설명                |
+| -------------- | ---- | ----------------- |
+| `Target`       | null | 따라갈 대상 Transform  |
+| `MoveSpeed`    | 5    | 이동 속도 (Units/sec) |
+| `StopDistance` | 0.5  | 이 거리 이하이면 정지      |
+
+```csharp
+// 대상 설정
+follower.SetTarget(player.transform);
+
+// 대상 해제
+follower.ClearTarget();
+```
+
+`transform.position`을 직접 이동합니다.
+
+A\* 경로를 따라가는 고급 이동은 [A\* 길찾기](/AchEngine/usage/pathfinding.md) 문서를 참고하세요.
+
+## AchProjectile — 발사체
+
+직선·유도탄 등 다양한 발사체를 하나의 컴포넌트로 관리합니다.
+Inspector의 **Type** 드롭다운으로 방식을 선택하면 관련 필드만 표시됩니다.
+
+### 공통 필드
+
+| 필드          | 기본값      | 설명                |
+| ----------- | -------- | ----------------- |
+| `Type`      | Straight | 발사체 이동 방식         |
+| `MoveSpeed` | 10       | 이동 속도 (Units/sec) |
+
+### Type별 필드
+
+| Type         | 필드          | 기본값           | 설명              |
+| ------------ | ----------- | ------------- | --------------- |
+| **Straight** | `Direction` | Vector2.right | 초기 이동 방향        |
+| **Homing**   | `Target`    | null          | 추적 대상 Transform |
+| **Homing**   | `TurnSpeed` | 180           | 초당 최대 선회 각도 (도) |
+
+```csharp
+// 발사 방향 설정 (Straight · Homing 공통)
+projectile.Launch(Vector2.right);
+
+// 유도 대상 설정 / 해제 (Homing)
+projectile.SetTarget(enemy.transform);
+projectile.ClearTarget();
+```
+
+> 타겟을 잃은 **Homing** 발사체는 마지막 진행 방향으로 직선 이동합니다.
+
+## 트리거/충돌 이벤트
+
+Rigidbody2D가 없으므로 이 GameObject에서 직접 `OnCollisionEnter2D`는 발생하지 않습니다.
+`OnTriggerEnter2D`는 **상대편 트리거**에 Rigidbody2D가 있다면 정상 동작합니다 (대부분의 트리거 존은 Kinematic Rigidbody2D + Trigger로 구성하면 됩니다).
+
+
+
+---
+url: /AchEngine/usage/pathfinding.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# A* 길찾기
+
+`AStarPathfinder`는 격자 기반 A\* 알고리즘으로 두 지점 사이의 최단 경로를 탐색합니다.
+4방향 및 대각선(8방향) 이동을 지원하며, 이진 최소 힙으로 효율적인 탐색을 수행합니다.
+
+## 빠른 시작
+
+### 1. AStarGridBaker로 씬 자동 스캔
+
+씬의 Collider2D를 스캔해 격자를 자동 생성하는 컴포넌트입니다.
+
+1. 빈 GameObject에 **A\* Grid Baker** 컴포넌트 추가
+2. Inspector에서 격자 크기와 장애물 레이어 설정
+3. Scene 뷰에서 **초록(이동 가능) / 빨강(장애물)** Gizmo로 확인
+
+```csharp
+var baker = GetComponent<AStarGridBaker>();
+
+// 월드 좌표 → 격자 좌표 변환
+Vector2Int start = baker.WorldToCell(player.position);
+Vector2Int end   = baker.WorldToCell(targetPosition);
+
+// 경로 탐색 (대각선 허용)
+var path = AStarPathfinder.FindPath(baker.Grid, start, end, diagonal: true);
+
+// 격자 좌표 → 월드 좌표로 이동
+foreach (var cell in path)
+{
+    Vector3 worldPos = baker.CellToWorld(cell);
+    // 이동 처리... (예: AchMover와 연계 시 아래 [AchMover 연계] 섹션 참고)
+}
+```
+
+> 경로가 없으면 빈 `List<Vector2Int>`를 반환합니다.
+
+### AchFollower 연계
+
+단순 추적에는 [`AchFollower`](/AchEngine/usage/movement.md#achfollower--ai-추적)를 사용하세요 — `SetTarget()`만 호출하면 끝입니다.
+
+A\* 경로를 따라 웨이포인트를 순서대로 이동해야 할 때는 코드로 직접 처리합니다.
+
+```csharp
+var follower = GetComponent<AchFollower>();
+
+foreach (var cell in path)
+{
+    Vector2 waypoint = baker.CellToWorld(cell);
+    follower.SetTarget(/* 웨이포인트 위치를 가진 Transform */);
+
+    while (Vector2.Distance(transform.position, waypoint) > 0.05f)
+        await Task.Yield();
+}
+
+follower.ClearTarget();
+```
+
+> 웨이포인트 Transform이 없는 경우, `AchFollower` 대신 `transform.position`을 직접 조작하세요.
+
+### 2. 코드로 격자 직접 생성
+
+```csharp
+var grid = new AStarGrid(20, 20);
+
+// 장애물 설정
+grid.SetWalkable(5, 3, false);
+
+// 이동 비용이 높은 지형 (늪지, 모래 등)
+grid.SetCost(4, 4, 3f);
+
+// 경로 탐색
+var path = AStarPathfinder.FindPath(
+    grid,
+    start:    new Vector2Int(0,  0),
+    end:      new Vector2Int(19, 19),
+    diagonal: false);
+```
+
+## AStarGridBaker 설정
+
+| 필드                 | 설명                                               |
+| ------------------ | ------------------------------------------------ |
+| `Width` / `Height` | 격자 셀 수                                           |
+| `CellSize`         | 셀 하나의 Unity 단위 크기                                |
+| `Origin`           | 격자 좌하단(0,0)의 기준 Transform (비우면 GameObject 위치 사용) |
+| `ObstacleLayer`    | 장애물로 판단할 레이어 마스크                                 |
+| `DetectionRadius`  | 셀 당 장애물 감지 반경 (`cellSize * 0.4` 권장)              |
+| `CostZones`        | 이동 비용 구역 배열 (Collider2D + 비용 값)                  |
+| `DrawGizmos`       | Scene 뷰 격자 시각화 표시 여부                             |
+
+### 이동 비용 구역 (Cost Zones)
+
+특정 영역의 이동 비용을 높여 경로가 해당 구역을 우회하도록 유도합니다.
+
+```csharp
+// Inspector의 Cost Zones 배열에 추가하거나,
+// 동적 장애물 변경 후 재스캔
+baker.Bake();
+```
+
+| 상황                     | 방법                                |
+| ---------------------- | --------------------------------- |
+| 벽이 `Collider2D`인 2D 게임 | `AStarGridBaker` ObstacleLayer 설정 |
+| Unity Tilemap 사용       | `TilemapCollider2D`를 장애물 레이어에 배치  |
+| 문이 열리고 닫히는 등 동적 장애물    | `baker.Bake()` 재호출로 격자 재생성        |
+
+## AStarGrid API
+
+```csharp
+var grid = new AStarGrid(width: 20, height: 20);
+
+// bool 배열로 일괄 초기화
+var grid2 = new AStarGrid(walkableMap: myBoolArray);
+
+grid.SetWalkable(x, y, false);   // 장애물 지정
+grid.SetCost(x, y, 3f);          // 이동 비용 설정 (1 이상)
+bool ok   = grid.IsWalkable(x, y);
+float cost = grid.GetCost(x, y);
+bool inRange = grid.IsInBounds(x, y);
+```
+
+## AStarPathfinder API
+
+```csharp
+List<Vector2Int> path = AStarPathfinder.FindPath(
+    grid:     grid,
+    start:    new Vector2Int(0, 0),
+    end:      new Vector2Int(10, 10),
+    diagonal: true   // false = 4방향, true = 8방향
+);
+```
+
+| 파라미터       | 설명                        |
+| ---------- | ------------------------- |
+| `grid`     | 탐색할 `AStarGrid`           |
+| `start`    | 시작 격자 좌표                  |
+| `end`      | 목표 격자 좌표                  |
+| `diagonal` | 대각선 이동 허용 여부 (기본 `false`) |
+
+**반환값**: 시작점 제외, 도착점 포함 순서의 `List<Vector2Int>`. 경로가 없으면 빈 리스트.
+
+## 알고리즘 상세
+
+| 항목        | 내용                                        |
+| --------- | ----------------------------------------- |
+| 탐색 방식     | A\* (Open Set: 이진 최소 힙)                   |
+| 휴리스틱      | 4방향 → Manhattan / 8방향 → Chebyshev         |
+| 대각선 이동 비용 | √2 ≈ 1.414                                |
+| 셀 가중치     | `AStarGrid.SetCost()` 로 per-cell 비용 설정 가능 |
+| 복잡도       | O((W×H) log(W×H))                         |
+
+> ⚠️ **코너 컷팅**: 대각선 이동 시 두 직교 셀이 모두 막혀 있어도 대각선 셀이 열려 있으면 통과합니다.
+> 벽 모서리에 박혀 보이는 게 신경 쓰이면 대각선 이동을 끄거나, 직접 인접 셀 검사 로직을 추가하세요.
+
+
+
+---
+url: /AchEngine/usage/singleton/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 싱글톤
+
+AchEngine은 3가지 싱글톤 구현을 제공합니다. DI가 적합하지 않은 유틸리티 클래스나 씬 독립 컴포넌트에 사용합니다.
+
+> DI를 사용할 수 있다면 `ServiceLocator` + `AchEngineInstaller` 방식을 권장합니다. 싱글톤은 테스트와 의존성 추적이 어렵습니다.
+
+## Singleton\<T> — 순수 C# 싱글톤
+
+MonoBehaviour가 필요 없는 유틸리티 클래스에 사용합니다. 스레드 안전(double-checked locking)합니다.
+
+```csharp
+public class AnalyticsService : Singleton<AnalyticsService>
+{
+    protected override void OnInitialized()
+    {
+        // 최초 Instance 접근 시 한 번 호출
+    }
+
+    public void Track(string eventName) { /* ... */ }
+}
+
+// 접근
+AnalyticsService.Instance.Track("level_start");
+```
+
+## MonoSingleton\<T> — 씬 로컬 싱글톤
+
+씬이 변경되면 파괴됩니다.
+
+```csharp
+public class LobbyController : MonoSingleton<LobbyController>
+{
+    protected override void OnInitialized() { /* ... */ }
+}
+```
+
+## PersistentMonoSingleton\<T> — 영구 싱글톤
+
+`DontDestroyOnLoad`로 씬 전환 후에도 유지됩니다.
+
+```csharp
+public class GameSession : PersistentMonoSingleton<GameSession>
+{
+    public string PlayerId { get; private set; }
+}
+```
+
+
+
+---
+url: /AchEngine/usage/table/codegen.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 코드 생성 & 런타임
+
+## 코드 생성 (Generate Code)
+
+CSV를 기반으로 타입-세이프한 C# 데이터 클래스를 자동 생성합니다.
+
+### 생성 결과 예시
+
+아래 CSV가 있다면:
+
+```
+Id, Name, Price, IsActive
+101, Iron Sword, 500, TRUE
+```
+
+이런 C# 클래스가 생성됩니다:
+
+```csharp
+[MemoryPackable]   // MemoryPack 설치 시
+public partial class ItemData : ITableData
+{
+    public int    Id       { get; set; }
+    public string Name     { get; set; }
+    public int    Price    { get; set; }
+    public bool   IsActive { get; set; }
+}
+
+public class ItemTable : ITableDatabase<int, ItemData>
+{
+    // ...
+}
+```
+
+**Table Loader 창** 또는 **Project Settings › Table Loader** 에서
+**Generate Code** 버튼을 클릭합니다.
+
+## 베이크 (Bake)
+
+생성된 클래스로 CSV 데이터를 이진(.bytes) 또는 JSON 파일로 직렬화합니다.
+
+- **MemoryPack 있음** → `.bytes` 이진 파일 (로드 속도 최적화)
+- **MemoryPack 없음** → `.json` 파일 (JSON 직렬화)
+
+베이크된 파일은 `binaryOutputPath`에 저장됩니다.
+
+
+> **Resources 폴더 배치**
+> 
+> 베이크된 `.bytes` / `.json` 파일은 `binaryOutputPath` 내의 `Resources/` 폴더에 있어야
+> 런타임에서 `Resources.Load`로 접근할 수 있습니다.
+> 예: `Assets/GameData/Resources/Tables/Item.bytes`
+> 
+
+
+## 런타임 접근
+
+```csharp
+using AchEngine;
+
+// 테이블 조회
+var itemTable = TableManager.Get<ItemTable>();
+
+// ID로 행 조회
+var item = itemTable.Get(101);
+Debug.Log($"{item.Name}: {item.Price}골드");
+
+// 전체 순회
+foreach (var row in itemTable.All)
+{
+    Debug.Log(row.Name);
+}
+```
+
+## DI와 함께 사용
+
+```csharp
+// GlobalInstaller.cs
+public class GlobalInstaller : AchEngineInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder.Register<ITableService, TableService>();
+    }
+}
+
+// 다른 서비스에서 주입받아 사용
+public class GameService : IGameService
+{
+    private readonly ITableService _tables;
+
+    public GameService(ITableService tables)
+    {
+        _tables = tables;
+    }
+
+    public void StartStage(int stageId)
+    {
+        var stageData = _tables.Get<StageTable>().Get(stageId);
+        // ...
+    }
+}
+```
+
+
+
+---
+url: /AchEngine/usage/table/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# Table Loader — 개요
+
+Table Loader는 **Google Sheets → CSV → C# 데이터 클래스 → MemoryPack 이진 파일** 파이프라인을 자동화합니다.
+런타임에서 `TableManager`로 타입-세이프하게 데이터에 접근할 수 있습니다.
+
+
+> **선택적 패키지**
+> 
+> MemoryPack(`com.cysharp.memorypack`)이 없으면 JSON 직렬화로 동작합니다.
+> 
+
+
+## 파이프라인 흐름
+
+```mermaid
+flowchart LR
+GS([("☁ Google<br/>Sheets")])
+CSV[["📄 CSV 파일"]]
+CS[["⚙ C# 클래스<br/>(자동 생성)"]]
+BIN[["📦 .bytes / .json<br/>(베이크 결과)"]]
+TM(["🎮 TableManager<br/>.Get<T>()"])
+
+GS -- "Download CSV<br/>(에디터)" --> CSV
+CSV -- "Generate Code<br/>(에디터)" --> CS
+CS -- "Bake<br/>(에디터)" --> BIN
+BIN -- "Resources.Load<br/>(런타임)" --> TM
+
+style GS   fill:#0f2d4a,stroke:#10b981,color:#6ee7b7
+style CSV  fill:#1e3a5f,stroke:#3b82f6,color:#93c5fd
+style CS   fill:#1e3a5f,stroke:#3b82f6,color:#93c5fd
+style BIN  fill:#1e3a5f,stroke:#f59e0b,color:#fcd34d
+style TM   fill:#0f2d4a,stroke:#10b981,color:#6ee7b7
+```
+
+## 주요 설정 항목
+
+| 항목                 | 설명                              |
+| ------------------ | ------------------------------- |
+| **Spreadsheet ID** | Google Sheets URL의 `/d/` 뒤 ID   |
+| **CSV 출력 경로**      | 다운로드된 CSV가 저장될 경로               |
+| **생성 코드 경로**       | C# 클래스가 생성될 경로                  |
+| **바이너리 출력 경로**     | .bytes 파일이 저장될 경로               |
+| **자동화 옵션**         | 다운로드 후 자동 코드 생성, 코드 생성 후 자동 베이크 |
+
+## 다음 단계
+
+- [설정 & 다운로드](/AchEngine/usage/table/setup.md)
+- [JSON → CSV 내보내기](/AchEngine/usage/table/json-to-csv.md)
+- [코드 생성 & 런타임](/AchEngine/usage/table/codegen.md)
+
+
+
+---
+url: /AchEngine/usage/table/json-to-csv.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# JSON → CSV 내보내기
+
+Table Loader는 베이크된 JSON 데이터를 Google Sheets에서 바로 임포트할 수 있는 CSV로 변환할 수 있습니다.
+개별 JSON 파일과 폴더 단위 변환을 모두 지원합니다.
+
+## 열기
+
+Unity 상단 메뉴에서 **AchEngine › Table JSON to CSV** 를 선택합니다.
+기존 **AchEngine › Table Loader** 창을 연 뒤 **JSON→CSV** 탭을 선택해도 됩니다.
+
+## 지원 JSON 형식
+
+다음 형식을 CSV로 변환할 수 있습니다.
+
+```json
+[
+  { "Id": 101, "Name": "Iron Sword", "Price": 500, "IsActive": true },
+  { "Id": 102, "Name": "Magic Wand", "Price": 1200, "IsActive": true }
+]
+```
+
+`Items` 래퍼도 지원합니다.
+
+```json
+{
+  "Items": [
+    { "Id": 101, "Name": "Iron Sword" }
+  ]
+}
+```
+
+## CSV 출력 형식
+
+변환된 CSV는 Table Loader가 사용하는 스키마 형식을 따릅니다.
+
+```csv
+Id,Name,Price,IsActive
+int,string,int,bool
+101,Iron Sword,500,true
+102,Magic Wand,1200,true
+```
+
+배열 값은 `|` 로 연결됩니다. CSV 파일은 UTF-8 BOM으로 저장되어 Google Sheets 임포트 시 한글 데이터가 깨질 가능성을 줄입니다.
+
+## 개별 파일 변환
+
+1. **JSON 선택** 으로 `.json` 파일을 선택합니다.
+2. **CSV 위치 선택** 으로 저장할 `.csv` 경로를 지정합니다.
+3. **개별 변환** 을 클릭합니다.
+
+## 폴더 단위 변환
+
+1. **JSON 폴더 선택** 으로 변환할 폴더를 지정합니다.
+2. **CSV 폴더 선택** 으로 출력 폴더를 지정합니다.
+3. 하위 폴더까지 변환하려면 **하위 폴더 포함** 을 켭니다.
+4. **폴더 변환** 을 클릭합니다.
+
+폴더 변환은 `.json` 파일 이름을 유지하고 확장자만 `.csv`로 바꿉니다.
+
+
+
+---
+url: /AchEngine/usage/table/setup.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 설정 & 다운로드
+
+## 초기 설정
+
+**Project Settings › AchEngine › Table Loader** 를 열고:
+
+1. **Spreadsheet ID** 입력
+2. **출력 경로** 설정 (CSV / 코드 / 바이너리)
+3. **시트 목록** 에 시트 추가 (시트명, GID, 클래스명)
+4. **설정 저장** 버튼 클릭
+
+설정은 `Assets/TableLoaderSettings.asset`에 저장됩니다.
+
+## Google Sheets 준비
+
+1. Google Sheets에서 스프레드시트를 열고 **파일 › 공유 › 링크가 있는 모든 사용자 → 뷰어** 로 설정합니다.
+2. URL에서 **Spreadsheet ID**를 복사합니다.
+   ```
+   https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit
+   ```
+3. 각 시트 URL 끝의 `gid=` 값을 복사합니다 (시트별 GID).
+
+## 시트 데이터 형식
+
+첫 번째 행은 **컬럼 이름 (= C# 프로퍼티명)**, 두 번째 행부터 데이터입니다.
+
+```
+| Id  | Name       | Price | IsActive |
+|-----|------------|-------|----------|
+| 101 | Iron Sword | 500   | TRUE     |
+| 102 | Magic Wand | 1200  | TRUE     |
+| 103 | Old Shield | 100   | FALSE    |
+```
+
+
+> **지원 타입**
+> 
+> `int`, `float`, `bool`, `string`, `long`. 컬럼명이 `Id`인 행이 기본 키로 사용됩니다.
+> 
+
+
+## Project Settings 구성
+
+**Project Settings › AchEngine › Table Loader** 에서 각 항목을 설정합니다.
+
+| 항목                 | 설명                              |
+| ------------------ | ------------------------------- |
+| **Spreadsheet ID** | Google Sheets URL의 `/d/` 뒤 ID   |
+| **CSV 출력 경로**      | 다운로드된 CSV가 저장될 경로               |
+| **생성 코드 경로**       | C# 클래스가 생성될 경로                  |
+| **바이너리 출력 경로**     | .bytes 파일이 저장될 경로               |
+| **자동화 옵션**         | 다운로드 후 자동 코드 생성, 코드 생성 후 자동 베이크 |
+
+## 시트 등록
+
+시트 목록에 각 시트를 추가합니다.
+
+| 항목   | 설명                          |
+| ---- | --------------------------- |
+| 활성   | 해당 시트의 처리 여부                |
+| 시트명  | Google Sheets의 시트 이름 탭      |
+| GID  | 시트 고유 ID (URL의 `gid=` 파라미터) |
+| 클래스명 | 생성될 C# 클래스 이름               |
+
+## CSV 다운로드
+
+**Table Loader 창 열기** 버튼을 클릭하거나 **Tools › AchEngine › Table Loader** 메뉴에서
+
+1. **Download CSV** 클릭 → 각 시트를 CSV로 다운로드
+2. 완료 후 `csvOutputPath`에 파일이 생성됩니다.
+
+## 자동화 옵션
+
+| 옵션              | 동작                     |
+| --------------- | ---------------------- |
+| 다운로드 후 자동 코드 생성 | CSV 다운로드 완료 시 즉시 코드 생성 |
+| 코드 생성 후 자동 베이크  | 코드 생성 완료 시 즉시 베이크      |
+
+두 옵션을 모두 활성화하면 **Download → Generate → Bake** 가 한 번의 클릭으로 실행됩니다.
+
+## JSON → CSV 내보내기
+
+베이크 결과가 JSON으로 생성된 경우 **AchEngine › Table JSON to CSV** 메뉴에서 Google Sheets 임포트용 CSV로 다시 변환할 수 있습니다.
+개별 파일과 폴더 단위 변환을 모두 지원합니다.
+
+자세한 내용은 [JSON → CSV 내보내기](/AchEngine/usage/table/json-to-csv.md)를 참고하세요.
+
+
+
+---
+url: /AchEngine/usage/timer.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# AchTimer
+
+`AchTimer`는 async/await 기반의 타이머 유틸리티입니다.
+단순 대기부터 실시간 진행 추적까지 두 가지 사용 방식을 제공합니다.
+
+## 단순 대기
+
+완료만 기다리면 될 때는 `Wait` 또는 `WaitRealtime`을 사용하세요.
+
+```csharp
+// 게임 시간 기준 3초 대기
+await AchTimer.Wait(3f);
+
+// 실제 시간 기준 3초 대기 (Time.timeScale 영향 없음)
+await AchTimer.WaitRealtime(3f);
+```
+
+| 메서드                     | 설명                                                          |
+| ----------------------- | ----------------------------------------------------------- |
+| `Wait(seconds)`         | 게임 시간(`Time.deltaTime`) 기준으로 대기                             |
+| `WaitRealtime(seconds)` | 실제 시간(`Time.unscaledDeltaTime`) 기준으로 대기. 슬로우모션·일시정지에도 영향 없음 |
+
+## 진행 추적 (`AchTimerHandle`)
+
+진행률 표시, 남은 시간 조회, 수동 취소가 필요하면 `AchTimer.Start()`를 사용하세요.
+반환된 `AchTimerHandle`을 직접 `await`할 수 있습니다.
+
+```csharp
+var timer = AchTimer.Start(5f);
+await timer;
+```
+
+### AchTimerHandle 프로퍼티
+
+| 프로퍼티          | 타입      | 설명                     |
+| ------------- | ------- | ---------------------- |
+| `Duration`    | `float` | 타이머 총 지속 시간(초)         |
+| `Elapsed`     | `float` | 현재까지 경과한 시간(초)         |
+| `Remaining`   | `float` | 남은 시간(초). 0 미만이 되지 않음  |
+| `Progress`    | `float` | 완료 비율 (0 = 시작, 1 = 완료) |
+| `IsDone`      | `bool`  | 완료 또는 취소 여부            |
+| `IsCancelled` | `bool`  | 취소 여부                  |
+| `Task`        | `Task`  | 완료를 나타내는 Task 객체       |
+
+### await handle vs await handle.Task
+
+두 형태는 동일하게 동작합니다. 취소 시 `TaskCanceledException`이 발생합니다.
+
+```csharp
+// 두 방법 모두 동일
+await timer;
+await timer.Task;
+```
+
+`Task`를 직접 참조하면 다른 곳에서 완료를 처리하거나 `Task.WhenAny` 등에 활용할 수 있습니다.
+
+```csharp
+var timer = AchTimer.Start(5f);
+
+// 진행률은 다른 Update 로직에서 참조하고
+// 완료는 별도로 처리
+_ = timer.Task.ContinueWith(_ => Debug.Log("완료"));
+```
+
+### Cancel()
+
+`Cancel()`을 호출하면 타이머가 즉시 중단되고 `IsCancelled`가 `true`가 됩니다.
+이미 완료된 핸들에는 아무 효과가 없습니다.
+
+```csharp
+var timer = AchTimer.Start(10f);
+
+// 조건 충족 시 수동 취소
+if (playerDied)
+    timer.Cancel();
+```
+
+## useUnscaledTime 파라미터
+
+`AchTimer.Start()`의 `useUnscaledTime`을 `true`로 설정하면 `Time.timeScale`에 관계없이 실제 경과 시간을 기준으로 동작합니다.
+
+```csharp
+// 슬로우모션 중에도 정상 속도로 진행
+var timer = AchTimer.Start(3f, useUnscaledTime: true);
+```
+
+## CancellationToken 지원
+
+외부 `CancellationToken`을 전달하면 토큰이 취소될 때 타이머도 함께 취소됩니다.
+
+```csharp
+var cts = new CancellationTokenSource();
+
+// 10초 대기 — cts.Cancel() 호출 시 즉시 중단
+await AchTimer.Wait(10f, cts.Token);
+
+// Start()에도 동일하게 사용 가능
+var timer = AchTimer.Start(10f, cancellationToken: cts.Token);
+```
+
+## UIAchTimer 컴포넌트
+
+`UIAchTimer`는 `AchTimerHandle`의 진행 상황을 `Text`와 `Slider`에 실시간으로 표시하는 MonoBehaviour입니다.
+
+**Inspector 필드**
+
+| 필드                | 설명                                              |
+| ----------------- | ----------------------------------------------- |
+| `Time Text`       | 시간 값을 표시할 `Text` 컴포넌트 (선택)                      |
+| `Progress Slider` | 진행률(0\~1)을 표시할 `Slider` 컴포넌트 (선택)               |
+| `Show Remaining`  | `true`면 남은 시간, `false`면 경과 시간을 표시               |
+| `Format`          | 시간 표시 포맷 문자열. `{0}`이 시간 값으로 대체됨 (기본값: `{0:F1}`) |
+
+**스크립트에서 연결**
+
+```csharp
+var timer = AchTimer.Start(5f);
+GetComponent<UIAchTimer>().Bind(timer);
+await timer;
+```
+
+타이머가 완료되면 컴포넌트가 자동으로 `Unbind()`를 호출합니다.
+수동으로 해제하려면 `Unbind()`를 직접 호출하세요.
+
+## 전체 사용 예시
+
+```csharp
+// 단순 대기
+await AchTimer.Wait(3f);
+
+// 진행 상황 추적
+var timer = AchTimer.Start(5f);
+timerDisplay.Bind(timer);
+await timer;
+
+// CancellationToken으로 취소
+var cts = new CancellationTokenSource();
+await AchTimer.Wait(10f, cts.Token);
+```
+
+```csharp
+// 스킬 시전 중 이동하면 취소되는 예시
+var cts = new CancellationTokenSource();
+var castTimer = AchTimer.Start(2f, cancellationToken: cts.Token);
+castBar.Bind(castTimer);
+
+try
+{
+    await castTimer;
+    // 시전 완료
+    FireSkill();
+}
+catch (TaskCanceledException)
+{
+    // 이동으로 취소됨
+    ShowCancelMessage();
+}
+```
+
+## 관련 문서
+
+- [UI 시스템 개요](/AchEngine/usage/ui/index.md)
+- [버튼 확장 컴포넌트](/AchEngine/usage/ui/button-extras.md)
+
+
+
+---
+url: /AchEngine/usage/ui/binding.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# UIBindingManager *(ACHENGINE_R3)*
+
+`UIBindingManager`는 R3의 `Subject<T>`를 이용한 타입 기반 pub/sub 메시지 버스입니다.
+UI 컴포넌트 간 의존성 없이 이벤트를 주고받을 수 있습니다.
+
+R3 패키지(`com.cysharp.r3`)가 설치된 경우에만 활성화됩니다.
+
+## 발행 (Publish)
+
+```csharp
+using AchEngine.UI;
+
+// 메시지 타입 정의
+public struct GoldChangedMessage
+{
+    public int Amount;
+}
+
+// 발행
+UIBindingManager.Publish(new GoldChangedMessage { Amount = 500 });
+```
+
+## 구독 (Subscribe)
+
+```csharp
+using AchEngine.UI;
+
+// 구독 — IDisposable을 저장해두고 OnDestroy에서 해제하세요
+private IDisposable _subscription;
+
+private void OnEnable()
+{
+    _subscription = UIBindingManager.Subscribe<GoldChangedMessage>(msg =>
+    {
+        goldLabel.text = msg.Amount.ToString();
+    });
+}
+
+private void OnDisable()
+{
+    _subscription?.Dispose();
+}
+```
+
+## 유틸리티 메서드
+
+```csharp
+// 특정 타입의 Subject가 등록되어 있는지 확인
+bool exists = UIBindingManager.Contains<GoldChangedMessage>();
+
+// 모든 Subject 초기화 (씬 전환 시 등)
+UIBindingManager.ClearAll();
+```
+
+## API 요약
+
+| 메서드                       | 설명                       |
+| ------------------------- | ------------------------ |
+| `Publish<T>(T)`           | 메시지 발행                   |
+| `Subscribe<T>(Action<T>)` | 메시지 구독, `IDisposable` 반환 |
+| `Contains<T>()`           | 해당 타입 Subject 존재 여부      |
+| `ClearAll()`              | 모든 Subject 제거            |
+
+> R3가 없으면 `UIBindingManager`는 컴파일에서 제외됩니다. 설치 여부는 **Window › AchEngine › AchEngine Info**에서 확인하세요.
+
+
+
+---
+url: /AchEngine/usage/ui/button-extras.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 버튼 확장 컴포넌트
+
+`AchButtonCooldown`과 `AchButtonHold`는 기존 `Button` 컴포넌트에 추가로 붙이는 확장 컴포넌트입니다.
+두 컴포넌트 모두 같은 GameObject에 `Button`이 있어야 동작합니다.
+
+## AchButtonCooldown
+
+클릭 직후 버튼을 비활성화하고 지정된 시간이 지나면 다시 활성화합니다.
+남은 시간을 레이블에 표시하는 카운트다운 기능도 내장되어 있습니다.
+
+### Inspector 필드
+
+| 필드                  | 설명                                 |
+| ------------------- | ---------------------------------- |
+| `Cooldown`          | 클릭 후 다음 클릭까지의 최소 대기 시간(초). 기본값 `1` |
+| `Show Countdown`    | 남은 쿨다운 시간을 레이블에 표시할지 여부            |
+| `Countdown Label`   | 카운트다운을 표시할 `Text` 컴포넌트 (선택)        |
+| `On Cooldown Start` | 쿨다운이 시작될 때 발동되는 `UnityEvent`       |
+| `On Cooldown End`   | 쿨다운이 끝날 때 발동되는 `UnityEvent`        |
+
+### API
+
+| 멤버                | 설명                               |
+| ----------------- | -------------------------------- |
+| `IsCoolingDown`   | 현재 쿨다운 중인지 여부                    |
+| `StartCooldown()` | 쿨다운을 수동으로 시작. 이미 진행 중이면 타이머를 재시작 |
+| `ResetCooldown()` | 쿨다운을 즉시 초기화하고 버튼을 다시 활성화         |
+
+### 사용 예시
+
+```csharp
+// 스크립트에서 쿨다운 직접 제어
+var cooldown = GetComponent<AchButtonCooldown>();
+
+// 외부 조건으로 쿨다운 시작 (예: 서버 응답 전까지 잠금)
+cooldown.StartCooldown();
+
+// 서버 응답 수신 후 즉시 해제
+cooldown.ResetCooldown();
+
+// 현재 쿨다운 상태 확인
+if (!cooldown.IsCoolingDown)
+    Debug.Log("버튼 사용 가능");
+```
+
+Inspector에서 `On Cooldown Start` 이벤트에 로딩 스피너 활성화 함수를,
+`On Cooldown End` 이벤트에 스피너 비활성화 함수를 연결하면
+추가 코드 없이 시각 피드백을 구현할 수 있습니다.
+
+***
+
+## AchButtonHold
+
+버튼을 길게 누르면 지정된 간격으로 이벤트를 반복 발동시킵니다.
+볼륨 조절, 수량 증감처럼 누르고 있는 동안 값을 연속으로 변경할 때 유용합니다.
+
+### Inspector 필드
+
+| 필드                | 설명                                       |
+| ----------------- | ---------------------------------------- |
+| `Initial Delay`   | 첫 번째 반복 이벤트 발동까지의 초기 대기 시간(초). 기본값 `0.5` |
+| `Repeat Interval` | 초기 딜레이 이후 각 반복 이벤트 사이의 간격(초). 기본값 `0.1`  |
+| `On Hold Fire`    | 반복 발동 시 실행되는 `UnityEvent`                |
+
+### API
+
+| 멤버          | 설명                    |
+| ----------- | --------------------- |
+| `IsHolding` | 현재 버튼을 누르고 있는 상태인지 여부 |
+
+### 사용 예시
+
+볼륨 슬라이더 증감 버튼에 적용하는 예시입니다.
+
+```csharp
+// VolumePlusButton GameObject에 AchButtonHold를 붙이고
+// On Hold Fire 이벤트에 아래 메서드를 연결합니다.
+
+public void IncreaseVolume()
+{
+    AudioManager.Volume = Mathf.Clamp01(AudioManager.Volume + 0.05f);
+}
+```
+
+```
+[Button — 볼륨 +]
+ └── [AchButtonHold]
+       Initial Delay   : 0.5
+       Repeat Interval : 0.1
+       On Hold Fire    → IncreaseVolume()
+```
+
+버튼을 누르면 0.5초 후부터 0.1초 간격으로 `IncreaseVolume()`이 반복 호출됩니다.
+
+***
+
+## 두 컴포넌트 함께 사용
+
+`AchButtonCooldown`과 `AchButtonHold`는 서로 독립적이며, 같은 버튼에 함께 붙일 수 있습니다.
+
+```
+[Button GameObject]
+ ├── Button
+ ├── AchButtonCooldown   (클릭 후 2초 쿨다운)
+ └── AchButtonHold       (길게 누르면 반복 발동)
+```
+
+## 관련 문서
+
+- [UI 시스템 개요](/AchEngine/usage/ui/index.md)
+- [AchTimer](/AchEngine/usage/timer.md)
+
+
+
+---
+url: /AchEngine/usage/ui/draggable.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# Draggable & 터치 오브젝트
+
+AchEngine은 2D 월드 오브젝트의 드래그와 터치 처리를 위한 세 가지 컴포넌트를 제공합니다.
+
+## Draggable
+
+`MonoBehaviour`에 `Draggable` 컴포넌트를 붙이면 마우스/터치로 드래그할 수 있습니다.
+`Physics2DRaycaster`가 없으면 자동으로 메인 카메라에 추가됩니다.
+
+```csharp
+using AchEngine.UI;
+
+public class CardView : Draggable
+{
+    protected override void Start()
+    {
+        base.Start(); // Physics2DRaycaster 자동 추가
+
+        OnTouchDown += () => Debug.Log("카드 집음");
+        OnTouching  += pos => Debug.Log($"드래그 중: {pos}");
+        OnTouchUp   += hits => Debug.Log($"드랍, 충돌체: {hits.Length}개");
+    }
+}
+```
+
+### 이벤트
+
+| 이벤트           | 시그니처                   | 설명                        |
+| ------------- | ---------------------- | ------------------------- |
+| `OnTouchDown` | `Action`               | 포인터 누름 직후                 |
+| `OnTouching`  | `Action<Vector3>`      | 드래그 중 (월드 좌표)             |
+| `OnTouchUp`   | `Action<Collider2D[]>` | 드랍 시, 겹친 Collider2D 목록 전달 |
+
+### 프로퍼티
+
+| 프로퍼티          | 설명                             |
+| ------------- | ------------------------------ |
+| `originalPos` | 드래그 시작 시점의 월드 좌표 (`protected`) |
+
+## TouchableObject
+
+탭/클릭만 처리하는 오브젝트에 사용합니다. `OnTouched()`를 오버라이드하세요.
+
+```csharp
+using AchEngine.UI;
+
+public class EnemyObject : TouchableObject
+{
+    protected override void OnTouched()
+    {
+        Debug.Log("적 클릭됨");
+    }
+}
+```
+
+> `TouchableObject`는 `ObjectTouchManager`에 의해 감지됩니다. 씬에 `ObjectTouchManager`가 있어야 합니다.
+
+## ObjectTouchManager
+
+씬에 하나만 존재하는 싱글턴 매니저입니다. 매 프레임 마우스 왼쪽 버튼 클릭을 감지하고,
+2D 레이캐스트로 `TouchableObject`를 찾아 `OnTouched()`를 호출합니다.
+
+```csharp
+// 씬에 빈 GameObject를 만들고 ObjectTouchManager 컴포넌트를 추가하세요.
+// 별도의 설정 없이 자동으로 동작합니다.
+```
+
+> `ObjectTouchManager`는 `MonoSingleton<ObjectTouchManager>`를 상속하므로,
+> 씬에 중복 인스턴스가 있으면 자동으로 제거됩니다.
+
+
+
+---
+url: /AchEngine/usage/ui/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# UI 시스템 — 개요
+
+AchEngine UI System은 **레이어 기반** UI 관리 시스템입니다.
+`UIViewCatalog`에 등록된 View를 ID 또는 타입으로 Show/Close할 수 있으며,
+Object Pool, 트랜지션 애니메이션, Single Instance 모드를 내장합니다.
+
+## 핵심 구성 요소
+
+| 클래스                 | 역할                           |
+| ------------------- | ---------------------------- |
+| `UIRoot`            | 모든 레이어의 루트 Canvas 관리자        |
+| `UIBootstrapper`    | 씬 시작 시 UI 시스템 초기화            |
+| `IUIService` / `UI` | View 표시·숨기기 파사드              |
+| `UIView`            | 모든 View의 기본 클래스              |
+| `UIViewCatalog`     | View 프리팹 등록 ScriptableObject |
+| `UIViewPool`        | View 인스턴스 재사용 풀              |
+
+## 레이어 구조
+
+```mermaid
+block-beta
+columns 1
+tooltip["🔔 Tooltip&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;SortingOrder: 40<br/>툴팁, 알림"]
+overlay["⬛ Overlay&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;SortingOrder: 30<br/>전체화면 오버레이, 로딩"]
+popup["💬 Popup&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;SortingOrder: 20<br/>팝업, 다이얼로그"]
+screen["🖥 Screen&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;SortingOrder: 10<br/>기본 화면, 메인 UI"]
+bg["🌄 Background&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&ensp;SortingOrder:  0<br/>배경 화면, 배경 애니메이션"]
+
+style tooltip  fill:#1a1a3a,stroke:#8b5cf6,color:#c4b5fd
+style overlay  fill:#1a2a3a,stroke:#f59e0b,color:#fcd34d
+style popup    fill:#1a3a2a,stroke:#10b981,color:#6ee7b7
+style screen   fill:#1e3a5f,stroke:#3b82f6,color:#93c5fd
+style bg       fill:#162032,stroke:#64748b,color:#94a3b8
+```
+
+## View 열기 / 닫기
+
+```csharp
+var ui = ServiceLocator.Resolve<IUIService>();
+
+// ── 열기 ──────────────────────────────────────────────
+ui.Show("MainMenu");                                // 문자열 ID
+ui.Show<MainMenuView>("MainMenu");                  // 타입 + ID (타입 캐스팅 결과 반환)
+ui.Show("ItemDetail", new ItemPayload(item));       // ID + 페이로드
+
+// ── 닫기 ──────────────────────────────────────────────
+ui.Close("MainMenu");                               // ID
+ui.CloseTopmost();                                  // 가장 위의 View 닫기
+ui.CloseAll();                                      // 전체
+```
+
+## 다음 단계
+
+- [UIView & 수명 주기](/AchEngine/usage/ui/views.md)
+- [UI Workspace](/AchEngine/usage/ui/workspace.md)
+
+
+
+---
+url: /AchEngine/usage/ui/red-dot.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# RedDot 시스템
+
+`RedDot`은 알림 뱃지(빨간 점)를 관리하는 정적 파사드입니다.
+키 계층 구조(`/` 구분자)를 지원하여 자식 노드의 카운트가 부모로 자동 집계됩니다.
+
+## API
+
+```csharp
+namespace AchEngine.UI
+{
+    public static class RedDot
+    {
+        // 특정 노드의 카운트 설정
+        public static void Set(string key, int count);
+
+        // 카운트에 delta 값 추가
+        public static void Add(string key, int delta);
+
+        // 집계된 카운트 조회 (자신 + 모든 자식 합산)
+        public static int Get(string key);
+
+        // 카운트가 0보다 크면 true
+        public static bool HasDot(string key);
+
+        // 카운트를 0으로 초기화
+        public static void Clear(string key);
+
+        // 카운트 변경 이벤트 구독
+        public static void Subscribe(string key, Action<int> handler);
+
+        // 구독 해제
+        public static void Unsubscribe(string key, Action<int> handler);
+    }
+}
+```
+
+## 전체 초기화
+
+`RedDot.ClearAll()` — 모든 키의 카운트를 한번에 0으로 초기화합니다.
+씬 전환이나 게임 재시작 시 유용합니다.
+
+```csharp
+// 씬 전환 전 모든 레드닷 초기화
+RedDot.ClearAll();
+SceneManager.LoadScene("MainMenu");
+```
+
+## 계층 구조
+
+키에 `/`를 사용하면 자동으로 트리가 구성됩니다.
+자식 노드의 합산 카운트가 부모에 자동으로 반영됩니다.
+
+```
+"Shop"          → "Shop/New" + "Shop/Sale" 의 합산
+"Shop/New"      → 직접 설정한 카운트
+"Shop/Sale"     → 직접 설정한 카운트
+```
+
+```csharp
+RedDot.Set("Shop/New", 3);    // Shop/New = 3
+RedDot.Set("Shop/Sale", 1);   // Shop/Sale = 1
+
+RedDot.Get("Shop");           // → 4 (3 + 1 자동 집계)
+RedDot.HasDot("Shop");        // → true
+```
+
+## 사용 예시
+
+```csharp
+// 새 아이템 입수
+RedDot.Set("Shop/New", newItemCount);
+
+// 퀘스트 완료
+RedDot.Add("Quest/Daily", 1);
+
+// 읽음 처리
+RedDot.Clear("Quest/Daily");
+
+// 메인 메뉴 버튼 — Shop 또는 Quest 중 하나라도 있으면 표시
+bool showOnMainMenu = RedDot.HasDot("Shop") || RedDot.HasDot("Quest");
+```
+
+## RedDotBadge 컴포넌트
+
+`RedDotBadge`는 UI GameObject에 붙이는 MonoBehaviour입니다.
+지정한 키의 카운트를 자동으로 감지해 dot 오브젝트를 활성화·비활성화합니다.
+
+| 필드               | 설명                                          |
+| ---------------- | ------------------------------------------- |
+| `Key`            | 구독할 RedDot 키 (`"Shop"`, `"Quest/Daily"` 등)  |
+| `Dot`            | 카운트 > 0 일 때 활성화할 GameObject                 |
+| `Count Label`    | (선택) 카운트를 표시할 `Text` 컴포넌트. 2 이상일 때만 표시      |
+| `Clear On Click` | (bool, 기본값 true) 버튼 클릭 시 해당 키 자동 Clear      |
+| `Button`         | 클릭을 감지할 `Button` 컴포넌트. null이면 자동 클리어 동작 안 함 |
+
+```
+[Button GameObject]
+ └── [RedDotBadge]  Key = "Shop"
+      └── [DotImage]  (카운트 > 0이면 활성화)
+           └── [Text]  (선택: "3" 등 숫자 표시)
+```
+
+`OnEnable` 시점에 자동으로 구독하고, `OnDisable` 시 해제합니다.
+씬 전환이나 오브젝트 비활성화에도 안전합니다.
+
+### 클릭으로 레드닷 지우기
+
+`Clear On Click`이 true이고 `Button`이 연결되어 있으면, 버튼을 누를 때 해당 키의 카운트가 자동으로 0으로 초기화됩니다.
+별도의 코드 없이 "읽음 처리" 동작을 구현할 수 있습니다.
+
+```csharp
+// 코드에서 직접 동일한 동작을 구현하는 경우
+_shopButton.onClick.AddListener(() =>
+{
+    RedDot.Clear("Shop");
+    OpenShopPanel();
+});
+```
+
+## 코드에서 직접 구독
+
+컴포넌트 없이 직접 구독할 수도 있습니다.
+
+```csharp
+private void OnEnable()
+{
+    RedDot.Subscribe("Shop", OnShopChanged);
+}
+
+private void OnDisable()
+{
+    RedDot.Unsubscribe("Shop", OnShopChanged);
+}
+
+private void OnShopChanged(int count)
+{
+    _shopButton.SetDotVisible(count > 0);
+}
+```
+
+## EnterPlayMode 지원
+
+`RedDot`은 `[RuntimeInitializeOnLoadMethod(SubsystemRegistration)]`으로
+도메인 리로드 없이 에디터 재생 시 자동 초기화됩니다.
+
+## 관련 문서
+
+- [UI 시스템 개요](/AchEngine/usage/ui/index.md)
+- [UIView & 수명 주기](/AchEngine/usage/ui/views.md)
+
+
+
+---
+url: /AchEngine/usage/ui/views.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# UIView & 수명 주기
+
+`UIView`는 AchEngine UI System에서 모든 화면의 기본 클래스입니다.
+
+## 수명 주기
+
+```mermaid
+stateDiagram-v2
+direction TB
+[*] --> Unborn
+
+Unborn --> Initializing : 최초 인스턴스 생성
+Initializing --> Idle : OnInitialize()
+
+Pool --> Idle : Pool에서 꺼냄
+
+Idle --> Opening : Show() 호출
+Opening --> Opening : OnBeforeOpen() + 트랜지션
+Opening --> Visible : OnOpened()
+
+Visible --> Closing : Close() 호출
+Closing --> Closing : OnBeforeClose() + 트랜지션
+Closing --> Idle : OnClosed()
+
+Idle --> Pool : Pool 반환 (Pool Size > 0)
+Idle --> [*] : Destroy (Pool Size = 0)
+
+state Opening {
+direction LR
+[*] --> Transition
+Transition --> [*]
+}
+
+state Closing {
+direction LR
+[*] --> Transition2
+Transition2 --> [*]
+}
+```
+
+## UIView 구현
+
+```csharp
+using AchEngine.UI;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class ItemDetailView : UIView
+{
+    [SerializeField] private Text _nameText;
+    [SerializeField] private Text _descText;
+    [SerializeField] private Button _closeButton;
+
+    private ItemData _item;
+
+    // 최초 1회 초기화
+    protected override void OnInitialize()
+    {
+        _closeButton.onClick.AddListener(CloseSelf);
+    }
+
+    // 외부에서 데이터 주입
+    public void SetItem(ItemData item)
+    {
+        _item = item;
+    }
+
+    // 화면이 열릴 때마다 호출
+    protected override void OnOpened(object payload)
+    {
+        _nameText.text = _item.Name;
+        _descText.text = _item.Description;
+    }
+
+    // 화면이 닫힌 후 호출 (데이터 초기화 권장)
+    protected override void OnClosed()
+    {
+        _item = null;
+    }
+}
+```
+
+## 단일 인스턴스 모드
+
+같은 View를 여러 번 열어도 하나만 유지하려면 `UIViewCatalog`에서 해당 항목의 **Single Instance** 체크박스를 활성화하세요.
+레이어(`Layer`)도 Catalog 항목에서 설정합니다 — `UIView` 서브클래스에서 오버라이드하는 것이 아닙니다.
+
+```csharp
+// UIViewCatalog Inspector에서 설정:
+//   ID: "LoadingView"
+//   Layer: Overlay
+//   Single Instance: ✓
+//   Pool Size: 1
+
+public class LoadingView : UIView
+{
+    // 레이어·싱글인스턴스 설정은 UIViewCatalog에서 합니다.
+    // UIView 서브클래스에서는 수명 주기 훅만 구현합니다.
+}
+```
+
+## Object Pool 활성화
+
+같은 View를 자주 열고 닫는 경우 Pool을 사용해 GC를 줄입니다.
+Catalog의 **Pool Size**를 1 이상으로 설정하면 닫힐 때 Destroy 대신 Pool로 반환됩니다.
+
+```csharp
+// UIViewCatalog Inspector에서 설정:
+//   Layer: Overlay
+//   Pool Size: 5
+
+public class DamageNumberView : UIView
+{
+    // Pool 반환 시 상태 초기화
+    protected override void OnClosed()
+    {
+        GetComponent<Text>().text = "";
+    }
+}
+```
+
+## View 프리팹 만들기
+
+### 기본 구조
+
+```
+[GameObject]
+ ├── Canvas Group  (페이드 트랜지션용)
+ ├── UIView 컴포넌트  ← 반드시 필요
+ └── UI 요소들...
+```
+
+```csharp
+public class MainMenuView : UIView
+{
+    [SerializeField] private Button _playButton;
+    [SerializeField] private Button _settingsButton;
+
+    protected override void OnInitialize()
+    {
+        _playButton.onClick.AddListener(OnPlay);
+        _settingsButton.onClick.AddListener(OnSettings);
+    }
+
+    private void OnPlay()
+    {
+        ServiceLocator.Resolve<ISceneService>().LoadInGame(1);
+    }
+
+    private void OnSettings()
+    {
+        ServiceLocator.Resolve<IUIService>().Show("SettingsPopup");
+    }
+}
+```
+
+### View 등록 (UIViewCatalog)
+
+1. `UIViewCatalog` ScriptableObject를 생성합니다.
+   - **Create › AchEngine › UI View Catalog**
+2. 프리팹을 catalog에 등록합니다.
+3. `UIRoot`의 **Catalog** 필드에 연결합니다.
+
+| 필드            | 설명                          |
+| ------------- | --------------------------- |
+| **ID**        | `Show("이 ID")` 로 열 때 쓰는 문자열 |
+| **Prefab**    | UIView 컴포넌트가 붙은 프리팹         |
+| **Layer**     | 렌더 레이어                      |
+| **Pool Size** | 사전 생성 인스턴스 수 (0 = 필요 시 생성)  |
+
+## 유용한 컴포넌트
+
+### UICloseButton
+
+가장 가까운 부모 `UIView`를 닫는 버튼입니다.
+코드 없이 Inspector에서 연결만 하면 됩니다.
+
+```
+[SettingsPopup (UIView)]
+ └── [CloseButton]  ← UICloseButton 컴포넌트 추가
+```
+
+### UIOpenButton
+
+버튼 클릭 시 지정한 View를 여는 컴포넌트입니다.
+
+```
+[UIOpenButton]
+ └── Target View ID: "SettingsPopup"
+```
+
+### UISafeAreaFitter
+
+노치/펀치홀 영역을 피하는 SafeArea 적용 컴포넌트입니다.
+`UIRoot`는 `Screen`, `Popup`, `Tooltip` 레이어에 이 컴포넌트를 자동으로 추가합니다. `Background`와 `Overlay`는 전체 화면 레이어이므로 자동 적용되지 않습니다. 별도 Canvas나 사용자 정의 레이어에서만 직접 추가하세요.
+
+### UIBootstrapper
+
+씬 시작 시 자동으로 열 View를 지정합니다.
+
+```
+[UIBootstrapper] 컴포넌트
+ └── Auto Open Views: [MainMenuView, BGMView]
+```
+
+## 트랜지션
+
+`UIView`는 기본적으로 `CanvasGroup` 알파를 이용한 페이드 트랜지션을 내장합니다.
+커스텀 트랜지션이 필요하면 `OnBeforeOpen()` / `OnBeforeClose()`를 재정의하세요.
+
+```csharp
+public class SlideInView : UIView
+{
+    [SerializeField] private RectTransform _panel;
+
+    protected override void OnBeforeOpen(object payload)
+    {
+        _panel.anchoredPosition = new Vector2(Screen.width, 0);
+        _panel.DOAnchorPosX(0, 0.3f).SetEase(Ease.OutCubic);
+    }
+
+    protected override void OnBeforeClose()
+    {
+        _panel.DOAnchorPosX(Screen.width, 0.3f)
+              .SetEase(Ease.InCubic);
+        // 닫기 트랜지션은 UITransitionSettings에서 관리됩니다.
+        // 애니메이션 종료 처리는 시스템이 자동으로 합니다.
+    }
+}
+```
+
+
+> **커스텀 트랜지션**
+> 
+> `OnBeforeOpen(object payload)` / `OnBeforeClose()`에서 DOTween 등의 애니메이션을 시작하면 됩니다.
+> View 닫힘·Pool 반환은 `UITransitionSettings`에 설정된 트랜지션이 끝난 뒤 자동으로 처리됩니다.
+> 순수 커스텀 애니메이션을 쓰려면 Inspector에서 Transition Mode를 `None`으로 설정하세요.
+> 
+
+
+
+
+---
+url: /AchEngine/usage/ui/workspace.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# UI Workspace 사용법
+
+UI Workspace는 씬의 UIView를 시각적으로 관리하는 에디터 창입니다.
+**Tools › AchEngine › UI Workspace** 또는 **Project Settings › AchEngine › UI Workspace** 에서 열 수 있습니다.
+
+## 초기 설정
+
+### 1. UIRoot 생성
+
+**Project Settings › AchEngine › UI Workspace → UI Root 생성** 버튼 클릭.
+
+씬에 아래 계층이 자동으로 생성됩니다.
+
+```
+[UIRoot]
+ ├── Layer_Background  (Canvas, SortingOrder: 0)
+ ├── Layer_Screen      (Canvas, SortingOrder: 10)
+ ├── Layer_Popup       (Canvas, SortingOrder: 20)
+ ├── Layer_Overlay     (Canvas, SortingOrder: 30)
+ └── Layer_Tooltip     (Canvas, SortingOrder: 40)
+```
+
+### 2. UIViewCatalog 생성
+
+**Create › AchEngine › UI View Catalog** 로 Catalog 에셋을 생성합니다.
+
+`UIRoot` 컴포넌트의 **Catalog** 필드에 드래그합니다.
+
+### 3. View 프리팹 등록
+
+Catalog에 View 프리팹을 등록합니다.
+
+| 필드            | 설명                          |
+| ------------- | --------------------------- |
+| **ID**        | `Show("이 ID")` 로 열 때 쓰는 문자열 |
+| **Prefab**    | UIView 컴포넌트가 붙은 프리팹         |
+| **Layer**     | 렌더 레이어                      |
+| **Pool Size** | 사전 생성 인스턴스 수 (0 = 필요 시 생성)  |
+
+## View 열기 / 닫기
+
+```csharp
+var ui = ServiceLocator.Resolve<IUIService>();
+
+// ── 열기 ──────────────────────────────────────────────
+ui.Show<MainMenuView>();                            // 타입
+ui.Show("MainMenu");                                // 문자열 ID
+ui.Show<ItemDetailView>(v => v.SetItem(item));      // 타입 + 초기화 콜백
+ui.Show("ItemDetail", v => ((ItemDetailView)v)      // ID + 콜백
+    .SetItem(item));
+
+// ── 닫기 ──────────────────────────────────────────────
+ui.Close<MainMenuView>();                           // 타입
+ui.Close("MainMenu");                               // ID
+ui.CloseAll();                                      // 전체
+ui.CloseLayer(UILayerId.Popup);                     // 레이어 전체
+```
+
+## View 프리팹 만들기
+
+### 기본 View
+
+```
+[GameObject]
+ ├── Canvas Group  (페이드 트랜지션용)
+ ├── UIView 컴포넌트  ← 반드시 필요
+ └── UI 요소들...
+```
+
+```csharp
+public class MainMenuView : UIView
+{
+    [SerializeField] private Button _playButton;
+    [SerializeField] private Button _settingsButton;
+
+    protected override void OnInitialize()
+    {
+        _playButton.onClick.AddListener(OnPlay);
+        _settingsButton.onClick.AddListener(OnSettings);
+    }
+
+    private void OnPlay()
+    {
+        ServiceLocator.Resolve<ISceneService>().LoadInGame(1);
+    }
+
+    private void OnSettings()
+    {
+        ServiceLocator.Resolve<IUIService>().Show<SettingsPopup>();
+    }
+}
+```
+
+### Pool 활성화
+
+같은 View를 자주 열고 닫는 경우 Pool을 사용해 GC를 줄입니다.
+
+Catalog의 **Pool Size**를 1 이상으로 설정하면 닫힐 때 Destroy 대신 Pool로 반환됩니다.
+
+```csharp
+public class DamageNumberView : UIView
+{
+    public override UILayerId Layer => UILayerId.Overlay;
+
+    // Pool 반환 시 상태 초기화
+    protected override void OnClosed()
+    {
+        GetComponent<Text>().text = "";
+    }
+}
+```
+
+### Single Instance
+
+같은 View가 중복으로 열리는 것을 막습니다.
+
+```csharp
+public class LoadingView : UIView
+{
+    public override bool SingleInstance => true;
+    public override UILayerId Layer     => UILayerId.Overlay;
+}
+```
+
+## UIBootstrapper 설정
+
+씬 시작 시 자동으로 열 View를 지정합니다.
+
+```
+[UIBootstrapper] 컴포넌트
+ └── Auto Open Views: [MainMenuView, BGMView]
+```
+
+## 유용한 컴포넌트
+
+### UICloseButton
+
+가장 가까운 부모 `UIView`를 닫는 버튼입니다.
+코드 없이 Inspector에서 연결만 하면 됩니다.
+
+```
+[SettingsPopup (UIView)]
+ └── [CloseButton]  ← UICloseButton 컴포넌트 추가
+```
+
+### UIOpenButton
+
+버튼 클릭 시 지정한 View를 여는 컴포넌트입니다.
+
+```
+[UIOpenButton]
+ └── Target View ID: "SettingsPopup"
+```
+
+### UISafeAreaFitter
+
+노치/펀치홀 영역을 피하는 SafeArea 적용 컴포넌트입니다.
+`UIRoot`가 런타임 구조를 초기화할 때 `Screen`, `Popup`, `Tooltip` 레이어 루트에 자동으로 추가합니다. `Background`와 `Overlay`는 화면 전체를 덮어야 하므로 Safe Area 적용 대상에서 제외됩니다. 별도 Canvas나 사용자 정의 레이어를 사용할 때만 직접 추가하면 됩니다.
+
+## Unity 6 에디터 툴바
+
+Unity 6000.3 이상에서는 메인 툴바의 **AchEngine › Scene Navigator**에서 Build Settings에 등록된 씬을 바로 선택할 수 있습니다.
+
+- 드롭다운에 Build Settings 씬 목록과 활성화 여부가 표시됩니다.
+- **이동** 버튼을 누르면 현재 편집 씬의 저장 여부를 확인한 뒤 선택한 씬을 엽니다.
+- 편집 씬을 직접 바꾸거나 Build Settings 목록을 수정하면 선택 상태가 자동으로 갱신됩니다.
+- Play Mode 중에는 씬 선택과 이동이 비활성화됩니다.
+
+## UI Workspace 창 활용
+
+에디터에서 **Tools › AchEngine › UI Workspace** 를 열면:
+
+- 씬의 모든 등록된 View 목록 확인
+- 에디터 플레이 모드에서 View 강제 열기/닫기
+- 레이어별 View 상태 실시간 확인
+- 미등록 UIView 컴포넌트 경고 감지
+
+
+
+---
+url: /AchEngine/usage/web-request.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# HttpLink
+
+`HttpLink`는 Unity의 `UnityWebRequest`를 빌더 패턴으로 감싼 HTTP 클라이언트입니다.
+GET/POST 요청, JSON 직렬화, 헤더 설정, 타임아웃을 간결하게 처리합니다.
+
+## GET 요청
+
+```csharp
+var result = await new HttpLink.Builder()
+    .SetUrl("https://api.example.com/users/1")
+    .AddHeader("Authorization", "Bearer token123")
+    .SetTimeout(10)
+    .GetAsync<UserData>();
+
+if (result != null)
+    Debug.Log($"User: {result.Name}");
+```
+
+## POST 요청
+
+```csharp
+string json = JsonConvert.SerializeObject(new LoginRequest { UserId = "abc", Password = "pw" });
+
+bool success = await new HttpLink.Builder()
+    .SetUrl("https://api.example.com/login")
+    .SetJsonBody(json)
+    .PostAsync();
+
+Debug.Log(success ? "로그인 성공" : "로그인 실패");
+```
+
+## 직접 전송 (`SendAsync`)
+
+응답 본문 또는 상태를 직접 확인하려면 `Build().SendAsync()`를 사용하세요.
+
+```csharp
+var link = await new HttpLink.Builder()
+    .SetUrl("https://api.example.com/data")
+    .SetMethod(UnityWebRequest.kHttpVerbGET)
+    .Build()
+    .SendAsync();
+
+if (link.Success)
+{
+    Debug.Log(link.ReceiveDataString);
+}
+```
+
+## Builder API
+
+| 메서드                         | 설명                                                              |
+| --------------------------- | --------------------------------------------------------------- |
+| `SetUrl(string)`            | 요청 URL 설정                                                       |
+| `SetMethod(string)`         | HTTP 메서드 (`GET` 또는 `POST`만 지원, 다른 메서드는 `NotSupportedException`) |
+| `SetTimeout(int)`           | 타임아웃 (초)                                                        |
+| `SetJsonBody(string)`       | JSON 요청 바디 설정 (Content-Type: application/json)                  |
+| `AddHeader(string, string)` | 요청 헤더 추가                                                        |
+| `GetAsync<T>()`             | GET 요청 후 JSON 역직렬화                                              |
+| `PostAsync()`               | POST 요청 후 성공 여부 반환                                              |
+| `Build()`                   | `HttpLink` 인스턴스 생성                                              |
+
+## HttpLink 프로퍼티
+
+| 프로퍼티                | 설명                         |
+| ------------------- | -------------------------- |
+| `Success`           | 요청 성공 여부                   |
+| `Result`            | `UnityWebRequest.Result` 값 |
+| `ReceiveDataString` | 응답 본문 (문자열)                |
+| `ReceiveData`       | 응답 바이트 배열                  |
+| `DownloadSize`      | 다운로드된 바이트 수                |
+| `DownloadProgress`  | 다운로드 진행률 (0\~1)            |
+
+> JSON 직렬화/역직렬화는 `Newtonsoft.Json`의 `JsonConvert`를 사용합니다.
+
+

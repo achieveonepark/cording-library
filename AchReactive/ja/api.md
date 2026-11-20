@@ -1,0 +1,163 @@
+> For AI agents: the complete documentation index is available at /AchReactive/ja/llms.txt, the full documentation bundle is available at /AchReactive/ja/llms-full.txt.
+
+# API リファレンス
+
+名前空間はすべて `AchReactive` です。
+
+## DataBase\<T>
+
+```csharp
+public sealed class DataBase<T> where T : IData
+{
+    void Load(IDataLoader<T> loader);   // 전체 교체
+    void Add(IDataLoader<T> loader);    // 병합
+    void Add(T item);
+    T Get(string id);
+    bool TryGet(string id, out T value);
+    bool Has(string id);
+    void Clear();
+    int Count { get; }
+    IReadOnlyCollection<T> All { get; }
+}
+```
+
+## IDataLoader / 実装体
+
+```csharp
+public interface IDataLoader<T> where T : IData
+{
+    IReadOnlyList<T> Load();
+}
+
+public sealed class JsonDataLoader<T> : IDataLoader<T> where T : IData
+{
+    JsonDataLoader(string json, JsonSerializerSettings settings = null);
+    JsonDataLoader(Func<string> read, JsonSerializerSettings settings = null);
+}
+
+public sealed class CsvDataLoader<T> : IDataLoader<T> where T : IData
+{
+    CsvDataLoader(string csv, ICsvMapper<T> mapper);
+    CsvDataLoader(Func<string> read, ICsvMapper<T> mapper);
+}
+
+public interface ICsvMapper<out T> where T : IData
+{
+    T Map(IReadOnlyDictionary<string, string> row);
+}
+```
+
+## データモデル
+
+```csharp
+public interface IData { string Id { get; } }
+
+[Serializable]
+public class EntityData : IData
+{
+    public string id;
+    public Dictionary<string, float> stats;
+    public Reaction[] reactions;
+    public string Id => id;
+}
+
+[Serializable]
+public class Reaction
+{
+    public string trigger;
+    public ParamBag triggerParams;
+    public ConditionDef[] conditions;
+    public EffectDef[] effects;
+}
+
+[Serializable] public class EffectDef    { public string type; public ParamBag @params; }
+[Serializable] public class ConditionDef { public string type; public ParamBag @params; }
+```
+
+## ParamBag
+
+```csharp
+public sealed class ParamBag
+{
+    static readonly ParamBag Empty;
+    bool Has(string key);
+    T Get<T>(string key, T fallback = default);
+    bool TryGet<T>(string key, out T value);
+    void Set<T>(string key, T value);
+}
+```
+
+## ReactionEngine
+
+```csharp
+public sealed class ReactionEngine
+{
+    int Run(string trigger, EntityData data, ReactionContext ctx);
+}
+
+public sealed class ReactionContext
+{
+    public IEntity Source;
+    public IEntity Target;
+    public IReadOnlyList<IEntity> Targets;
+    public IWorld World;
+    public ParamBag Params;
+}
+```
+
+## Registry
+
+```csharp
+public delegate void EffectFn(ReactionContext ctx);
+public delegate bool ConditionFn(ReactionContext ctx);
+public delegate bool TriggerFn(ReactionContext ctx, ParamBag triggerParams);
+
+public static class EffectRegistry
+{
+    static void AutoRegister();
+    static void Register(string name, EffectFn fn);
+    static bool TryGet(string name, out EffectFn fn);
+    static bool Has(string name);
+    static IEnumerable<string> Names { get; }
+}
+// ConditionRegistry, TriggerRegistry 도 동일 패턴
+```
+
+## 統合境界
+
+```csharp
+public interface IEntity
+{
+    string Id { get; }
+    Vector3 Position { get; set; }
+    StatSheet Stats { get; }
+    bool IsAlive { get; }
+}
+
+public interface IWorld
+{
+    IEntity Spawn(string dataId, Vector3 at);
+    void Collect(Vector3 center, float radius, List<IEntity> buffer);
+}
+```
+
+## StatSheet / CooldownStore
+
+```csharp
+public sealed class StatSheet
+{
+    void SetBase(string statKey, float value);
+    float GetBase(string statKey);
+    float Get(string statKey);   // 수정자 적용 최종값
+    void AddModifier(string statKey, string modifierType, float value, object source);
+    void RemoveSource(object source);
+}
+
+public sealed class CooldownStore
+{
+    CooldownStore(Func<float> timeProvider = null);
+    bool IsReady(string id);
+    void Start(string id, float cooldown);
+    float Remaining(string id);
+}
+```

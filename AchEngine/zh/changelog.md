@@ -1,0 +1,98 @@
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# 更新日志
+
+## 1.3.2
+
+**新功能**
+
+- 添加以 Unity Ads Legacy 4.16.4 为默认提供方的 `AdsManager`，用于异步初始化以及插屏、激励和横幅广告的加载/展示。
+- 仅当 `AdsShowResult.ShouldGrantReward` 为 `true` 时才发放激励广告奖励。
+- 添加公开 `IAdsProvider`，可切换到 Unity LevelPlay、AppLovin MAX、Google AdMob/Google Ad Manager、FairBid 等广告中介 SDK。
+- 添加 `com.unity.ads` 4.16.4 依赖和 `AchManagerInstaller` 中的 `AdsManager` 自动注册。
+
+**文档**
+
+- 添加同步的四语言 `AdsManager` 设置与中介迁移指南。
+
+## 1.3.1
+
+**改进**
+
+- 在 Unity 编辑器中，`IAPManager` 会明确使用 Unity IAP Fake Store。
+- 在编辑器中，即使未配置 `ReceiptValidator` 或 `PurchaseProcessor`，Fake Store 订单也会自动确认，从而可以在没有后端的情况下测试购买 UI 流程。
+- Full Sample 的购买弹窗支持在编辑器 Fake Store 测试中不配置验证器。实际构建仍然需要奖励处理验证。
+
+## 1.3.0
+
+**新功能**
+
+- 添加 Unity 6000.3+ 的 `AchEngine/Scene Navigator` 工具栏，可列出 Build Settings 场景、显示当前编辑场景，并在打开前检查未保存的修改。
+- `UIRoot` 会自动为 `Screen`、`Popup` 和 `Tooltip` 层添加 `UISafeAreaFitter`。`Background` 和 `Overlay` 继续保持全屏。
+
+**改进**
+
+- Addressables 资源和位置缓存会确认请求类型后再复用句柄。
+- 初始化、下载大小检查、依赖下载、目录检查和目录更新使用的临时句柄会自动释放。
+- 修复关闭 Domain Reload 时重复进入 Play Mode 导致调试控制台回调重复注册的问题。
+- 运行时对象查找改为 `FindFirstObjectByType`，并避免对子 UI Root 重复调用 `DontDestroyOnLoad`。
+- `IScene` 现在是可选的场景生命周期钩子，没有实现它的场景不会再产生警告。
+
+**文档**
+
+- 更新 Addressables、UI Safe Area、Scene Navigator 和 AI Assistant 技能文档，并添加 1.2.0 / 1.3.0 发布说明。
+
+## 1.2.0
+
+- 以静态 `AddressableManager` 和基于 `AchTask` 的资源、场景、实例化、释放、远程下载及目录 API 重构 Addressables。
+- 添加位置元数据和资源句柄缓存、场景句柄追踪、编辑器设置、监视文件夹工具和更新后的示例。
+- 按照显式缓存释放流程更新 Addressables 和集成指南。
+
+## 1.1.2
+
+- 移除 iOS 原生调试控制台；Android 覆盖层和 Editor IMGUI 保持可用。
+
+## 1.1.1
+
+- 添加 `IIAPReceiptValidator` 扩展点、Apple StoreKit 2 JWS / app-account-token、手动恢复和未完成订单重试 API。
+- 添加交易 ID 匹配，避免同一商品的其他请求错误完成待处理订单，并更新 IAP 测试和 Full Sample 文档。
+
+## 1.1.0
+
+- 通过 `IAPManager` 添加 Unity IAP 5.4.1 支持，并声明 `com.unity.purchasing` 依赖。
+
+## 1.0.8
+
+- 添加随 AchEngine 发布的 `AIAssistantSkills/` 定义。
+
+## 1.0.7
+
+- 修复未安装 `com.unity.addressables` 时 Addressables 编辑器无法编译的问题。
+- 添加缺少的 `AGENTS.md.meta`。
+
+## 1.0.6
+
+- 移除 `AchEngine.Extensions` 程序集及其扩展方法文档。
+
+## 1.0.5
+
+- 添加 `AchTask` / `AchTask<T>` 和异步文档。
+
+## 1.0.4
+
+- 用 `AudioManager` 替换 `SoundManager`。
+- 添加 `AudioManager`、`AchTimer`、`UIAchTimer`、按钮扩展、`AchDebugConsole` 以及 RedDot API。
+- 按当前 API 签名更新所有指南。
+
+## 1.0.3
+
+- 添加保存服务、`AchProjectile`、独立的 `AchFollower` 和多语言 TMP FontAsset 烘焙。
+
+## 1.0.2
+
+- 添加 ECS、Managers、Singleton、日志、WebRequest、PlayerData、QuickSave、A\*、AchMover、RedDot、UI 和 Full Sample。
+- 改进 Addressables、DI、Localization、Table、UI 及文档覆盖。
+
+## 1.0.1
+
+- 添加单文件和文件夹 JSON → CSV 导出工具。

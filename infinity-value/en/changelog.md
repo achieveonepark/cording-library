@@ -1,0 +1,41 @@
+> For AI agents: the complete documentation index is available at /infinity-value/en/llms.txt, the full documentation bundle is available at /infinity-value/en/llms-full.txt.
+
+# Changelog
+
+## Unreleased
+
+## 1.2.2 — 2026-07-11
+
+- Added `Pow`, `Sqrt`, and `Log10` for cost-curve math without overflowing `double`.
+- Added `AffordableCount` to solve the geometric-series "buy max" formula for a price curve `baseCost * growthRate^n`.
+- Added `Min`, `Max`, and `Clamp` static helpers.
+- Added `operator ++` and `operator --`.
+- Added `ToProgress` for safe, overflow-free 0-1 progress bar values.
+- Added `SerializableInfinityValue` for exposing `InfinityValue` fields in the Unity Inspector, with a custom `PropertyDrawer` that accepts compact notation (e.g. `5.3B`) and a lossless `ToExactString`/`TryParseExact` round-trip.
+- Added `Editor/Achieve.InfinityValue.Editor.asmdef` for editor-only inspector code.
+
+## 1.2.1 — 2026-07-07
+
+- Normalized the `author` field in `package.json` to the object schema (`{ "name": "Achieveone" }`) expected by Unity Package Manager / OpenUPM.
+
+## 1.2.0 — 2026-06-14
+
+- Added `InfinityValueUnitNames` for per-content unit name instances.
+- Added constructor and `TryParse` overloads that accept `InfinityValueUnitNames`.
+- Fixed parsing for compact decimal strings such as `5.30B`.
+- Rebuilt documentation as GitBook-friendly Markdown plus VitePress deployment.
+- Added Unity Package Manager samples under `Samples~`.
+
+## 1.1.0 — 2026-05-23
+
+- Fixed semantic equality and hashing for values with different internal slot order.
+- Fixed subtraction borrow behavior and negative-result clamping.
+- Added `TryParse`, `Zero`, `One`, double operations, and double conversion.
+
+## 1.0.1 — 2026-01-04
+
+- Reduced GC pressure through internal structural optimizations.
+
+## 1.0.0 — 2024-09-17
+
+- Initial release.

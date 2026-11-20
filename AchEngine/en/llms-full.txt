@@ -1,0 +1,3285 @@
+---
+url: /AchEngine/en/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Changelog
+
+## 1.3.2
+
+**New features**
+
+- Added `AdsManager` with Unity Ads Legacy 4.16.4 as its built-in provider for async initialization and interstitial, rewarded, and banner loading/showing.
+- Rewards are granted only when `AdsShowResult.ShouldGrantReward` is true.
+- Added public `IAdsProvider` support for Unity LevelPlay, AppLovin MAX, Google AdMob/Google Ad Manager, FairBid, and other mediation SDKs.
+- Added the `com.unity.ads` 4.16.4 dependency and automatic `AdsManager` registration in `AchManagerInstaller`.
+
+**Documentation**
+
+- Added synchronized four-language `AdsManager` setup and mediation migration guides.
+
+## 1.3.1
+
+**Changed**
+
+- `IAPManager` explicitly uses Unity IAP Fake Store in the Unity Editor.
+- Fake Store orders are automatically confirmed in the Editor when no `ReceiptValidator` or `PurchaseProcessor` is configured, allowing purchase UI flow tests without a backend.
+- The Full Sample purchase popup enables Editor Fake Store testing without a validator. Real builds still require fulfillment validation.
+
+## 1.3.0
+
+**New features**
+
+- Added the Unity 6000.3+ `AchEngine/Scene Navigator` toolbar. It lists Build Settings scenes, shows the active edit scene, and checks for unsaved changes before opening another scene.
+- `UIRoot` now applies `UISafeAreaFitter` automatically to the `Screen`, `Popup`, and `Tooltip` layers. `Background` and `Overlay` remain full-screen layers.
+
+**Improvements**
+
+- Addressables asset and location caches now verify the requested type before reusing a handle.
+- Temporary Addressables handles used for initialization, download-size checks, dependency downloads, catalog checks, and catalog updates are released automatically.
+- Prevented duplicate debug-console callbacks when re-entering Play Mode with Domain Reload disabled.
+- Updated runtime discovery to `FindFirstObjectByType` and avoided duplicate `DontDestroyOnLoad` calls for child UI roots.
+- `IScene` is now an optional scene lifecycle hook; scenes that do not implement it no longer produce warnings.
+
+**Documentation**
+
+- Updated the Addressables, UI safe-area, Scene Navigator, and AI Assistant skill guides.
+- Added the 1.2.0 and 1.3.0 release notes to the documentation site.
+
+## 1.2.0
+
+- Reworked Addressables around the static `AddressableManager` and `AchTask`-based asset, scene, instantiation, release, remote-download, and catalog APIs.
+- Added location metadata and asset-handle caches, explicit scene-handle tracking, Addressables editor settings, watched-folder tooling, and updated samples.
+- Updated the Addressables and integration guides for the explicit cache-release flow.
+
+## 1.1.2
+
+- Removed the iOS native debug console. The Android overlay and Editor IMGUI overlay remain available.
+
+## 1.1.1
+
+- Added the `IIAPReceiptValidator` extension point, Apple StoreKit 2 JWS/app-account-token support, manual restoration, and pending-fulfillment retry APIs.
+- Added transaction-ID matching so a pending order cannot complete a different request for the same product.
+- Added IAP unit tests and updated the Full Sample purchase documentation.
+
+## 1.1.0
+
+- Added Unity IAP 5.4.1 support through `IAPManager` and declared `com.unity.purchasing` as a package dependency.
+
+## 1.0.8
+
+- Added the `AIAssistantSkills/` definitions shipped with AchEngine.
+
+## 1.0.7
+
+- Fixed Addressables editor compilation when `com.unity.addressables` is not installed.
+- Added the missing `AGENTS.md.meta` file.
+
+## 1.0.6
+
+- Removed the `AchEngine.Extensions` assembly and its extension-method guides.
+
+## 1.0.5
+
+- Added `AchTask` / `AchTask<T>` and the Korean and English async guides.
+
+## 1.0.4
+
+- Replaced `SoundManager` with `AudioManager`.
+- Added `AudioManager`, `AchTimer`, `UIAchTimer`, button cooldown/hold helpers, `AchDebugConsole`, and RedDot reset/click-clear APIs.
+- Updated all guides for the current API signatures and added documentation for the new features.
+
+## 1.0.3
+
+- Added save services, `AchProjectile`, standalone `AchFollower`, and multilingual TMP font baking.
+
+## 1.0.2
+
+- Added ECS, manager, singleton, logging, web-request, player-data, QuickSave, A\* pathfinding, AchMover, RedDot, UI, and Full Sample support.
+- Improved Addressables, DI, Localization, Table, UI, and documentation coverage.
+
+## 1.0.1
+
+- Added JSON-to-CSV export tools for individual files and folders.
+
+
+
+---
+url: /AchEngine/en/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Getting Started
+
+A guide to experiencing AchEngine's core features in 5 minutes.
+
+## 1. Set up the DI scope
+
+Create an empty GameObject in the scene and add the `AchEngineScope` component.
+
+```
+Hierarchy
+└── [AchEngineScope]   ← add the AchEngineScope component
+```
+
+## 2. Write an Installer
+
+```csharp
+using AchEngine.DI;
+using UnityEngine;
+
+public class GameInstaller : AchEngineInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            .Register<IGameService, GameService>()
+            .Register<IPlayerService, PlayerService>(ServiceLifetime.Transient);
+    }
+}
+```
+
+Drag `GameInstaller` into the **Installers** array of the `AchEngineScope` Inspector.
+
+## 3. Create a UI Root
+
+Click the **Create UI Root** button in **Project Settings › AchEngine › UI Workspace**, or place a `UIRoot` prefab in the scene.
+
+## 4. Define a UIView
+
+```csharp
+using AchEngine.UI;
+
+public class MainMenuView : UIView
+{
+    protected override void OnInitialize()
+    {
+        // called once on first creation
+    }
+
+    protected override void OnOpened()
+    {
+        // called when the transition completes after Show()
+    }
+
+    protected override void OnClosed()
+    {
+        // returned to the pool after Close()
+    }
+}
+```
+
+## 5. Show a View
+
+```csharp
+// Using [Inject] (requires VContainer)
+[Inject] readonly IUIService _ui;
+_ui.Show<MainMenuView>();
+
+// Using ServiceLocator (for MonoBehaviours, etc.)
+ServiceLocator.Resolve<IUIService>().Show("MainMenu");
+
+// Close
+_ui.Close<MainMenuView>();
+```
+
+## 6. Load table data
+
+```csharp
+// Type-safe access through TableManager
+var itemTable = TableManager.Get<ItemTable>();
+var sword = itemTable.Get(101);
+Debug.Log(sword.Name); // "Iron Sword"
+```
+
+## Next steps
+
+See the detailed description of each module in the left sidebar.
+
+- [DI System](/AchEngine/en/usage/di.md)
+- [UI System](/AchEngine/en/usage/ui.md)
+- [Table Loader](/AchEngine/en/usage/table.md)
+- [Addressables](/AchEngine/en/usage/addressables.md)
+- [Localization](/AchEngine/en/usage/localization.md)
+- [Module Integration Guide](/AchEngine/en/usage/integration.md)
+
+
+
+---
+url: /AchEngine/en/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Introduction
+
+AchEngine is an **integrated development toolkit** that bundles features you frequently use in Unity development into a single UPM package.
+
+Each module can be used independently, and the core features keep working even without optional packages like VContainer, MemoryPack, or Addressables.
+
+## Modules
+
+| Module           | Description                                                | Optional package                   |
+| ---------------- | ---------------------------------------------------------- | ---------------------------------- |
+| **DI**           | VContainer wrapper, ServiceLocator                         | `jp.hadashikick.vcontainer`        |
+| **UI System**    | Layer-based View management, pooling, transitions          | -                                  |
+| **Table Loader** | Generates a C# data pipeline from Google Sheets            | `com.cysharp.memorypack`           |
+| **Addressables** | Asset caching, automatic group management, remote delivery | `com.unity.addressables`           |
+| **Localization** | JSON localization, key code generation                     | `com.unity.textmeshpro` (optional) |
+
+## Package info
+
+- **Package ID:** `com.achieve.engine`
+- **Version:** 1.0.1
+- **Minimum Unity version:** 6000.3
+- **Required dependency:** `com.unity.ugui`
+
+## Optional packages
+
+Installing the packages below **automatically defines** the corresponding symbol and enables advanced AchEngine features. Not installing them causes no compile errors — only those features are disabled.
+
+```
+jp.hadashikick.vcontainer   -> enables DI container        -> ACHENGINE_VCONTAINER
+com.cysharp.memorypack      -> enables binary serialization -> ACHENGINE_MEMORYPACK
+com.unity.addressables      -> enables Addressables module  -> ACHENGINE_ADDRESSABLES
+com.unity.textmeshpro       -> enables TMP Localization      -> ACHENGINE_LOCALIZATION_TMP
+com.unity.entities          -> enables ECS wrapper           -> ACHENGINE_ENTITIES
+```
+
+
+> **Info**
+> 
+> You can check whether optional packages are installed at a glance in **Project Settings > AchEngine** Overview, and install them directly with a button.
+> 
+
+
+
+
+---
+url: /AchEngine/en/usage/addressables/folders.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Watched Folders & Groups
+
+Register a watched folder to add assets under that folder automatically to the selected Addressables group.
+
+Open **Project Settings › AchEngine › Addressables › Watched Folders** and click **+ Add Folder**.
+
+## Watched-folder fields
+
+| Field                  | Description                                                            |
+| ---------------------- | ---------------------------------------------------------------------- |
+| **Folder Path**        | A relative path beginning with `Assets/`, such as `Assets/Art/Icons`.  |
+| **Group Name**         | The Addressables group name. It is created automatically when missing. |
+| **Address Naming**     | File name, path relative to the watched folder, or the full path.      |
+| **Include Subfolders** | Whether to scan child folders recursively.                             |
+| **Labels**             | A comma-separated list of Addressables labels.                         |
+
+## Address naming (`AddressNamingMode`)
+
+| Value              | Example                                       |
+| ------------------ | --------------------------------------------- |
+| `FilenameOnly`     | `icon_sword`                                  |
+| `RelativeToFolder` | `Icons/icon_sword` when watching `Assets/Art` |
+| `FullPath`         | `Assets/Art/Icons/icon_sword`                 |
+
+`FilenameOnly` can collide when different folders contain the same file name. Use `RelativeToFolder` when managing multiple folders.
+
+
+> **Automatic scanning**
+> 
+> Unity's `AssetPostprocessor` updates watched folders when assets are added, moved, or deleted. Use **Rescan** or **AchEngine › Addressables › Re-scan Watched Folders** to register existing assets in one pass.
+> 
+
+
+
+
+---
+url: /AchEngine/en/usage/addressables/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Addressables — Overview
+
+AchEngine's Addressables module wraps Unity Addressable Asset System and provides **location metadata caching**, **asset-handle caching**, and **automatic watched-folder grouping**. The static `AddressableManager` keeps initialization, loading, and releasing in one flow.
+
+
+> **Optional module**
+> 
+> The module is enabled only when `com.unity.addressables` is installed. Install it from **Project Settings › AchEngine** Overview.
+> 
+
+
+## Core components
+
+| Class                        | Role                                                       |
+| ---------------------------- | ---------------------------------------------------------- |
+| `AddressableManager`         | `AchTask`-based asset, scene, and remote-content APIs      |
+| `AssetHandleCache`           | Caches loaded handles                                      |
+| `LocationCache`              | Caches location metadata for addresses and labels          |
+| `AddressableManagerSettings` | ScriptableObject for automatic Addressables initialization |
+
+## Usage rules
+
+- Async APIs return `AchTask` or `AchTask<T>` and can be awaited. They use UniTask when installed and `Task` otherwise.
+- `LoadAsync` reuses a handle for the same address; `LoadAllAsync` reuses multi-load handles for the same label.
+- Cached handles also verify the requested asset type. A handle for the same address or label is not reused for an incompatible type.
+- The cache does not count references. Call `Release(key)` once when the owner no longer needs the asset.
+- Release objects created by `InstantiateAsync` with `ReleaseInstance`; release the source prefab cache separately with `Release(address)`.
+- Scenes are not unloaded automatically. Call `UnloadSceneAsync(address)` explicitly.
+
+Temporary handles used by initialization, download-size checks, dependency downloads, catalog checks, and catalog updates are released automatically. Loaded assets and scenes still require an explicit `Release` or `UnloadSceneAsync`.
+
+## Basic usage
+
+```csharp
+using AchEngine.Assets;
+
+var sprite = await AddressableManager.LoadAsync<Sprite>("icon_sword");
+spriteRenderer.sprite = sprite;
+
+var icons = await AddressableManager.LoadAllAsync<Sprite>("ui-icons");
+
+var hero = await AddressableManager.InstantiateAsync("Characters/Hero", transform);
+AddressableManager.ReleaseInstance(hero);
+
+AddressableManager.Release("icon_sword");
+AddressableManager.Release("ui-icons");
+AddressableManager.Release("Characters/Hero");
+```
+
+### Load and unload a scene
+
+```csharp
+await AddressableManager.LoadSceneAsync("Scenes/GameLevel");
+
+// Release assets loaded separately by the scene before unloading it.
+var unloaded = await AddressableManager.UnloadSceneAsync("Scenes/GameLevel");
+```
+
+`UnloadSceneAsync` only unloads scenes loaded through this API and returns `false` for unmanaged addresses.
+
+### Download remote content
+
+```csharp
+await AddressableManager.DownloadDependenciesAsync(
+    "remote_assets",
+    progress => progressBar.value = progress.Percent);
+```
+
+## Clearing the cache
+
+Release only the addresses owned by a screen or scene when its lifetime ends. For a full transition or logout, use `AddressableManager.ReleaseAll()` when it is safe to discard every cached asset.
+
+## Next steps
+
+- [Watched Folders & Groups](/AchEngine/en/usage/addressables/folders.md)
+- [Remote Content](/AchEngine/en/usage/addressables/remote.md)
+
+
+
+---
+url: /AchEngine/en/usage/addressables/remote.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Remote Content
+
+## Configure remote content
+
+The actual build and load paths for remote bundles are configured in Unity **Addressables Groups** Profiles and group schemas. Set the Build Path and Load Path of the remote groups to Remote, build the content, and deploy the generated files to that path.
+
+Manage shared deployment information in **Project Settings › AchEngine › Addressables › Remote Content**.
+
+| Field               | Description                                    |
+| ------------------- | ---------------------------------------------- |
+| **Cloud Provider**  | AWS S3, Google Cloud Storage, or Custom        |
+| **Bucket / Region** | Values used to build the default S3 or GCS URL |
+| **Catalog URL**     | A catalog URL that overrides the generated URL |
+| **Bundle URL**      | A bundle URL that overrides the generated URL  |
+
+## Recommended flow
+
+1. Configure the remote groups and download labels in Unity Addressables.
+2. Build with **AchEngine › Addressables › Build Content**.
+3. Deploy the generated catalog and bundles to the remote Load Path.
+4. At runtime, check the catalog and download dependencies for the labels you need.
+
+## Check for catalog updates
+
+```csharp
+using AchEngine.Assets;
+
+var catalogs = await AddressableManager.CheckForCatalogUpdatesAsync();
+if (catalogs.Count > 0)
+    await AddressableManager.UpdateCatalogsAsync(catalogs);
+```
+
+After a successful catalog update, the old location metadata cache is cleared automatically. Loaded asset caches remain; release changed addresses before loading them again.
+
+Temporary handles used for initialization, download-size checks, dependency downloads, catalog checks, and updates are released when the operation ends. Explicitly release only assets that are no longer in use.
+
+## Check size before downloading
+
+```csharp
+using AchEngine.Assets;
+
+long size = await AddressableManager.GetDownloadSizeAsync("remote_assets");
+if (size > 0)
+{
+    await AddressableManager.DownloadDependenciesAsync(
+        "remote_assets",
+        progress => progressBar.value = progress.Percent);
+}
+```
+
+The return value is in bytes and excludes dependencies already in the cache.
+
+## Build commands
+
+Build content from **Project Settings › AchEngine › Addressables** or the **AchEngine › Addressables** menu.
+
+| Command                     | Description                                             |
+| --------------------------- | ------------------------------------------------------- |
+| **Build Content**           | Builds content with the current Addressables settings   |
+| **Clean Build**             | Removes previous build output before rebuilding         |
+| **Re-scan Watched Folders** | Scans watched folders and refreshes Addressable entries |
+
+
+> **Use Fast Mode during development**
+> 
+> Set Play Mode to **Use Asset Database (Fast Mode)** during development to iterate without building bundles.
+> 
+
+
+
+
+---
+url: /AchEngine/en/usage/async.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# AchTask
+
+`AchTask` unifies UniTask and `System.Threading.Tasks.Task` behind one async API. When UniTask is installed the implementation uses UniTask; otherwise it falls back to `Task`.
+
+## Package detection
+
+When `com.cysharp.unitask` is present, the asmdef `versionDefines` automatically defines `ENABLE_UNITASK`.
+
+| Environment       | Implementation                            |
+| ----------------- | ----------------------------------------- |
+| UniTask installed | `UniTask` / `UniTask<T>`                  |
+| UniTask absent    | `System.Threading.Tasks.Task` / `Task<T>` |
+
+## Await support
+
+`AchTask` can be awaited directly.
+
+```csharp
+await AchTask.Delay(2f);
+await AchTask.WaitUntil(() => isReady);
+```
+
+## Static factories
+
+### `Delay` / `DelayRealtime`
+
+```csharp
+// Game-time delay (timeScale-aware with UniTask; wall-clock in the Task fallback).
+await AchTask.Delay(1.5f);
+
+// Real elapsed time, independent of timeScale.
+await AchTask.DelayRealtime(1.5f);
+
+var cts = new CancellationTokenSource();
+await AchTask.Delay(5f, cts.Token);
+```
+
+Use `DelayRealtime` during slow motion when the wait should use real time.
+
+### `WaitUntil`
+
+```csharp
+await AchTask.WaitUntil(() => player.IsGrounded);
+await AchTask.WaitUntil(() => dialogueFinished, cts.Token);
+```
+
+### `WhenAll` / `WhenAny`
+
+```csharp
+var a = AchTask.Delay(1f);
+var b = AchTask.Delay(2f);
+var c = AchTask.Delay(3f);
+
+await AchTask.WhenAll(a, b, c);
+await AchTask.WhenAny(a, b, c);
+```
+
+### `CompletedTask`
+
+```csharp
+return condition ? DoWorkAsync() : AchTask.CompletedTask;
+```
+
+## Return values — `AchTask<T>`
+
+```csharp
+public static AchTask<string> FetchNameAsync()
+    => AchTask<string>.FromResult("Player");
+
+string name = await FetchNameAsync();
+```
+
+## Implicit conversions
+
+```csharp
+// UniTask environment
+UniTask uniTask = someAchTask;
+AchTask achTask = someUniTask;
+
+// Task fallback environment
+Task task = someAchTask.AsTask();
+AchTask from = someTask;
+```
+
+## Complete example
+
+```csharp
+async AchTask LoadSequenceAsync(CancellationToken ct)
+{
+    await AchTask.Delay(0.5f, ct);
+    await AchTask.WaitUntil(() => dataLoaded, ct);
+    await AchTask.Delay(0.2f, ct);
+}
+
+async AchTask InitAllAsync()
+{
+    await AchTask.WhenAll(
+        LoadAudioAsync(),
+        LoadTableAsync(),
+        LoadUserDataAsync());
+}
+```
+
+## Related docs
+
+- [AchTimer — progress-tracking timer](/AchEngine/en/usage/timer.md)
+- [HttpLink — async HTTP requests](/AchEngine/en/usage/web-request.md)
+
+
+
+---
+url: /AchEngine/en/usage/debug-console.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# AchDebugConsole
+
+`AchDebugConsole` is a debug console rendered in a native Android or iOS UI layer. It is independent of Unity's render thread and uses an IMGUI fallback in the Editor.
+
+## Overview
+
+It receives Unity `Log`, `Warning`, `Error`, `Exception`, and `Assert` messages through `Application.logMessageReceivedThreaded`. Registration happens automatically through `[RuntimeInitializeOnLoadMethod]`.
+
+| Item                  | Value                                                       |
+| --------------------- | ----------------------------------------------------------- |
+| Maximum retained logs | 500 (ring buffer)                                           |
+| Colors                | Error/Exception/Assert → red, Warning → yellow, Log → white |
+| Thread safety         | UI-thread dispatch on every platform                        |
+
+## Platform behavior
+
+### Android
+
+The console is a floating `WindowManager` overlay. It can be dragged, uses 95% of the screen width and 50% of its height, and requires `SYSTEM_ALERT_WINDOW`.
+
+### iOS
+
+The console uses a separate `UIWindow` at `UIWindowLevelAlert + 100`. It is draggable, uses 95% of the width and 45% of the height, and requires no extra permission.
+
+### Editor
+
+`Show()` and `Hide()` only toggle internal state because the Editor already has a Console window. Use `DrawEditorGUI()` to show an overlay in the Game view.
+
+## API
+
+```csharp
+public static class AchDebugConsole
+{
+    public static bool IsVisible { get; }
+    public static void Show();
+    public static void Hide();
+    public static void Toggle();
+    public static void Clear();
+}
+```
+
+## Quick start
+
+```csharp
+using AchEngine;
+using UnityEngine;
+
+public class DebugConsoleTrigger : MonoBehaviour
+{
+    private void Update()
+    {
+        if (Input.touchCount != 4) return;
+
+        bool allBegan = true;
+        for (int i = 0; i < 4; i++)
+        {
+            if (Input.GetTouch(i).phase != TouchPhase.Began)
+            {
+                allBegan = false;
+                break;
+            }
+        }
+
+        if (allBegan)
+            AchDebugConsole.Toggle();
+    }
+}
+```
+
+Attach the component to an empty GameObject. Replace the gesture with `Input.GetKeyDown(KeyCode.BackQuote)` for a keyboard shortcut.
+
+## Editor fallback
+
+```csharp
+using AchEngine;
+using UnityEngine;
+
+public class AchDebugConsoleEditorOverlay : MonoBehaviour
+{
+#if UNITY_EDITOR
+    private void OnGUI() => AchDebugConsole.DrawEditorGUI();
+#endif
+}
+```
+
+
+> **Android permission**
+> 
+> The package declares `SYSTEM_ALERT_WINDOW` through `AchDebugConsoleManifest.xml`. Android 6.0 (API 23) and later still require a runtime permission request before calling `Show()`.
+> 
+
+
+
+> **Performance**
+> 
+> Android and iOS render the console on their native UI threads, so keeping it open during profiling does not add work to Unity's main or render thread.
+> 
+
+
+## Related docs
+
+- [UI system overview](/AchEngine/en/usage/ui.md)
+
+
+
+---
+url: /AchEngine/en/usage/di/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# DI System — Overview
+
+AchEngine provides a small DI abstraction without exposing VContainer directly.
+
+
+> **Optional module**
+> 
+> The real DI container is enabled only when `jp.hadashikick.vcontainer` is installed. Without it, `ServiceLocator` remains usable with manual setup.
+> 
+
+
+## Core components
+
+| Class                | Role                                                    |
+| -------------------- | ------------------------------------------------------- |
+| `AchEngineScope`     | Scene entry point wrapping VContainer's `LifetimeScope` |
+| `AchEngineInstaller` | Base class for defining service registrations           |
+| `IServiceBuilder`    | Registration interface independent of VContainer        |
+| `ServiceLocator`     | Static facade for resolving services at runtime         |
+
+## Basic flow
+
+```mermaid
+flowchart TD
+A([Load scene]) --> B[AchEngineScope.Awake]
+B --> C["AchEngineInstaller<br/>.Install(builder) × N"]
+C --> D[("Build VContainer")]
+D --> E[ServiceLocator.Setup]
+E --> F{Runtime}
+F --> G["[Inject]<br/>attribute injection"]
+F --> H["ServiceLocator<br/>.Resolve<T>()"]
+```
+
+## `ServiceLifetime`
+
+```csharp
+public enum ServiceLifetime
+{
+    Singleton, // One instance per container (default)
+    Transient, // A new instance per request
+    Scoped,    // One instance per scope
+}
+```
+
+## Next steps
+
+- [AchEngineInstaller](/AchEngine/en/usage/di/installer.md)
+- [ServiceLocator](/AchEngine/en/usage/di/locator.md)
+- [DI lifecycle design](/AchEngine/en/usage/di/lifecycle.md)
+
+
+
+---
+url: /AchEngine/en/usage/di/installer.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# AchEngineInstaller
+
+`AchEngineInstaller` defines service registrations for an `AchEngineScope`.
+
+## `IServiceBuilder` API
+
+```csharp
+builder.Register<TService, TImplementation>();
+builder.Register<TService, TImplementation>(ServiceLifetime.Singleton);
+builder.Register<TService>();
+builder.RegisterInstance<TService>(instance);
+```
+
+## 1. Write an installer
+
+```csharp
+using AchEngine.DI;
+
+public class GameInstaller : AchEngineInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            .Register<IGameService, GameService>()
+            .Register<IPlayerService, PlayerService>(ServiceLifetime.Transient)
+            .RegisterInstance<GameConfig>(config);
+    }
+}
+```
+
+## 2. Register it on `AchEngineScope`
+
+Create an empty GameObject, add `AchEngineScope`, and add the `GameInstaller` component to its **Installers** array.
+
+```text
+AchEngineScope
+└── Installers
+    └── GameInstaller
+```
+
+## 3. Use services
+
+### `[Inject]` (requires VContainer)
+
+```csharp
+public class GameController
+{
+    [Inject] private IGameService _game;
+}
+```
+
+### `ServiceLocator` (available anywhere)
+
+```csharp
+var game = ServiceLocator.Resolve<IGameService>();
+```
+
+## Scope lifetime
+
+`AchEngineScope` builds the container in `Awake` and disposes it in `OnDestroy`. A scope created in a scene therefore owns the services registered by that scene.
+
+
+> **Relationship with ServiceLocator**
+> 
+> `ServiceLocator` points to the most recently initialized scope. When that scope is destroyed, the locator is cleared or replaced by the next active scope.
+> 
+
+
+```mermaid
+sequenceDiagram
+participant Scope as AchEngineScope
+participant Installer as Installer
+participant Container as DI Container
+participant Locator as ServiceLocator
+Scope->>Installer: Install(builder)
+Installer->>Container: Register services
+Scope->>Container: Build
+Scope->>Locator: Setup(container)
+Locator-->>Scope: Resolve services at runtime
+Scope->>Container: Dispose on destroy
+```
+
+
+> **Multi-scene note**
+> 
+> Use one persistent scope for global services and separate additive scopes for scene-specific services. Do not replace a global scope accidentally when loading another scene.
+> 
+
+
+
+
+---
+url: /AchEngine/en/usage/di/lifecycle.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# DI Lifecycle Design
+
+This guide connects scene transitions, popups, data services, and in-game logic through DI.
+
+## Overall structure
+
+```mermaid
+graph TB
+subgraph Bootstrap["Bootstrap scene"]
+AES[AchEngineScope]
+UIR[UIRoot]
+end
+subgraph Lobby["Lobby scene (additive)"]
+LS[LobbyScope]
+LV[LobbyView]
+end
+subgraph InGame["InGame scene (additive)"]
+GS[GameScope]
+HV[HUDView]
+end
+Bootstrap --> Lobby
+Bootstrap --> InGame
+AES -.->|ServiceLocator| LS
+AES -.->|ServiceLocator| GS
+```
+
+Register global services in Bootstrap and scene-specific services in the Lobby or InGame scopes. When a scene unloads, `AchEngineScope.OnDestroy()` disposes that scope's services.
+
+## Scene transition
+
+```csharp
+public async Task LoadInGame(int stageId)
+{
+    ServiceLocator.Resolve<IUIService>().CloseAll();
+    await SceneManager.UnloadSceneAsync("Lobby");
+    await SceneManager.LoadSceneAsync("InGame", LoadSceneMode.Additive);
+    ServiceLocator.Resolve<IGameService>().StartStage(stageId);
+}
+```
+
+## Popup data
+
+Pass data to a `UIView` popup through the `Show` callback:
+
+```csharp
+var ui = ServiceLocator.Resolve<IUIService>();
+ui.Show<ItemDetailPopup>(popup => popup.SetItem(item, icon, iconAddress));
+```
+
+## Data services
+
+Wrap Table data in a service and inject `ITableService` into game services. From a `MonoBehaviour`, use `ServiceLocator.Resolve<T>()` when container construction is not involved.
+
+## Next steps
+
+- [Module integration](/AchEngine/en/usage/integration.md)
+- [AchEngineInstaller](/AchEngine/en/usage/di/installer.md)
+
+
+
+---
+url: /AchEngine/en/usage/di/locator.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# ServiceLocator
+
+> **VContainer-free use**
+> 
+> `ServiceLocator` can be initialized manually even when VContainer is not installed. With VContainer installed, `AchEngineScope` normally initializes it for you.
+> 
+
+
+## API
+
+```csharp
+ServiceLocator.Setup(IServiceProvider provider);
+T service = ServiceLocator.Resolve<T>();
+bool exists = ServiceLocator.TryResolve<T>(out var service);
+ServiceLocator.Clear();
+```
+
+## Example
+
+```csharp
+public class EnemySpawner : MonoBehaviour
+{
+    private IEnemyService _enemies;
+
+    private void Start()
+    {
+        _enemies = ServiceLocator.Resolve<IEnemyService>();
+    }
+}
+```
+
+## `[Inject]` vs `ServiceLocator`
+
+Use `[Inject]` for objects created by the VContainer container. Use `ServiceLocator` from `MonoBehaviour`, static callbacks, or objects Unity creates directly.
+
+## Manual initialization without VContainer
+
+Register a provider or service collection during bootstrap, then call `ServiceLocator.Setup(...)` before any consumer resolves a service.
+
+
+> **Non-VContainer environment**
+> 
+> `ServiceLocator` is a lookup facade, not a lifetime manager. The bootstrap code owns service creation and disposal when no DI container is present.
+> 
+
+
+## Related docs
+
+- [DI system overview](/AchEngine/en/usage/di.md)
+- [DI lifecycle design](/AchEngine/en/usage/di/lifecycle.md)
+
+
+
+---
+url: /AchEngine/en/usage/ecs/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# ECS Wrapper
+
+The ECS helpers connect Unity Entities with the AchEngine service and world abstractions. The module is optional and is compiled only when `com.unity.entities` is installed.
+
+## Basic usage
+
+```csharp
+using AchEngine.ECS;
+using Unity.Entities;
+
+public partial struct DamageSystem : ISystem
+{
+    public void OnUpdate(ref SystemState state)
+    {
+        var ecb = state.World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
+        // Query and update entities here.
+    }
+}
+```
+
+## When should I use it?
+
+Use the wrapper when gameplay data is already modeled as Entities and you need consistent world access, command buffers, bakers, or DI integration. Keep ordinary UI and scene orchestration in the regular AchEngine modules.
+
+## Use it from a system
+
+```csharp
+public partial struct SpawnSystem : ISystem
+{
+    public void OnCreate(ref SystemState state) { }
+
+    public void OnUpdate(ref SystemState state)
+    {
+        var world = state.World;
+        var entityManager = world.EntityManager;
+        // entityManager.CreateEntity(...);
+    }
+}
+```
+
+## `EntityManager` extensions
+
+The package provides convenience extensions for creating, querying, and retrieving components while keeping the standard `EntityManager` API available.
+
+```csharp
+var entity = entityManager.CreateEntity(archetype);
+entityManager.SetComponentData(entity, new Health { Value = 100 });
+```
+
+## Use it from a Baker
+
+```csharp
+public class UnitAuthoring : MonoBehaviour
+{
+    public int health = 100;
+}
+
+public class UnitBaker : Baker<UnitAuthoring>
+{
+    public override void Bake(UnitAuthoring authoring)
+    {
+        var entity = GetEntity(TransformUsageFlags.Dynamic);
+        AddComponent(entity, new Health { Value = authoring.health });
+    }
+}
+```
+
+## Inject an ECS world through DI
+
+Register the desired world or an adapter in an installer and inject that abstraction into systems or services. This keeps world selection explicit in multi-world projects.
+
+```csharp
+builder.RegisterInstance(World.Default);
+builder.Register<IWorldService, WorldService>();
+```
+
+
+
+---
+url: /AchEngine/en/usage/installation.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Installation
+
+## UPM — install from a Git URL (recommended)
+
+Open **Window › Package Manager** in the Unity Editor, choose **+ › Add package from git URL...**, and enter:
+
+```
+https://github.com/achieveonepark/AchEngine.git
+```
+
+Pin a specific version by adding a tag:
+
+```
+https://github.com/achieveonepark/AchEngine.git#1.0.0
+```
+
+## Install through `manifest.json`
+
+Add the package directly to `Packages/manifest.json`:
+
+```json
+{
+  "dependencies": {
+    "com.achieve.engine": "https://github.com/achieveonepark/AchEngine.git"
+  }
+}
+```
+
+## Optional packages
+
+AchEngine supports the following optional packages. Installing one enables its feature automatically. Check the status in **Window › AchEngine › AchEngine Info**.
+
+| Package      | Package ID                  | Enabled features                                  |
+| ------------ | --------------------------- | ------------------------------------------------- |
+| VContainer   | `jp.hadashikick.vcontainer` | DI container (`AchEngineScope`, `ServiceLocator`) |
+| MemoryPack   | `com.cysharp.memorypack`    | QuickSave serialization (`USE_QUICK_SAVE`)        |
+| Addressables | `com.unity.addressables`    | `AddressableManager`, remote content              |
+| R3           | `com.cysharp.r3`            | `UIBindingManager` reactive pub/sub               |
+
+### Install VContainer manually
+
+Add the registry and dependency to `Packages/manifest.json`:
+
+```json
+{
+  "scopedRegistries": [
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": ["jp.hadashikick.vcontainer"]
+    }
+  ],
+  "dependencies": {
+    "jp.hadashikick.vcontainer": "1.15.0"
+  }
+}
+```
+
+For MemoryPack, see the [MemoryPack installation guide](https://github.com/Cysharp/MemoryPack). For R3, see the [R3 repository](https://github.com/Cysharp/R3).
+
+## Verify the installation
+
+The Unity Console should contain no package errors, and **Window › AchEngine › AchEngine Info** should be available. The window shows the package and feature status at a glance.
+
+
+
+---
+url: /AchEngine/en/usage/integration.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Module Integration
+
+This guide combines DI, Table Loader, Localization, Addressables, and UI into one gameplay flow.
+
+## Overall structure
+
+```mermaid
+graph TB
+subgraph Bootstrap["Bootstrap scene"]
+GI[GlobalInstaller]
+GI --> TS[ITableService]
+GI --> UI[IUIService]
+GI --> AU[IAudioService]
+GI --> NW[INetworkService]
+UIR[UIRoot]
+end
+subgraph Lobby["Lobby scene (additive)"]
+LI[LobbyInstaller]
+LI --> SH[IShopService]
+LI --> FR[IFriendService]
+end
+subgraph InGame["InGame scene (additive)"]
+GAI[GameInstaller]
+GAI --> GM[IGameService]
+GAI --> ST[IStageService]
+GAI --> ES[IEnemySpawner]
+end
+Bootstrap --> Lobby
+Bootstrap --> InGame
+```
+
+## Table Loader + Localization
+
+Store localization keys in the table instead of translated text:
+
+```text
+| Id  | NameKey           | DescKey           | Price |
+|-----|-------------------|-------------------|-------|
+| 101 | item.sword.name   | item.sword.desc   | 500   |
+| 102 | item.wand.name    | item.wand.desc    | 1200  |
+```
+
+```csharp
+public void SetItem(int itemId)
+{
+    var item = TableManager.Get<ItemTable>().Get(itemId);
+    _nameText.text = LocalizationManager.Get(item.NameKey);
+    _descText.text = LocalizationManager.Get(item.DescKey);
+    _priceText.text = $"{item.Price:N0} G";
+}
+```
+
+After key generation, use `L.Item.Sword.Name` for fixed keys or keep the table key for dynamic content.
+
+## Table Loader + Addressables
+
+Store `IconAddress` and `SfxAddress` in the table, load the asset when the view opens, and release it when the view closes.
+
+```csharp
+private string _loadedAddress;
+
+public async void SetItem(int itemId)
+{
+    var item = TableManager.Get<ItemTable>().Get(itemId);
+    if (_loadedAddress != null)
+        AddressableManager.Release(_loadedAddress);
+
+    _loadedAddress = item.IconAddress;
+    _iconImage.sprite = await AddressableManager.LoadAsync<Sprite>(_loadedAddress);
+}
+
+protected override void OnClosed()
+{
+    if (_loadedAddress == null) return;
+    AddressableManager.Release(_loadedAddress);
+    _loadedAddress = null;
+}
+```
+
+## Three-module example
+
+When opening an item popup, read the table row, resolve localized text, and load the icon asynchronously:
+
+```csharp
+public async void SetItem(int itemId)
+{
+    var item = TableManager.Get<ItemTable>().Get(itemId);
+    _nameText.text = LocalizationManager.Get(item.NameKey);
+    _descText.text = LocalizationManager.Get(item.DescKey);
+    _iconImage.sprite = await AddressableManager.LoadAsync<Sprite>(item.IconAddress);
+}
+```
+
+## DI service layer
+
+Wrap static managers behind an interface when a service needs to be unit-tested:
+
+```csharp
+public interface IItemService
+{
+    ItemData GetItem(int id);
+    string GetItemName(int id);
+}
+
+public class ItemService : IItemService
+{
+    private readonly ITableService _tables;
+    private readonly ILocalizationService _localization;
+
+    public ItemService(ITableService tables, ILocalizationService localization)
+    {
+        _tables = tables;
+        _localization = localization;
+    }
+
+    public ItemData GetItem(int id) => _tables.Get<ItemTable>().Get(id);
+    public string GetItemName(int id) => _localization.Get(GetItem(id).NameKey);
+}
+```
+
+Register `ITableService`, `ILocalizationService`, and `IItemService` in the global installer, then inject `IItemService` into views or game services.
+
+## Scene transition + UI flow
+
+```mermaid
+sequenceDiagram
+participant App as App start
+participant Boot as Bootstrap scene
+participant SL as ServiceLocator
+participant SS as SceneService
+participant GS as GameService
+participant UI as IUIService
+participant TBL as TableManager
+participant LOC as LocalizationManager
+participant ADDR as AddressableManager
+App->>Boot: Load scene
+Boot->>SL: Setup global services
+SS->>UI: CloseAll()
+SS->>Boot: Unload Lobby
+SS->>Boot: Load InGame
+SS->>GS: StartStage(stageId)
+GS->>TBL: Get stage data
+GS->>UI: Show<GameHUDView>()
+UI->>TBL: Get item data
+TBL-->>UI: ItemData
+UI->>LOC: Get(NameKey)
+UI->>ADDR: LoadAsync<Sprite>(IconAddress)
+```
+
+## Related docs
+
+- [DI system](/AchEngine/en/usage/di/index.md)
+- [Table Loader](/AchEngine/en/usage/table/index.md)
+- [Localization](/AchEngine/en/usage/localization/index.md)
+- [Addressables](/AchEngine/en/usage/addressables/index.md)
+
+
+
+---
+url: /AchEngine/en/usage/localization/codegen.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Key Constant Code Generation
+
+The Localization editor can generate a nested static class from dot-separated keys.
+
+## Conversion example
+
+```json
+{
+  "menu.start": "Start",
+  "item.sword.name": "Iron Sword"
+}
+```
+
+```csharp
+L.Menu.Start
+L.Item.Sword.Name
+```
+
+The generated constants are ordinary strings, so they can be passed directly to `LocalizationManager.Get`.
+
+## Code-generation settings
+
+Configure the following fields on `LocalizationSettings`:
+
+| Field                 | Description                          |
+| --------------------- | ------------------------------------ |
+| `generatedClassName`  | Root class name; defaults to `L`     |
+| `generatedNamespace`  | Optional namespace                   |
+| `generatedOutputPath` | C# output path                       |
+| Database              | Locale database used to collect keys |
+
+Run **AchEngine › Localization › Generate Key Class** after changing the database.
+
+## `LocalizedString`
+
+Use `LocalizedString` when a field should expose a key dropdown in the Inspector.
+
+```csharp
+[LocalizedString]
+[SerializeField] private LocalizedString _title;
+
+private void Refresh()
+{
+    titleText.text = _title.Value;
+}
+```
+
+
+
+---
+url: /AchEngine/en/usage/localization/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Localization — Overview
+
+AchEngine Localization loads JSON locale files, resolves keys at runtime, and can generate type-safe key constants.
+
+## Core components
+
+| Type                   | Role                                             |
+| ---------------------- | ------------------------------------------------ |
+| `LocalizationManager`  | Static runtime API for lookup and locale changes |
+| `LocalizationSettings` | Default/fallback locale and database settings    |
+| `LocaleDatabase`       | Maps locales to JSON `TextAsset` files           |
+| `LocalizedString`      | Inspector-friendly key field                     |
+| `LocalizedText`        | Refreshes `Text` or `TMP_Text` automatically     |
+
+## Basic usage
+
+```csharp
+string title = LocalizationManager.Get("menu.title");
+string welcome = LocalizationManager.Get("dialog.welcome", "Player1", 5);
+
+LocalizationManager.LocaleChanged += OnLocaleChanged;
+LocalizationManager.SetLocale("ja");
+```
+
+## JSON format
+
+```json
+{
+  "menu.title": "Settings",
+  "dialog.welcome": "Welcome, {0}!"
+}
+```
+
+Nested keys are supported when the code-generation option is enabled:
+
+```json
+{
+  "menu": {
+    "start": "Start",
+    "quit": "Quit"
+  }
+}
+```
+
+## Automatic TMP refresh
+
+Add `LocalizedText` to a `Text` or `TMP_Text`, choose a key, and it will refresh when `LocalizationManager.LocaleChanged` fires.
+
+
+> **TMP support**
+> 
+> TMP support requires the `ACHENGINE_LOCALIZATION_TMP` scripting symbol. It is automatically defined when `com.unity.textmeshpro` is installed.
+> 
+
+
+## FontAsset Maker
+
+Use **AchEngine › Localization › FontAsset Maker** to collect the characters used by the locale files and create a separate TMP FontAsset for each language.
+
+## Next steps
+
+- [Settings & database](/AchEngine/en/usage/localization/setup.md)
+- [Key constant code generation](/AchEngine/en/usage/localization/codegen.md)
+
+
+
+---
+url: /AchEngine/en/usage/localization/setup.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Settings & Database
+
+## 1. Create `LocalizationSettings`
+
+Create the asset from **Create › Achieve › Localization › Settings** and place it at `Resources/LocalizationSettings`.
+
+## 2. Create a `LocaleDatabase`
+
+Create **Create › Achieve › Localization › Locale Database**, then add one locale and JSON `TextAsset` pair for each language.
+
+## 3. Add JSON files
+
+```json
+{
+  "menu.start": "Start",
+  "menu.quit": "Quit"
+}
+```
+
+```json
+{
+  "menu.start": "開始",
+  "menu.quit": "終了"
+}
+```
+
+Keep keys identical across locale files. Only the values should change.
+
+## 4. Configure locales
+
+Set `defaultLocaleCode`, `fallbackLocaleCode`, `autoDetectSystemLanguage`, `autoInitialize`, and the `database` field on `LocalizationSettings`.
+
+## Runtime initialization
+
+Automatic initialization runs before the first scene when `autoInitialize` is enabled and the settings asset contains a database. Manual initialization is also available:
+
+```csharp
+LocalizationManager.Initialize();
+LocalizationManager.SetLocale("en");
+```
+
+## Editor window
+
+Open **AchEngine › Localization › Localization Table** to inspect and edit keys, import CSV/JSON, and verify that locale files contain the same key set.
+
+
+
+---
+url: /AchEngine/en/usage/managers/ads.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# AdsManager
+
+`AdsManager` uses Unity Ads Legacy 4.16.4 as its default provider for interstitial,
+rewarded, and banner ads. `com.unity.ads` is an AchEngine 1.3.2 dependency, so Unity's
+Package Manager resolves it with the package. `AchManagerInstaller` registers `AdsManager`.
+
+Live ads require the Android/iOS game IDs and ad-unit IDs from Unity Dashboard. The Editor
+uses the Android game ID; configure it as well. Keep `testMode` enabled only during development.
+
+## Quick setup
+
+Configure the manager once before initialization in your bootstrap. With VContainer, apply the
+same calls to an injected `AdsManager`.
+
+```csharp
+var ads = ServiceLocator.Resolve<AdsManager>();
+
+ads.Configure(new AdsConfiguration(
+    androidGameId: "Android game ID",
+    iosGameId: "iOS game ID",
+    interstitialAdUnitId: "Interstitial_Android",
+    rewardedAdUnitId: "Rewarded_Android",
+    bannerAdUnitId: "Banner_Android",
+    testMode: true));
+
+ads.InitializationFailed += message => Debug.LogError(message);
+
+await ads.Initialize();
+await ads.LoadInterstitialAsync();
+await ads.LoadRewardedAsync();
+```
+
+If Android and iOS use different ad-unit IDs, create the appropriate `AdsConfiguration` in each
+platform bootstrap. `Configure()` can only run before initialization begins.
+
+## Interstitial and rewarded ads
+
+Load an ad before showing it, then reload every fullscreen ad after a show attempt. Grant a
+reward only when `ShouldGrantReward` is true; skipped or failed rewarded ads must grant nothing.
+
+```csharp
+var result = await ads.ShowRewardedAsync();
+
+if (result.ShouldGrantReward)
+    GrantCoinsToPlayer();
+else if (!result.IsSuccess)
+    Debug.LogWarning(result.Message);
+
+await ads.LoadRewardedAsync();
+```
+
+## Banner ads
+
+The Unity Ads provider shows banners at bottom center. A successful `ShowBannerAsync()` means
+the request reached the SDK, not that it produced an impression.
+
+```csharp
+await ads.LoadBannerAsync();
+await ads.ShowBannerAsync();
+ads.HideBanner();
+```
+
+## Mediation
+
+The default provider is a small Unity Ads Legacy integration. For new live operations and
+competition among multiple networks, use one of these mediation products:
+
+| Option                              | Best fit                                                          | AchEngine integration                                                           |
+| ----------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Unity LevelPlay                     | Unity Ads-centered operations and Unity's current mediation stack | Wrap the LevelPlay SDK in `IAdsProvider`.                                       |
+| AppLovin MAX                        | Advanced monetization/bidding tools and broad network operations  | Implement a MAX Unity SDK `IAdsProvider`.                                       |
+| Google AdMob / Google Ad Manager    | Existing Google ads, Firebase, or GAM reporting stack             | Wrap the AdMob Unity SDK and its currently supported Unity Ads network adapter. |
+| Digital Turbine FairBid and similar | Existing agreement or tooling with that provider                  | Wrap that provider's Unity SDK in the same interface.                           |
+
+Adapter availability, bidding support, minimum Android/iOS SDK versions, and privacy/ATT
+requirements change frequently. Before integrating, confirm the selected mediator's current
+Unity Ads adapter and platform requirements.
+
+```csharp
+// Replace the default provider with an adapter around a mediation SDK.
+var ads = AdsManager.Create(new MyLevelPlayAdsProvider());
+```
+
+`IAdsProvider` contains only initialization, load/show, and banner-hide operations. The adapter
+must map its callbacks to `AdsLoadResult`/`AdsShowResult` and return `Completed` only after a
+rewarded ad finishes. Do not initialize a Legacy Unity Ads provider and LevelPlay together in
+the same app session.
+
+## API
+
+| Member                                                                  | Description                                                |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `Configure(configuration)`                                              | Sets game IDs and ad-unit IDs before initialization.       |
+| `Initialize()`                                                          | Initializes the provider with the active platform game ID. |
+| `LoadInterstitialAsync()` / `LoadRewardedAsync()` / `LoadBannerAsync()` | Loads an ad for display.                                   |
+| `ShowInterstitialAsync()` / `ShowRewardedAsync()` / `ShowBannerAsync()` | Shows a loaded ad and returns its result.                  |
+| `HideBanner()`                                                          | Hides the active banner.                                   |
+| `IsLoaded(placement)`                                                   | Checks display readiness for an ad placement.              |
+| `AdsShowResult.ShouldGrantReward`                                       | True only for a completed rewarded ad.                     |
+
+
+
+---
+url: /AchEngine/en/usage/managers/audio.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# AudioManager
+
+`AudioManager` handles BGM, SFX, fades, mute state, and spatial audio. It replaces the removed `SoundManager`.
+
+## DI registration
+
+Register it through `AchManagerInstaller` or directly:
+
+```csharp
+builder.Register<AudioManager>();
+```
+
+Resolve it with:
+
+```csharp
+var audio = ServiceLocator.Resolve<AudioManager>();
+```
+
+## API
+
+| Member                                        | Description                                     |
+| --------------------------------------------- | ----------------------------------------------- |
+| `BgmVolume`                                   | BGM volume from 0 to 1                          |
+| `SfxVolume`                                   | SFX volume from 0 to 1                          |
+| `PlayBgm(clip)`                               | Plays immediately; ignores the same active clip |
+| `PlayBgm(clip, fadeDuration)`                 | Crossfades to a new BGM                         |
+| `StopBgm()` / `StopBgm(fadeDuration)`         | Stops immediately or after a fade               |
+| `SetBgmVolume(volume, fadeDuration)`          | Changes BGM volume over time                    |
+| `MuteBgm(bool)`                               | Mutes/restores BGM output                       |
+| `MuteSfx(bool)`                               | Mutes/restores SFX output                       |
+| `MuteAll(bool)`                               | Mutes/restores both channels                    |
+| `PlaySfx(clip)`                               | Plays a 2D SFX                                  |
+| `PlaySfxAt(clip, worldPosition, volumeScale)` | Plays a 3D SFX at a world position              |
+
+## SFX channel pool
+
+SFX uses an internal pool of eight `AudioSource` channels. It prefers a free channel and overwrites the oldest channel in round-robin order when all channels are busy. The pool survives scene changes through `DontDestroyOnLoad`.
+
+## Mute behavior
+
+Mute changes the actual output to zero without changing `BgmVolume` or `SfxVolume`, so unmuting restores the previous volume.
+
+```csharp
+audio.BgmVolume = 0.8f;
+audio.MuteBgm(true);   // Output: 0, stored volume: 0.8
+audio.MuteBgm(false);  // Output: 0.8
+```
+
+## Examples
+
+```csharp
+var audio = ServiceLocator.Resolve<AudioManager>();
+audio.PlayBgm(lobbyBgmClip, fadeDuration: 1f);
+audio.SetBgmVolume(0.3f, fadeDuration: 2f);
+audio.PlaySfxAt(explosionClip, explosionObject.transform.position);
+audio.PlaySfx(buttonClickClip);
+audio.MuteAll(false);
+```
+
+
+
+---
+url: /AchEngine/en/usage/managers/config.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# ConfigManager
+
+`ConfigManager` is a PlayerPrefs-based key-value store for simple options such as volume and language.
+
+## API
+
+```csharp
+var cfg = ServiceLocator.Resolve<ConfigManager>();
+
+cfg.AddKey("bgmVolume", 1.0f);
+cfg.AddKey("language", "en");
+
+float volume = cfg.GetConfig<float>("bgmVolume", fallback: 1f);
+cfg.SetConfig("bgmVolume", 0.5f);
+```
+
+`SetConfig` does nothing for a key that has not been registered with `AddKey`.
+
+
+
+---
+url: /AchEngine/en/usage/managers/iap.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# IAPManager
+
+`IAPManager` uses Unity IAP 5.4.1 `StoreController` APIs for store connection, product lookup, purchase, pending-order retry, and restoration. In player builds, it confirms an order only after its reward has been persisted.
+
+`com.unity.purchasing` 5.4.1 is an AchEngine dependency, and `AchManagerInstaller` registers `IAPManager` automatically.
+
+## Quick setup
+
+Product IDs must exactly match Google Play Console or App Store Connect. For player builds, configure products and a receipt validator before initialization.
+
+```csharp
+var iap = ServiceLocator.Resolve<IAPManager>();
+
+iap.AddProduct("com.mygame.coins_100", ProductType.Consumable);
+iap.AddProduct("com.mygame.remove_ads", ProductType.NonConsumable);
+iap.ReceiptValidator = new GameReceiptValidator();
+
+await iap.Initialize();
+```
+
+## Editor Fake Store testing
+
+In the Unity Editor, `IAPManager` explicitly selects Unity IAP's `fake` store.
+Only in the Editor, a Fake Store order is automatically confirmed when both
+`ReceiptValidator` and `PurchaseProcessor` are unset. This lets you test purchase
+buttons, completion events, and popup flow without making a real payment or
+calling a backend.
+
+This behavior is compiled only under `UNITY_EDITOR`. Android, iOS, and other
+player builds still require a receipt validator or fulfillment processor before
+a purchase can start. The editor fake order is not granted as a real purchase.
+
+The Full Sample `PurchasePopup` also enables its purchase buttons without a
+validator in the Editor. Assign the game-specific server validator to the
+`Receipt Validator` field for real builds.
+
+Implement `IIAPReceiptValidator` in the game project. Authenticate the player, send platform transaction data to the backend, and persist rewards idempotently on the server.
+
+```csharp
+public sealed class GameReceiptValidator : IIAPReceiptValidator
+{
+    public async Task<IAPReceiptValidationResult> ValidateAndFulfillAsync(IAPPurchase purchase)
+    {
+        var response = await SendToGameServerAsync(purchase);
+        return response.IsSuccess
+            ? IAPReceiptValidationResult.Succeeded()
+            : IAPReceiptValidationResult.Failed(response.Message);
+    }
+}
+```
+
+## Purchase requests
+
+`PurchaseAsync` returns only after store purchase, server fulfillment, and order confirmation are complete. In player builds, without a validator or processor, it does not open the purchase dialog. The Editor uses the Fake Store flow described above.
+
+```csharp
+var result = await iap.PurchaseAsync("com.mygame.coins_100");
+if (result.IsSuccess)
+    Debug.Log("Purchase and fulfillment confirmed.");
+else
+    Debug.LogWarning($"Purchase state: {result.Status}, {result.Message}");
+```
+
+| Status               | Meaning                                                            |
+| -------------------- | ------------------------------------------------------------------ |
+| `Confirmed`          | Receipt validated, reward persisted, and store order confirmed     |
+| `Failed`             | User canceled or the store purchase failed                         |
+| `Deferred`           | Purchase is waiting for approval                                   |
+| `PendingFulfillment` | Validation or reward persistence failed; order remains unconfirmed |
+
+## Server receipt validation
+
+Send the transaction ID, Unity receipt, Apple StoreKit 2 JWS, app-account token, and product list to the server. The server should use the transaction ID as an idempotency key and return matching `transactionId`, `isValid`, and `isFulfilled` values.
+
+```json
+{
+  "transactionId": "store transaction ID",
+  "receipt": "Unity IAP receipt",
+  "appleJwsRepresentation": "StoreKit 2 JWS or empty string",
+  "appleAppAccountToken": "app account token or empty string",
+  "products": [{ "productId": "com.mygame.coins_100", "productType": "Consumable", "quantity": 1 }]
+}
+```
+
+Retry unfulfilled orders in the current session or re-read the store purchase list:
+
+```csharp
+await iap.RetryPendingFulfillmentsAsync();
+await iap.GetPendingListAsync();
+```
+
+## Restore and events
+
+`Initialize()` reads existing purchases after product discovery. Update non-consumable and subscription ownership from `PurchaseRestored`. Apple apps should expose a user-facing restore button:
+
+```csharp
+iap.PurchaseRestored += purchase =>
+{
+    foreach (var item in purchase.Items)
+        Debug.Log($"Restored: {item.ProductId}");
+};
+
+var restore = await iap.RestoreTransactionsAsync();
+```
+
+## API
+
+| Member                            | Description                                              |
+| --------------------------------- | -------------------------------------------------------- |
+| `AddProduct(id, type)`            | Registers a product before initialization                |
+| `ReceiptValidator`                | Server validator and idempotent fulfillment hook         |
+| `PurchaseProcessor`               | Custom async processor when no server validator is used  |
+| `Initialize()`                    | Connects, fetches products, and reads existing purchases |
+| `PurchaseAsync(id)`               | Starts a purchase and returns `IAPPurchaseResult`        |
+| `RetryPendingFulfillmentsAsync()` | Retries pending orders held in the current session       |
+| `GetPendingListAsync()`           | Reads existing purchases and retries pending orders      |
+| `RestoreTransactionsAsync()`      | Starts the Apple manual-restore flow                     |
+| `TryGetProduct(id, out product)`  | Retrieves a fetched Unity IAP `Product`                  |
+
+Always make fulfillment idempotent by transaction ID. A validator or processor failure leaves the order unconfirmed so it can be retried.
+
+
+
+---
+url: /AchEngine/en/usage/managers/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Manager System
+
+AchEngine managers register common game services through DI and make them available through `ServiceLocator`.
+
+## Available managers
+
+| Manager           | Role                                           |
+| ----------------- | ---------------------------------------------- |
+| `ConfigManager`   | PlayerPrefs-based settings                     |
+| `AudioManager`    | BGM/SFX, fades, mute, and 3D audio             |
+| `AchSceneManager` | Async scene transitions and `IScene` lifecycle |
+| `InputManager`    | Input enable/disable wrapper                   |
+| `TimeManager`     | Network time and one-second events             |
+| `PoolManager`     | Prefab-based object pooling                    |
+| `PlayerManager`   | Typed player-data containers                   |
+| `SaveManager`     | Save/load/delete through `ISaveService`        |
+| `IAPManager`      | Unity IAP 5.4.1 purchase and receipt flow      |
+
+## Quick start
+
+### 1. Add `AchManagerInstaller`
+
+Add the `AchManagerInstaller` component to the Installers array of `AchEngineScope`.
+
+```csharp
+// All built-in managers are registered as singletons.
+```
+
+To register only selected managers, derive from it:
+
+```csharp
+public class MyInstaller : AchManagerInstaller
+{
+    public override void Install(IServiceBuilder builder)
+    {
+        builder
+            .Register<ConfigManager>()
+            .Register<AudioManager>();
+    }
+}
+```
+
+### 2. Resolve a manager
+
+```csharp
+using AchEngine.DI;
+using AchEngine.Managers;
+
+var config = ServiceLocator.Resolve<ConfigManager>();
+var audio = ServiceLocator.Resolve<AudioManager>();
+```
+
+## `IScene` lifecycle
+
+Add a MonoBehaviour implementing `IScene` to a scene root. `AchSceneManager` calls `OnSceneStart` and `OnSceneEnd` during transitions.
+
+```csharp
+public class LobbyScene : MonoBehaviour, IScene
+{
+    public async Task OnSceneStart() => await LoadUserDataAsync();
+    public Task OnSceneEnd() => Task.CompletedTask;
+}
+```
+
+Runtime async APIs use `System.Threading.Tasks.Task`.
+
+
+
+---
+url: /AchEngine/en/usage/managers/player-data.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# PlayerManager & Player Data
+
+`PlayerManager` stores `PlayerDataContainerBase<TKey, TValue>` containers by type.
+
+## Create a container
+
+```csharp
+public class InventoryContainer : PlayerDataContainerBase<int, ItemData>
+{
+    public InventoryContainer()
+    {
+        DataKey = nameof(InventoryContainer);
+        _dataDic = new Dictionary<int, ItemData>();
+    }
+}
+```
+
+## Register and access
+
+```csharp
+var player = ServiceLocator.Resolve<PlayerManager>();
+player.AddContainer(new InventoryContainer());
+
+var inventory = player.GetContainer<InventoryContainer>();
+inventory.Add(101, new ItemData { Id = 101, Name = "Sword" });
+var sword = inventory.GetInfo(101);
+
+player.RemoveContainer<InventoryContainer>();
+```
+
+## `PlayerDataBase`
+
+The base class for an individual data item contains an `int Id` field.
+
+```csharp
+public class ItemData : PlayerDataBase
+{
+    public string Name;
+    public int Quantity;
+}
+```
+
+## `PlayerData`
+
+```csharp
+var data = new PlayerData { Id = 1, Name = "Hero", Level = 10 };
+```
+
+## Save and load
+
+Persistence is owned by `SaveManager`, not `PlayerManager`. See [SaveManager](/AchEngine/en/usage/managers/save.md).
+
+
+
+---
+url: /AchEngine/en/usage/managers/pool.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# PoolManager
+
+`PoolManager` wraps Unity `ObjectPool<GameObject>` to reduce GC pressure from repeatedly created bullets, particles, and similar objects.
+
+## API
+
+```csharp
+var pool = ServiceLocator.Resolve<PoolManager>();
+
+pool.RegisterPool("Bullet", bulletPrefab, defaultCapacity: 20, maxSize: 100);
+
+var bullet = pool.Get<BulletComponent>("Bullet");
+var gameObject = pool.Get("Bullet");
+
+pool.Release("Bullet", gameObject);
+pool.ClearPool("Bullet");
+pool.ClearAll();
+```
+
+
+
+---
+url: /AchEngine/en/usage/managers/save.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# SaveManager & Save System
+
+`SaveManager` abstracts save, load, and delete behind `ISaveService`. Since it is separate from `PlayerManager`, a local file backend can later be replaced with Firestore, AWS, or Cloudflare D1 without changing game code.
+
+## Structure
+
+```text
+SaveManager       ← injected through DI
+  └─ ISaveService ← backend replacement point
+       └─ LocalSaveService ← QuickSave local implementation
+```
+
+## Quick start
+
+### 1. Register with DI
+
+```csharp
+builder.Register<PlayerManager>();
+builder.Register<ISaveService, LocalSaveService>();
+builder.Register<SaveManager>();
+```
+
+### 2. Configure
+
+Call `Configure()` on `ISaveService` once before saving or loading:
+
+```csharp
+var saveService = ServiceLocator.Resolve<ISaveService>();
+saveService.Configure(encryptionKey: "myKey12345678!", version: 1);
+
+var save = ServiceLocator.Resolve<SaveManager>();
+```
+
+`encryptionKey` should be at least 16 characters. `version` supports data migrations.
+
+## Synchronous API
+
+```csharp
+save.Save();
+PlayerManager loaded = save.Load();
+save.Delete();
+```
+
+## Async API
+
+```csharp
+await save.SaveAsync();
+PlayerManager loaded = await save.LoadAsync();
+await save.DeleteAsync();
+```
+
+## Check for a save file
+
+```csharp
+bool hasData = save.IsExist;
+```
+
+## Custom backend
+
+Implement `ISaveService` and register it instead of `LocalSaveService`:
+
+```csharp
+builder.Register<ISaveService, FirestoreSaveService>();
+```
+
+## Editor menu (`USE_QUICK_SAVE`)
+
+When QuickSave is installed, **Achieve › Delete Save** deletes `.acqs` save files in one action.
+
+
+
+---
+url: /AchEngine/en/usage/managers/scene.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# AchSceneManager
+
+`AchSceneManager` provides asynchronous scene transitions and manages scene lifecycle through `IScene`.
+
+## Implement `IScene`
+
+Attach an `IScene` component to a scene root:
+
+```csharp
+public class GameScene : MonoBehaviour, IScene
+{
+    public async Task OnSceneStart() { /* initialize */ }
+    public Task OnSceneEnd() => Task.CompletedTask;
+}
+```
+
+## API
+
+```csharp
+var scenes = ServiceLocator.Resolve<AchSceneManager>();
+
+await scenes.LoadSceneAsync("Lobby");
+await scenes.ReloadSceneAsync();
+await scenes.UnloadSceneAsync("SubScene");
+
+scenes.OnSceneLoadStarted += ShowLoadingUI;
+AchSceneManager.OnSceneLoadCompleted += HideLoadingUI;
+```
+
+The `Ach` prefix distinguishes this manager from Unity's `UnityEngine.SceneManagement.SceneManager`.
+
+
+
+---
+url: /AchEngine/en/usage/mcp/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Unity MCP Skills — Overview
+
+AchEngine ships Unity AI Assistant (MCP) skill definitions so the Assistant can use the package's existing systems instead of reimplementing them with raw Unity APIs.
+
+
+> **What is Unity AI Assistant (MCP)?**
+> 
+> Unity AI Assistant can discover package-provided skills through MCP. A skill describes when and how to use a system and is not a runtime dependency of your game.
+> 
+
+
+## Where the skills live
+
+```text
+AchEngine/
+└── AIAssistantSkills/
+    ├── ach-mover-movement/
+    ├── addressables/
+    ├── localization/
+    └── ...
+```
+
+## Discovery and activation
+
+Skills are discovered when the Editor starts and after a domain reload. To activate them:
+
+1. Open `Edit > Preferences > AI > Skills`.
+2. Find the 12 AchEngine entries under **Package skills**.
+3. Change each status from `Deny` to `Allow`.
+4. Start a new Assistant conversation so it reads the updated skill set.
+
+## What the skills do
+
+They guide the Assistant toward AchEngine's movement, async, ECS, Localization, A\*, Singleton, HttpLink, UI catalog, timer, manager, VContainer, and Addressables APIs.
+
+## Add project-specific skills
+
+Place a project skill under the project's configured AI Assistant skills directory and document its trigger, allowed actions, and the APIs it should prefer.
+
+
+
+---
+url: /AchEngine/en/usage/mcp/skills.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Skill List
+
+| Skill                 | Focus                                 |
+| --------------------- | ------------------------------------- |
+| `ach-mover-movement`  | AchMover movement and collision       |
+| `ach-task-async`      | AchTask async operations              |
+| `ach-timer`           | AchTimer and UIAchTimer               |
+| `addressables`        | AddressableManager and editor tooling |
+| `ecs-ingame-logic`    | ECS gameplay logic                    |
+| `httplink-webrequest` | HttpLink HTTP requests                |
+| `imanager-managers`   | AchEngine managers                    |
+| `localization`        | LocalizationManager and locale data   |
+| `pathfinding-astar`   | A\* grids and pathfinding             |
+| `singleton`           | Singleton base classes                |
+| `ui-catalog`          | UIView catalog and UI workspace       |
+| `vcontainer-di`       | AchEngine DI and VContainer           |
+
+## Shared rules
+
+- Prefer an existing AchEngine feature instead of recreating it.
+- `ecs-ingame-logic` and `vcontainer-di` ask the user before applying architectural changes.
+- The authoritative instructions are the `SKILL.md` files under `AIAssistantSkills/<skill-name>`.
+
+
+
+---
+url: /AchEngine/en/usage/movement.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# AchMover
+
+`AchMover` is a plug-in 2D character movement component. It does **not** use `Rigidbody2D`; it implements Move-and-Slide collision, gravity, slopes, stairs, and ground snapping directly.
+
+## Usage
+
+Add `AchMover` and a `CapsuleCollider2D` to the character. Drive movement by setting the input or calling the public movement methods from your controller.
+
+## Inspector
+
+### Movement
+
+Configure move speed, acceleration, deceleration, jump speed, and air control.
+
+### Physics
+
+Configure gravity, terminal velocity, skin width, and collision layers.
+
+### Slopes & stairs
+
+Set `MaxSlopeAngle` and `StepHeight` to control walkable slopes and automatic stair climbing.
+
+### Control
+
+Enable or disable gravity and movement, and choose the update mode appropriate for the controller.
+
+## Built-in collision system
+
+Each frame the component:
+
+1. Combines input, gravity, and jump velocity.
+2. Casts the capsule and slides along collision surfaces, up to four iterations.
+3. Steps over ledges within `StepHeight`.
+4. Casts below the collider and marks the character grounded when the surface is within `MaxSlopeAngle`.
+5. Snaps to the ground while descending slopes.
+6. Corrects any remaining penetration.
+
+## State properties
+
+```csharp
+var mover = GetComponent<AchMover>();
+bool grounded = mover.IsGrounded;
+Vector2 velocity = mover.Velocity;
+```
+
+## Joystick or custom input
+
+```csharp
+mover.SetMoveInput(new Vector2(horizontal, vertical));
+mover.SetJumpPressed();
+```
+
+## Code-control API
+
+```csharp
+mover.Move(Vector2.right);
+mover.Jump();
+mover.AddImpulse(new Vector2(3f, 2f));
+```
+
+### Knockback
+
+```csharp
+private void OnHit(Vector2 direction)
+{
+    GetComponent<AchMover>().AddImpulse(direction.normalized * 8f);
+}
+```
+
+## Combining `UseGravity`
+
+Disable `UseGravity` when another system owns vertical movement. Re-enable it before returning control to AchMover.
+
+## `AchFollower` — AI following
+
+`AchFollower` is a standalone target-following component. It does not require `AchMover`.
+
+```csharp
+var follower = GetComponent<AchFollower>();
+follower.SetTarget(playerTransform);
+follower.ClearTarget();
+```
+
+## `AchProjectile` — projectiles
+
+`AchProjectile` supports straight and homing projectiles without `Rigidbody2D`. Configure speed, lifetime, collision layers, and the projectile type in the Inspector, then set the target for a homing shot.
+
+```csharp
+var projectile = Instantiate(projectilePrefab);
+projectile.Launch(direction);
+projectile.SetTarget(target);
+```
+
+## Trigger and collision events
+
+Use the component's hit/trigger callbacks to apply damage or effects. Keep gameplay response in the listener rather than modifying the movement solver.
+
+
+
+---
+url: /AchEngine/en/usage/pathfinding.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# A* Pathfinding
+
+`AStarPathfinder` searches a shortest grid path with A\*. It supports four-way or diagonal eight-way movement and uses a binary min-heap for efficient open-set operations.
+
+## Quick start
+
+### 1. Scan a scene with `AStarGridBaker`
+
+Add _*A* Grid Baker_\* to an empty GameObject, configure the grid size and obstacle layer, and inspect the green walkable/red blocked gizmos in the Scene view.
+
+```csharp
+var baker = GetComponent<AStarGridBaker>();
+Vector2Int start = baker.WorldToCell(player.position);
+Vector2Int end = baker.WorldToCell(targetPosition);
+
+var path = AStarPathfinder.FindPath(baker.Grid, start, end, diagonal: true);
+foreach (var cell in path)
+{
+    Vector3 worldPosition = baker.CellToWorld(cell);
+    // Move to the waypoint, for example through AchFollower.
+}
+```
+
+An unreachable target returns an empty `List<Vector2Int>`.
+
+### Follow a path with `AchFollower`
+
+Use `AchFollower.SetTarget()` for simple following. For waypoints, move through the cells in order and clear the target at the end.
+
+```csharp
+var follower = GetComponent<AchFollower>();
+foreach (var cell in path)
+{
+    Vector2 waypoint = baker.CellToWorld(cell);
+    follower.SetTarget(waypointTransform);
+    while (Vector2.Distance(transform.position, waypoint) > 0.05f)
+        await Task.Yield();
+}
+follower.ClearTarget();
+```
+
+### 2. Create a grid in code
+
+```csharp
+var grid = new AStarGrid(20, 20);
+grid.SetWalkable(5, 3, false);
+grid.SetCost(4, 4, 3f);
+
+var path = AStarPathfinder.FindPath(
+    grid,
+    start: new Vector2Int(0, 0),
+    end: new Vector2Int(19, 19),
+    diagonal: false);
+```
+
+## `AStarGridBaker` settings
+
+| Field              | Description                                                           |
+| ------------------ | --------------------------------------------------------------------- |
+| `Width` / `Height` | Number of cells                                                       |
+| `CellSize`         | Unity-unit size of one cell                                           |
+| `Origin`           | Transform for the lower-left cell; empty uses the GameObject position |
+| `ObstacleLayer`    | Layers treated as obstacles                                           |
+| `DetectionRadius`  | Obstacle radius per cell; `cellSize * 0.4` is a useful starting point |
+| `CostZones`        | Collider2D and cost pairs                                             |
+| `DrawGizmos`       | Scene-view visualization toggle                                       |
+
+Call `baker.Bake()` after changing dynamic obstacles. Tilemap colliders can be placed on the obstacle layer.
+
+## Grid and pathfinder APIs
+
+```csharp
+var grid = new AStarGrid(width: 20, height: 20);
+grid.SetWalkable(5, 3, false);
+grid.SetCost(4, 4, 3f);
+bool walkable = grid.IsWalkable(5, 3);
+float cost = grid.GetCost(4, 4);
+bool inBounds = grid.IsInBounds(5, 3);
+
+List<Vector2Int> path = AStarPathfinder.FindPath(
+    grid, new Vector2Int(0, 0), new Vector2Int(10, 10), diagonal: true);
+```
+
+The returned path excludes the start cell and includes the destination. `diagonal` defaults to `false`.
+
+## Algorithm details
+
+| Item          | Detail                                          |
+| ------------- | ----------------------------------------------- |
+| Search        | A\* with a binary min-heap open set             |
+| Heuristic     | Manhattan for four-way; Chebyshev for eight-way |
+| Diagonal cost | √2 ≈ 1.414                                      |
+| Cell weights  | Set with `AStarGrid.SetCost()`                  |
+| Complexity    | O((W×H) log(W×H))                               |
+
+Diagonal movement permits corner cutting when the diagonal cell is open. Disable diagonal movement or add an adjacent-cell check if that behavior is undesirable.
+
+
+
+---
+url: /AchEngine/en/usage/singleton/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Singleton
+
+## `Singleton<T>` — pure C# singleton
+
+Use the pure C# base for services that do not need a Unity lifecycle.
+
+```csharp
+public sealed class GameRules : Singleton<GameRules>
+{
+    public int MaxPlayers = 4;
+}
+
+var rules = GameRules.Instance;
+```
+
+## `MonoSingleton<T>` — scene-local singleton
+
+Use this base for a component that should have one instance in the current scene.
+
+```csharp
+public class ObjectTouchManager : MonoSingleton<ObjectTouchManager> { }
+```
+
+## `PersistentMonoSingleton<T>` — persistent singleton
+
+Use this base when the component should survive scene changes through `DontDestroyOnLoad`.
+
+```csharp
+public class AudioRoot : PersistentMonoSingleton<AudioRoot> { }
+```
+
+
+
+---
+url: /AchEngine/en/usage/table/codegen.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Code Generation & Runtime
+
+## Generate code
+
+Table Loader generates type-safe C# data classes from CSV.
+
+```text
+Id,Name,Price,IsActive
+101,Iron Sword,500,TRUE
+```
+
+```csharp
+[MemoryPackable]
+public partial class ItemData : ITableData
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int Price { get; set; }
+    public bool IsActive { get; set; }
+}
+
+public class ItemTable : ITableDatabase<int, ItemData> { }
+```
+
+Click **Generate Code** in the **Table Loader** window or **Project Settings › Table Loader**.
+
+## Bake
+
+Bake the generated data into `.bytes` when MemoryPack is installed, or `.json` otherwise. Files are written below `binaryOutputPath`.
+
+
+> **Place files under Resources**
+> 
+> Place baked files under a `Resources/` folder so runtime code can load them with `Resources.Load`, for example `Assets/GameData/Resources/Tables/Item.bytes`.
+> 
+
+
+## Runtime access
+
+```csharp
+var itemTable = TableManager.Get<ItemTable>();
+var item = itemTable.Get(101);
+Debug.Log($"{item.Name}: {item.Price}");
+
+foreach (var row in itemTable.All)
+    Debug.Log(row.Name);
+```
+
+## Use with DI
+
+```csharp
+public class GlobalInstaller : AchEngineInstaller
+{
+    public override void Install(IServiceBuilder builder)
+        => builder.Register<ITableService, TableService>();
+}
+
+public class GameService : IGameService
+{
+    private readonly ITableService _tables;
+
+    public GameService(ITableService tables) => _tables = tables;
+}
+```
+
+
+
+---
+url: /AchEngine/en/usage/table/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Table Loader — Overview
+
+Table Loader downloads Google Sheets data, generates C# types, and bakes runtime data.
+
+
+> **Optional package**
+> 
+> `com.cysharp.memorypack` is optional. When installed, baked data uses `.bytes`; otherwise it uses JSON.
+> 
+
+
+## Pipeline
+
+```mermaid
+flowchart LR
+A[Google Sheets] --> B[Download CSV]
+B --> C[Generate C#]
+C --> D[Bake data]
+D --> E[Resources]
+E --> F[TableManager]
+```
+
+## Main settings
+
+| Setting             | Description                                    |
+| ------------------- | ---------------------------------------------- |
+| Spreadsheet ID      | ID from the Google Sheets URL                  |
+| CSV output path     | Download destination                           |
+| Generated code path | C# output destination                          |
+| Binary output path  | `.bytes` or `.json` destination                |
+| Sheet list          | Sheet name, GID, and generated class name      |
+| Automation          | Generate and bake automatically after download |
+
+## Next steps
+
+- [Settings & download](/AchEngine/en/usage/table/setup.md)
+- [JSON → CSV export](/AchEngine/en/usage/table/json-to-csv.md)
+- [Code generation & runtime](/AchEngine/en/usage/table/codegen.md)
+
+
+
+---
+url: /AchEngine/en/usage/table/json-to-csv.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# JSON → CSV Export
+
+## Open the tool
+
+Open **AchEngine › Table JSON to CSV** from the Unity Editor.
+
+## Supported JSON
+
+The importer accepts an array of objects:
+
+```json
+[
+  { "Id": 101, "Name": "Iron Sword", "Price": 500 },
+  { "Id": 102, "Name": "Magic Wand", "Price": 1200 }
+]
+```
+
+It also accepts a wrapper object whose data is stored in a property such as `items`:
+
+```json
+{
+  "items": [
+    { "Id": 101, "Name": "Iron Sword" }
+  ]
+}
+```
+
+## CSV output
+
+```csv
+Id,Name,Price
+101,Iron Sword,500
+102,Magic Wand,1200
+```
+
+## Convert one file
+
+1. Choose a `.json` file with **Select JSON**.
+2. Choose the output `.csv` path with **Select CSV Location**.
+3. Click **Convert File**.
+
+## Convert a folder
+
+1. Choose the input folder with **Select JSON Folder**.
+2. Choose the output folder with **Select CSV Folder**.
+3. Enable **Include Subfolders** to recurse into child folders.
+4. Click **Convert Folder**.
+
+
+
+---
+url: /AchEngine/en/usage/table/setup.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Settings & Download
+
+## Initial setup
+
+Open **Project Settings › AchEngine › Table Loader** and:
+
+1. Enter the **Spreadsheet ID**.
+2. Set CSV, code, and binary output paths.
+3. Add sheets with a sheet name, GID, and class name.
+4. Click **Save Settings**.
+
+Settings are stored in `Assets/TableLoaderSettings.asset`.
+
+## Prepare Google Sheets
+
+1. Set the sheet sharing option to **Anyone with the link → Viewer**.
+2. Copy the ID from `https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit`.
+3. Copy each sheet's `gid=` value from its URL.
+
+## Sheet data format
+
+The first row is the C# property names and the following rows are data.
+
+```text
+| Id  | Name       | Price | IsActive |
+|-----|------------|-------|----------|
+| 101 | Iron Sword | 500   | TRUE     |
+| 102 | Magic Wand | 1200  | TRUE     |
+```
+
+
+> **Supported types**
+> 
+> `int`, `float`, `bool`, `string`, and `long` are supported. A column named `Id` is used as the default key.
+> 
+
+
+## Register sheets
+
+| Field      | Description                  |
+| ---------- | ---------------------------- |
+| Enabled    | Whether to process the sheet |
+| Sheet Name | Google Sheets tab name       |
+| GID        | Sheet ID from the URL        |
+| Class Name | Generated C# class name      |
+
+## Download CSV
+
+Click **Open Table Loader** or use **Tools › AchEngine › Table Loader**, then click **Download CSV**. Files are created under `csvOutputPath`.
+
+## Automation
+
+Enable automatic code generation after download and automatic baking after code generation to run **Download → Generate → Bake** in one click.
+
+## JSON → CSV
+
+Use **AchEngine › Table JSON to CSV** to convert baked JSON back to Google Sheets-compatible CSV. See [JSON → CSV export](/AchEngine/en/usage/table/json-to-csv.md).
+
+
+
+---
+url: /AchEngine/en/usage/timer.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# AchTimer
+
+`AchTimer` is an async/await timer utility for simple delays and progress tracking.
+
+## Simple waits
+
+```csharp
+await AchTimer.Wait(3f);
+await AchTimer.WaitRealtime(3f);
+```
+
+`Wait` uses game time; `WaitRealtime` uses unscaled time and is unaffected by slow motion or pause.
+
+## Track progress with `AchTimerHandle`
+
+```csharp
+var timer = AchTimer.Start(5f);
+await timer;
+```
+
+| Property      | Description                         |
+| ------------- | ----------------------------------- |
+| `Duration`    | Total duration in seconds           |
+| `Elapsed`     | Elapsed seconds                     |
+| `Remaining`   | Remaining seconds, never below zero |
+| `Progress`    | 0 to 1 completion ratio             |
+| `IsDone`      | Completed or canceled               |
+| `IsCancelled` | Canceled state                      |
+| `Task`        | Task representing completion        |
+
+`await timer` and `await timer.Task` are equivalent. Cancellation raises `TaskCanceledException`.
+
+```csharp
+var timer = AchTimer.Start(10f);
+if (playerDied)
+    timer.Cancel();
+```
+
+Use `useUnscaledTime: true` for a real-time timer and pass a `CancellationToken` when an external owner should cancel it.
+
+```csharp
+var cts = new CancellationTokenSource();
+await AchTimer.Wait(10f, cts.Token);
+var timer = AchTimer.Start(10f, cancellationToken: cts.Token);
+```
+
+## `UIAchTimer`
+
+Bind a handle to optional `Text` and `Slider` fields to display remaining/elapsed time and progress.
+
+```csharp
+var timer = AchTimer.Start(5f);
+GetComponent<UIAchTimer>().Bind(timer);
+await timer;
+```
+
+The component unbinds automatically when the timer completes; call `Unbind()` manually when needed.
+
+## Complete example
+
+```csharp
+var cts = new CancellationTokenSource();
+var castTimer = AchTimer.Start(2f, cancellationToken: cts.Token);
+castBar.Bind(castTimer);
+
+try
+{
+    await castTimer;
+    FireSkill();
+}
+catch (TaskCanceledException)
+{
+    ShowCancelMessage();
+}
+```
+
+## Related docs
+
+- [UI system overview](/AchEngine/en/usage/ui.md)
+- [Button extension components](/AchEngine/en/usage/ui/button-extras.md)
+
+
+
+---
+url: /AchEngine/en/usage/ui/binding.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# UIBindingManager *(ACHENGINE_R3)*
+
+`UIBindingManager` is a type-safe pub/sub bus built on R3 `Subject<T>`. It is enabled only when `com.cysharp.r3` is installed.
+
+## Publish
+
+```csharp
+public struct GoldChangedMessage
+{
+    public int Amount;
+}
+
+UIBindingManager.Publish(new GoldChangedMessage { Amount = 500 });
+```
+
+## Subscribe
+
+Store the returned `IDisposable` and dispose it when the view is disabled or destroyed.
+
+```csharp
+private IDisposable _subscription;
+
+private void OnEnable()
+{
+    _subscription = UIBindingManager.Subscribe<GoldChangedMessage>(message =>
+    {
+        goldLabel.text = message.Amount.ToString();
+    });
+}
+
+private void OnDisable() => _subscription?.Dispose();
+```
+
+## Utilities
+
+```csharp
+bool exists = UIBindingManager.Contains<GoldChangedMessage>();
+UIBindingManager.ClearAll();
+```
+
+| Method                    | Description                           |
+| ------------------------- | ------------------------------------- |
+| `Publish<T>(T)`           | Publish a message                     |
+| `Subscribe<T>(Action<T>)` | Subscribe and return an `IDisposable` |
+| `Contains<T>()`           | Check whether a subject exists        |
+| `ClearAll()`              | Remove every subject                  |
+
+Without R3, the manager is excluded from compilation.
+
+
+
+---
+url: /AchEngine/en/usage/ui/button-extras.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Button Extension Components
+
+`AchButtonCooldown` and `AchButtonHold` are components added beside a standard Unity `Button`. Both require a `Button` on the same GameObject.
+
+## `AchButtonCooldown`
+
+Disables the button after a click and enables it again after the configured duration. It can display a countdown label.
+
+| Inspector field     | Description                           |
+| ------------------- | ------------------------------------- |
+| `Cooldown`          | Minimum delay in seconds; default `1` |
+| `Show Countdown`    | Display remaining time                |
+| `Countdown Label`   | Optional `Text` target                |
+| `On Cooldown Start` | UnityEvent fired at start             |
+| `On Cooldown End`   | UnityEvent fired at end               |
+
+| API               | Description                                 |
+| ----------------- | ------------------------------------------- |
+| `IsCoolingDown`   | Current state                               |
+| `StartCooldown()` | Start or restart the cooldown               |
+| `ResetCooldown()` | Clear the cooldown and re-enable the button |
+
+```csharp
+var cooldown = GetComponent<AchButtonCooldown>();
+cooldown.StartCooldown();
+cooldown.ResetCooldown();
+if (!cooldown.IsCoolingDown)
+    Debug.Log("Button is ready");
+```
+
+## `AchButtonHold`
+
+Fires a UnityEvent repeatedly while the button is held. It is useful for quantity controls and volume adjustments.
+
+| Inspector field   | Description                                  |
+| ----------------- | -------------------------------------------- |
+| `Initial Delay`   | Delay before the first repeat; default `0.5` |
+| `Repeat Interval` | Time between repeats; default `0.1`          |
+| `On Hold Fire`    | Repeated UnityEvent                          |
+
+| API         | Description                          |
+| ----------- | ------------------------------------ |
+| `IsHolding` | Whether the button is currently held |
+
+```csharp
+public void IncreaseVolume()
+{
+    AudioManager.Volume = Mathf.Clamp01(AudioManager.Volume + 0.05f);
+}
+```
+
+## Use both components
+
+```text
+[Button GameObject]
+├── Button
+├── AchButtonCooldown
+└── AchButtonHold
+```
+
+## Related docs
+
+- [UI system overview](/AchEngine/en/usage/ui.md)
+- [AchTimer](/AchEngine/en/usage/timer.md)
+
+
+
+---
+url: /AchEngine/en/usage/ui/draggable.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Draggable & Touch Objects
+
+AchEngine provides components for dragging and tapping 2D world objects.
+
+## `Draggable`
+
+Derive from `Draggable` to receive mouse/touch drag events. A missing `Physics2DRaycaster` is added to the main camera automatically.
+
+```csharp
+public class CardView : Draggable
+{
+    protected override void Start()
+    {
+        base.Start();
+        OnTouchDown += () => Debug.Log("Picked up");
+        OnTouching += position => Debug.Log($"Dragging: {position}");
+        OnTouchUp += hits => Debug.Log($"Dropped on {hits.Length} colliders");
+    }
+}
+```
+
+| Event         | Signature              | Description                        |
+| ------------- | ---------------------- | ---------------------------------- |
+| `OnTouchDown` | `Action`               | Pointer pressed                    |
+| `OnTouching`  | `Action<Vector3>`      | Dragging world position            |
+| `OnTouchUp`   | `Action<Collider2D[]>` | Dropped with overlapping colliders |
+
+`originalPos` stores the world position at the beginning of a drag.
+
+## `TouchableObject`
+
+Override `OnTouched()` for a tap/click-only object.
+
+```csharp
+public class EnemyObject : TouchableObject
+{
+    protected override void OnTouched() => Debug.Log("Enemy clicked");
+}
+```
+
+## `ObjectTouchManager`
+
+Add one `ObjectTouchManager` to the scene. It detects left-clicks each frame, raycasts in 2D, and invokes `OnTouched()` on the hit `TouchableObject`.
+
+
+
+---
+url: /AchEngine/en/usage/ui/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# UI System — Overview
+
+AchEngine UI provides layer-based view management, pooling, transitions, bindings, and editor tooling.
+
+## Core components
+
+| Component                        | Role                                  |
+| -------------------------------- | ------------------------------------- |
+| `UIRoot`                         | Owns UI layers and the view catalog   |
+| `UIView`                         | Base class for screens and popups     |
+| `UIViewCatalog`                  | Maps view IDs to prefabs and settings |
+| `UIBootstrapper`                 | Opens configured views at scene start |
+| `UIOpenButton` / `UICloseButton` | Inspector-driven navigation           |
+| `UISafeAreaFitter`               | Avoids notch and punch-hole areas     |
+
+## Layer structure
+
+```mermaid
+flowchart TB
+Root[UIRoot] --> Background
+Root --> Screen
+Root --> Popup
+Root --> Tooltip
+Root --> Overlay
+```
+
+## Open and close a view
+
+```csharp
+var ui = ServiceLocator.Resolve<IUIService>();
+ui.Show<MainMenuView>();
+ui.Show("SettingsPopup");
+ui.Close<MainMenuView>();
+ui.CloseAll();
+```
+
+## Next steps
+
+- [UIView & lifecycle](/AchEngine/en/usage/ui/views.md)
+- [UI Workspace](/AchEngine/en/usage/ui/workspace.md)
+
+
+
+---
+url: /AchEngine/en/usage/ui/red-dot.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# RedDot System
+
+`RedDot` is a static facade for notification badges. Keys separated by `/` form a hierarchy, and child counts are aggregated into their parents.
+
+## API
+
+```csharp
+RedDot.Set("Shop/New", 3);
+RedDot.Add("Quest/Daily", 1);
+int count = RedDot.Get("Shop");
+bool visible = RedDot.HasDot("Shop");
+RedDot.Clear("Quest/Daily");
+RedDot.Subscribe("Shop", OnShopChanged);
+RedDot.Unsubscribe("Shop", OnShopChanged);
+```
+
+`RedDot.ClearAll()` resets every key to zero, which is useful during scene transitions or a new game session.
+
+```csharp
+RedDot.ClearAll();
+SceneManager.LoadScene("MainMenu");
+```
+
+## Hierarchy
+
+```text
+Shop       → Shop/New + Shop/Sale
+Shop/New   → direct count
+Shop/Sale  → direct count
+```
+
+## `RedDotBadge`
+
+Attach `RedDotBadge` to a UI object to toggle a dot object and optional count label automatically.
+
+| Field            | Description                                         |
+| ---------------- | --------------------------------------------------- |
+| `Key`            | Key to observe, such as `Shop` or `Quest/Daily`     |
+| `Dot`            | GameObject enabled when count > 0                   |
+| `Count Label`    | Optional `Text`; shown for counts of 2 or more      |
+| `Clear On Click` | Automatically clear on button click; default `true` |
+| `Button`         | Button used for click clearing                      |
+
+The component subscribes in `OnEnable` and unsubscribes in `OnDisable`.
+
+## Direct subscription
+
+```csharp
+private void OnEnable() => RedDot.Subscribe("Shop", OnShopChanged);
+private void OnDisable() => RedDot.Unsubscribe("Shop", OnShopChanged);
+
+private void OnShopChanged(int count)
+{
+    _shopButton.SetDotVisible(count > 0);
+}
+```
+
+RedDot resets its static state on `SubsystemRegistration`, so it also works when Enter Play Mode is configured without Domain Reload.
+
+## Related docs
+
+- [UI system overview](/AchEngine/en/usage/ui.md)
+- [UIView & lifecycle](/AchEngine/en/usage/ui/views.md)
+
+
+
+---
+url: /AchEngine/en/usage/ui/views.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# UIView & Lifecycle
+
+`UIView` is the base class for every screen in the AchEngine UI system.
+
+## Lifecycle
+
+```mermaid
+stateDiagram-v2
+direction TB
+[*] --> Unborn
+Unborn --> Initializing : first instance
+Initializing --> Idle : OnInitialize()
+Pool --> Idle : get from pool
+Idle --> Opening : Show()
+Opening --> Visible : OnOpened()
+Visible --> Closing : Close()
+Closing --> Idle : OnClosed()
+Idle --> Pool : return when Pool Size > 0
+Idle --> [*] : destroy when Pool Size = 0
+```
+
+## Implement a view
+
+```csharp
+using AchEngine.UI;
+using UnityEngine.UI;
+
+public class ItemDetailView : UIView
+{
+    [SerializeField] private Text _nameText;
+    [SerializeField] private Text _descText;
+    private ItemData _item;
+
+    protected override void OnInitialize()
+        => _closeButton.onClick.AddListener(CloseSelf);
+
+    public void SetItem(ItemData item) => _item = item;
+
+    protected override void OnOpened(object payload)
+    {
+        _nameText.text = _item.Name;
+        _descText.text = _item.Description;
+    }
+
+    protected override void OnClosed() => _item = null;
+}
+```
+
+## Single-instance mode
+
+Enable **Single Instance** on the catalog entry when repeated calls should reuse one view. Configure its layer in `UIViewCatalog`; do not override a layer property in the view subclass.
+
+## Object pool
+
+Set **Pool Size** to at least 1 to return closed views to the pool instead of destroying them. Reset transient state in `OnClosed()`.
+
+## Create a view prefab
+
+```text
+[GameObject]
+├── Canvas Group (fade transition)
+├── UIView
+└── UI elements
+```
+
+Register the prefab in `UIViewCatalog`, then assign the catalog to `UIRoot`.
+
+| Field         | Description                                |
+| ------------- | ------------------------------------------ |
+| **ID**        | String passed to `Show("ID")`              |
+| **Prefab**    | Prefab containing `UIView`                 |
+| **Layer**     | Render layer                               |
+| **Pool Size** | Pre-created instances; 0 creates on demand |
+
+## Useful components
+
+- `UICloseButton` closes the nearest parent `UIView`.
+- `UIOpenButton` opens a configured view ID.
+- `UISafeAreaFitter` avoids notch/punch-hole areas. `UIRoot` adds it automatically to `Screen`, `Popup`, and `Tooltip`.
+- `UIBootstrapper` opens configured views when a scene starts.
+
+## Transitions
+
+Override `OnBeforeOpen(object payload)` and `OnBeforeClose()` to start custom animations. The configured `UITransitionSettings` controls when closing and pooling finish. Set Transition Mode to `None` for a fully custom animation.
+
+```csharp
+protected override void OnBeforeOpen(object payload)
+{
+    _panel.anchoredPosition = new Vector2(Screen.width, 0);
+    _panel.DOAnchorPosX(0, 0.3f).SetEase(Ease.OutCubic);
+}
+```
+
+
+
+---
+url: /AchEngine/en/usage/ui/workspace.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# Using UI Workspace
+
+UI Workspace creates the scene UI root, manages the view catalog, and provides Editor diagnostics.
+
+## Initial setup
+
+### 1. Create `UIRoot`
+
+Open **Project Settings › AchEngine › UI Workspace** and click **Create UI Root**, or place a `UIRoot` prefab in the scene.
+
+### 2. Create `UIViewCatalog`
+
+Create **Create › Achieve › UI View Catalog** and assign it to `UIRoot`.
+
+### 3. Register view prefabs
+
+Add each `UIView` prefab to the catalog and configure its ID, layer, pool size, and single-instance setting.
+
+## Open and close views
+
+```csharp
+var ui = ServiceLocator.Resolve<IUIService>();
+ui.Show<MainMenuView>();
+ui.Show("SettingsPopup");
+ui.Close<MainMenuView>();
+ui.CloseAll();
+```
+
+## View prefab structure
+
+```text
+[View Prefab]
+├── Canvas Group
+├── UIView
+└── child UI elements
+```
+
+Use `OnInitialize()` for one-time wiring, `OnOpened(object payload)` for each open, and `OnClosed()` to clear state.
+
+## Pool and single instance
+
+Set **Pool Size** above zero to reuse instances. Enable **Single Instance** when a view ID should have only one active instance.
+
+## `UIBootstrapper`
+
+Add `UIBootstrapper` to a scene and populate **Auto Open Views** with the catalog IDs that should open at startup.
+
+## Useful components
+
+- `UICloseButton` closes the nearest parent view.
+- `UIOpenButton` opens the configured target view ID.
+- `UISafeAreaFitter` applies safe-area padding to a custom Canvas or layer. `UIRoot` applies it automatically to `Screen`, `Popup`, and `Tooltip`.
+
+## Unity 6 editor toolbar
+
+The **AchEngine/Scene Navigator** toolbar lists Build Settings scenes, shows the active edit scene, checks unsaved changes before navigation, refreshes after scene or Build Settings changes, and disables navigation during Play Mode.
+
+## UI Workspace window
+
+The workspace window can:
+
+- list all registered views in the scene;
+- force-open or close a view while playing in the Editor;
+- show live view state by layer; and
+- warn about `UIView` components that are not registered in the catalog.
+
+
+
+---
+url: /AchEngine/en/usage/web-request.md
+---
+
+> For AI agents: the complete documentation index is available at /AchEngine/en/llms.txt, the full documentation bundle is available at /AchEngine/en/llms-full.txt.
+
+# HttpLink
+
+`HttpLink` wraps Unity `UnityWebRequest` with a builder API for GET/POST, JSON serialization, headers, and timeouts.
+
+## GET
+
+```csharp
+var result = await new HttpLink.Builder()
+    .SetUrl("https://api.example.com/users/1")
+    .AddHeader("Authorization", "Bearer token123")
+    .SetTimeout(10)
+    .GetAsync<UserData>();
+```
+
+## POST
+
+```csharp
+string json = JsonConvert.SerializeObject(new LoginRequest { UserId = "abc", Password = "pw" });
+
+bool success = await new HttpLink.Builder()
+    .SetUrl("https://api.example.com/login")
+    .SetJsonBody(json)
+    .PostAsync();
+```
+
+## Send directly
+
+Use `Build().SendAsync()` when you need the raw response or status.
+
+```csharp
+var link = await new HttpLink.Builder()
+    .SetUrl("https://api.example.com/data")
+    .SetMethod(UnityWebRequest.kHttpVerbGET)
+    .Build()
+    .SendAsync();
+
+if (link.Success)
+    Debug.Log(link.ReceiveDataString);
+```
+
+## Builder API
+
+| Method                      | Description                                                  |
+| --------------------------- | ------------------------------------------------------------ |
+| `SetUrl(string)`            | Request URL                                                  |
+| `SetMethod(string)`         | `GET` or `POST`; other methods throw `NotSupportedException` |
+| `SetTimeout(int)`           | Timeout in seconds                                           |
+| `SetJsonBody(string)`       | JSON body with `application/json`                            |
+| `AddHeader(string, string)` | Request header                                               |
+| `GetAsync<T>()`             | GET and JSON deserialize                                     |
+| `PostAsync()`               | POST and return success                                      |
+| `Build()`                   | Create an `HttpLink`                                         |
+
+## `HttpLink` properties
+
+| Property            | Description                   |
+| ------------------- | ----------------------------- |
+| `Success`           | Whether the request succeeded |
+| `Result`            | `UnityWebRequest.Result`      |
+| `ReceiveDataString` | Response body as text         |
+| `ReceiveData`       | Response bytes                |
+| `DownloadSize`      | Downloaded bytes              |
+| `DownloadProgress`  | Progress from 0 to 1          |
+
+JSON serialization uses `Newtonsoft.Json.JsonConvert`.
+
+

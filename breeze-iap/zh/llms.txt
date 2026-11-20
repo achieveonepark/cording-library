@@ -1,0 +1,23 @@
+# Breeze IAP
+
+> Lightweight async/await wrapper for Unity IAP
+
+## 快速开始
+
+- [快速开始](https://docs.somiri.dev/breeze-iap/zh/getting-started.md): Breeze IAP 的安装与基本配置指南
+
+## API
+
+- [InitializeAsync](https://docs.somiri.dev/breeze-iap/zh/api/initialize.md)
+
+## 更新日志
+
+- [更新日志](https://docs.somiri.dev/breeze-iap/zh/changelog.md): Breeze IAP 各版本的更新日志
+
+## Others
+
+- [Confirm](https://docs.somiri.dev/breeze-iap/zh/api/confirm.md)
+- [GetPendingList](https://docs.somiri.dev/breeze-iap/zh/api/pending.md)
+- [PurchaseAsync](https://docs.somiri.dev/breeze-iap/zh/api/purchase.md)
+- [Restore](https://docs.somiri.dev/breeze-iap/zh/api/restore.md)
+- [타입 정의](https://docs.somiri.dev/breeze-iap/zh/api/types.md)

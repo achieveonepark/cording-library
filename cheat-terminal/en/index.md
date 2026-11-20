@@ -1,0 +1,33 @@
+> For AI agents: the complete documentation index is available at /cheat-terminal/en/llms.txt, the full documentation bundle is available at /cheat-terminal/en/llms-full.txt.
+
+# Introduction
+
+Cheat Terminal is a Unity runtime developer console for cheats, debugging, log review, and live runtime control.
+
+Commands are registered explicitly with `RegisterCommand(...)`. There is no automatic assembly scanning or reflection invocation in the default runtime path, which keeps IL2CPP/AOT builds predictable. The console runs as a uGUI overlay with **zero idle cost** while closed.
+
+```csharp
+TerminalBehaviour.RegisterCommand(
+    "gold",
+    ctx => ctx.Output.WriteLine("gold added", LogLevel.Success),
+    "Add gold",
+    "Cheats",
+    "gold <amount>");
+```
+
+## Features
+
+- **Explicit registration** - Register commands with `RegisterCommand("name", ctx => ...)`; no hidden reflection scan.
+- **Runtime IntelliSense** - Shows command, keyword, data table, and row suggestions with details.
+- **Performance-first** - Disabled canvas while closed, capped output ring buffer, and keyboard history through the shared `TerminalInput` backend.
+- **Modular** - Scene, Data, Performance, Logs, and Unity Components modules are installed by default.
+- **Tabbed UI** - Console, Commands, and Data tabs show output, registered commands, and registered data.
+- **Mobile-friendly** - Multi-touch gestures (3 or 4 fingers, tapped 3 times) bring the UI up, and device logs export to a file.
+- **Cheat HUD** - Run registered cheats with parameter fields and Run buttons in a full-screen UI Toolkit panel; open/close listeners drive `Time.timeScale`.
+
+## Requirements
+
+- Unity 6 (6000.x)
+- `com.unity.ugui` (included by default)
+
+Next: [Getting Started](/cheat-terminal/en/getting-started.md)

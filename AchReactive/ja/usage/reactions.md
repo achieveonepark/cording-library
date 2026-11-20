@@ -1,0 +1,84 @@
+> For AI agents: the complete documentation index is available at /AchReactive/ja/llms.txt, the full documentation bundle is available at /AchReactive/ja/llms-full.txt.
+
+# リアクションと基本動作
+
+## 実行フロー
+
+```csharp
+var engine = new ReactionEngine();
+engine.Run("on_use", skillData, ctx);
+```
+
+`Run(trigger, data, ctx)` は `data.reactions` を巡回し、各リアクションを次のように処理します。
+
+```
+1. trigger 채널 이름 일치?            (아니면 skip)
+2. 트리거 가드 통과?                  (TriggerRegistry, 없으면 통과)
+3. 모든 조건(AND) 통과?               (ConditionRegistry)
+4. 효과를 순서대로 실행               (EffectRegistry)
+```
+
+戻り値は実際に実行されたリアクションの数です。
+
+## ReactionContext
+
+```csharp
+var ctx = new ReactionContext
+{
+    Source  = caster,     // 주체
+    Target  = target,     // 단일 대상
+    Targets = targets,    // 광역 대상 (있으면 우선)
+    World   = world,      // 스폰/조회 경계
+};
+```
+
+effect は `ctx.Params` で自身の引数を読み込みます。エンジンが項目ごとに注入します。
+
+## 基本 Effect
+
+| type              | 説明                                   | params                                |
+| ----------------- | ------------------------------------ | ------------------------------------- |
+| `damage`          | `atk*power + flat - def` の分だけ hp を減少 | `power`, `flat`                       |
+| `heal`            | `atk*power + flat` 回復（hp_max が上限）    | `power`, `flat`                       |
+| `set_stat`        | スタットの基本値を設定                          | `stat`, `value`                       |
+| `add_stat`        | スタットの基本値を増減                          | `stat`, `delta`                       |
+| `add_modifier`    | スタット修正子を追加（バフの基本形）                   | `stat`, `modifier`, `value`, `source` |
+| `remove_modifier` | source トークンの修正子を除去                   | `source`                              |
+| `spawn`           | World でエンティティをスポーン                   | `entityId`                            |
+| `log`             | デバッグログ                               | `message`                             |
+
+`modifier` の値は `flat` / `percent_add` / `percent_mul` です。対象は `Targets` があれば
+すべて、なければ `Target` です。
+
+## 基本 Condition
+
+| type                        | 説明       | params          |
+| --------------------------- | -------- | --------------- |
+| `always`                    | 常に真      | —               |
+| `alive` / `dead`            | 対象の生存/死亡 | —               |
+| `chance`                    | 確率で通過    | `value` (0\~1)  |
+| `hp_below` / `hp_above`     | HP比率の比較  | `value` (0\~1)  |
+| `stat_above` / `stat_below` | スタット値の比較 | `stat`, `value` |
+
+条件は別途指定がなければ `Target`（なければ `Source`）を評価します。
+
+## 基本 Trigger ガード
+
+ほとんどのトリガー（`on_use`、`on_hit`、`on_equip` など）はチャンネル名だけで発動するため、ガードがありません。
+閾値比較が必要なトリガーのみガードを持ちます。
+
+| type          | 説明                                  | triggerParams      |
+| ------------- | ----------------------------------- | ------------------ |
+| `on_hp_below` | Source の HP 比率が threshold 以下のときのみ発動 | `threshold` (0\~1) |
+
+## スタットの規約
+
+基本 effect/condition は次のキーを使用します（`StatKeys`）。別の体系を使いたい場合は effect を
+直接登録して上書きすれば済みます。
+
+| キー       | 意味            |
+| -------- | ------------- |
+| `hp`     | 現在の体力（リソース）   |
+| `hp_max` | 最大体力（比率条件の分母） |
+| `atk`    | 攻撃力（修正子適用）    |
+| `def`    | 防御力（修正子適用）    |

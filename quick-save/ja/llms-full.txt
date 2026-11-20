@@ -1,0 +1,645 @@
+---
+url: /quick-save/ja/api/builder.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ja/llms.txt, the full documentation bundle is available at /quick-save/ja/llms-full.txt.
+
+# Builder
+
+`QuickSave<T>.Builder` は `QuickSave<T>` インスタンスを生成するためのビルダークラスです。
+
+```csharp
+var save = new QuickSave<T>.Builder()
+    /* オプションメソッド */
+    .Build();
+```
+
+## メソッド
+
+### Build()
+
+```csharp
+public QuickSave<T> Build()
+```
+
+設定を適用して `QuickSave<T>` インスタンスを返します。この時点で保存ディレクトリがなければ自動的に作成されます。
+
+### UseEncryption(string encryptionKey)
+
+```csharp
+public Builder UseEncryption(string encryptionKey)
+```
+
+
+> **Info**
+> 
+> `USE_ENCRYPT` シンボルが定義されている場合のみ使用できます（DataProtector のインストールが必要）。
+> 
+
+
+保存時の暗号化、読み込み時の復号を有効にします。
+
+| パラメーター          | 型        | 説明          |
+| --------------- | -------- | ----------- |
+| `encryptionKey` | `string` | 暗号化/復号に使うキー |
+
+```csharp
+new QuickSave<PlayerData>.Builder()
+    .UseEncryption("your-secret-key")
+    .Build();
+```
+
+### UseVersion(int version)
+
+```csharp
+public Builder UseVersion(int version)
+```
+
+
+> **Info**
+> 
+> `USE_ENCRYPT` シンボルが定義されている場合のみ使用できます。
+> 
+
+
+保存ファイル名にバージョン番号を含めます。既定値は `0` です。
+
+| パラメーター    | 型     | 説明                |
+| --------- | ----- | ----------------- |
+| `version` | `int` | ファイル名に付与するバージョン番号 |
+
+```csharp
+new QuickSave<PlayerData>.Builder()
+    .UseEncryption("your-secret-key")
+    .UseVersion(2)
+    .Build();
+// → PlayerData_2.acqs
+```
+
+
+
+---
+url: /quick-save/ja/api/methods.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ja/llms.txt, the full documentation bundle is available at /quick-save/ja/llms-full.txt.
+
+# QuickSave<T> メソッド
+
+`QuickSave<T>` の公開メソッドリファレンスです。
+
+
+> **Info**
+> 
+> ジェネリック制約: `where T : class`
+> 
+
+
+## SaveData
+
+```csharp
+public void SaveData(T data)
+```
+
+`data` を MemoryPack でシリアライズしてファイルに保存します。暗号化が有効な場合はシリアライズ後に暗号化します。
+
+| パラメーター | 型   | 説明         |
+| ------ | --- | ---------- |
+| `data` | `T` | 保存するオブジェクト |
+
+```csharp
+save.SaveData(player);
+```
+
+## SaveDataAsync
+
+```csharp
+public Task SaveDataAsync(T data)
+```
+
+`SaveData` の非同期版です。メインスレッドをブロックしません。
+
+```csharp
+await save.SaveDataAsync(player);
+```
+
+## LoadData
+
+```csharp
+public T LoadData()
+```
+
+保存ファイルを読み込み、デシリアライズしたオブジェクトを返します。
+
+| 戻り値                       | 条件                  |
+| ------------------------- | ------------------- |
+| `T` インスタンス                | 正常に読み込み             |
+| `null`                    | ファイルなし              |
+| `InvalidDataException` 発生 | ファイルは存在するがデシリアライズ失敗 |
+
+```csharp
+try
+{
+    var data = save.LoadData();
+    if (data == null) { /* ファイルなし */ }
+}
+catch (InvalidDataException e)
+{
+    Debug.LogError(e.Message); // ファイル破損
+}
+```
+
+## LoadDataAsync
+
+```csharp
+public Task<T> LoadDataAsync()
+```
+
+`LoadData` の非同期版です。
+
+```csharp
+var data = await save.LoadDataAsync();
+```
+
+## HasSaveData
+
+```csharp
+public bool HasSaveData()
+```
+
+保存ファイルが存在すれば `true`、なければ `false` を返します。`LoadData` の前にファイルの有無を確認するときに使用します。
+
+```csharp
+if (save.HasSaveData())
+{
+    var data = save.LoadData();
+}
+```
+
+## DeleteData
+
+```csharp
+public void DeleteData()
+```
+
+保存ファイルを削除します。ファイルがなければ何もしません。
+
+```csharp
+save.DeleteData();
+```
+
+
+
+---
+url: /quick-save/ja/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ja/llms.txt, the full documentation bundle is available at /quick-save/ja/llms-full.txt.
+
+# 変更履歴
+
+## \[1.0.3] `最新` — 2026-05-23
+
+### 追加
+
+- **`SaveDataAsync(T data)`** — 非同期の保存メソッド。`File.WriteAllBytesAsync` ベースでメインスレッドをブロックしません。
+- **`LoadDataAsync()`** — 非同期の読み込みメソッド。大容量の保存ファイルや遅いストレージ環境（モバイル）でフレームドロップを防ぎます。
+- **`HasSaveData()`** — 読み込み前に保存ファイルの有無を確認できるメソッド。従来は `LoadData()` の戻り値が `null` かどうかを確認する必要がありました。
+
+### バグ修正
+
+- **`Builder.UseVersion()` 無視バグ** — `UseVersion(n)` 呼び出し時に設定したバージョン値が内部で常に `0` に固定される問題を修正しました。暗号化 + バージョン管理を併用する場合、保存ファイルのパスが意図と異なって生成されていました。
+- **`SaveData<T>` 型パラメーターのシャドーイング** — `QuickSave<T>` クラスのジェネリック `T` と異なる型をシリアライズできてしまう構造的バグを修正しました。
+- **`LoadData()` のエラー区別を改善** — ファイルなしは `null` を返し、デシリアライズ失敗は `InvalidDataException` を投げて、2 つのケースを明確に区別できるようにしました。
+
+### パフォーマンス
+
+- **保存ディレクトリ生成の最適化** — 呼び出しごとに `Directory.Exists` を実行する構造を改善しました。`Build()` 時に一度だけディレクトリを確認・作成し、以降はファイルパスをキャッシュします。
+
+## \[1.0.2] — 2026-05-16
+
+### 追加
+
+- **`DeleteData()`** — 保存ファイル（`.acqs`）をランタイムで直接削除するメソッド。ファイルがない場合も例外を発生させません。
+- **Editor メニュー `Achieve > Delete Save`** — `quicksave/` ディレクトリ内のすべての `.acqs` ファイルを一括削除するユーティリティ。削除前に確認ダイアログを表示します。
+
+## \[1.0.0] — 2024-01-01
+
+### 追加
+
+- パッケージ初回リリース
+- **`SaveData(T data)`** — MemoryPack ベースのバイナリシリアライズ保存
+- **`LoadData()`** — バイナリファイルのデシリアライズ読み込み
+- `Application.persistentDataPath/quicksave/` に `.acqs` 拡張子で保存
+- **暗号化オプション** — `USE_ENCRYPT` define と DataProtector 連携で AES 暗号化に対応
+- **バージョン管理** — `UseVersion(int)` でファイル名にバージョンを付与
+- **Builder パターン** — `QuickSave<T>.Builder` でインスタンスを構成
+
+
+
+---
+url: /quick-save/ja/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ja/llms.txt, the full documentation bundle is available at /quick-save/ja/llms-full.txt.
+
+# はじめに
+
+## 事前準備: MemoryPack のインストール
+
+Quick Save は MemoryPack に依存します。まず [NuGetForUnity](https://github.com/GlitchEnzo/NuGetForUnity) を通じて MemoryPack をインストールしてください。
+
+1. NuGetForUnity をプロジェクトにインストールします。
+2. Unity メニューから **NuGet > Manage NuGet Packages** を開きます。
+3. `MemoryPack` を検索してインストールします。
+
+## インストール
+
+### Unity Package Manager (UPM) — 推奨
+
+1. **Window > Package Manager** を開きます。
+2. 左上の `+` ボタン → **Add package from git URL...** を選択します。
+3. 以下の URL を入力して **Add** をクリックします。
+
+```
+https://github.com/achieveonepark/QuickSave.git#1.0.3
+```
+
+### manifest.json を直接編集
+
+`Packages/manifest.json` の `dependencies` に追加します。
+
+```json
+{
+  "dependencies": {
+    "com.achieve.quick-save": "https://github.com/achieveonepark/QuickSave.git#1.0.3"
+  }
+}
+```
+
+
+> **Info**
+> 
+> 暗号化が必要な場合は [DataProtector](https://github.com/achieveonepark/DataProtector) パッケージも追加でインストールしてください。DataProtector があると `USE_ENCRYPT` シンボルが自動的に定義され、`UseEncryption()`、`UseVersion()` メソッドが有効になります。詳細は [使い方 › 暗号化 & バージョン管理](/quick-save/ja/usage/encryption.md) を参照してください。
+> 
+
+
+## クイックスタート
+
+### 1. 保存するデータクラスを定義
+
+MemoryPack でシリアライズするクラスに `[MemoryPackable]` 属性と `partial` キーワードを付けます。
+
+```csharp
+using MemoryPack;
+
+[MemoryPackable]
+public partial class PlayerData
+{
+    public string Name;
+    public int Level;
+    public float HP;
+    public long Gold;
+}
+```
+
+### 2. QuickSave インスタンスの生成
+
+`Builder` パターンでインスタンスを生成します。生成時に保存ディレクトリ（`persistentDataPath/quicksave/`）も一緒に準備されます。
+
+```csharp
+using Achieve.QuickSave;
+
+var save = new QuickSave<PlayerData>.Builder().Build();
+```
+
+### 3. 保存・読み込み・削除
+
+```csharp
+var player = new PlayerData { Name = "Hero", Level = 1, HP = 100f, Gold = 0 };
+
+save.SaveData(player);                 // 保存
+
+if (save.HasSaveData())                // 存在確認
+{
+    PlayerData loaded = save.LoadData(); // 読み込み
+    Debug.Log(loaded.Name);            // "Hero"
+}
+
+save.DeleteData();                     // 削除
+```
+
+## 次のステップ
+
+- [使い方 › 基本的な使い方](/quick-save/ja/usage/basic.md)
+- [API › QuickSave\<T> メソッド](/quick-save/ja/api/methods.md)
+
+
+
+---
+url: /quick-save/ja/index.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ja/llms.txt, the full documentation bundle is available at /quick-save/ja/llms-full.txt.
+
+# 概要
+
+**Unity の軽量セーブシステム。**
+MemoryPack ベースのバイナリシリアライズで、ゲームデータを高速かつ安全に保存します。
+
+## 特徴
+
+- ⚡ **高性能なシリアライズ** — Cysharp の MemoryPack を使った高速なバイナリシリアライズ/デシリアライズ。
+- 🔒 **暗号化対応** — 保存データを暗号化し、改ざんや閲覧を防ぎます。
+- 🧩 **シンプルな API** — ビルダーパターンで保存/読み込みフローを一目で構成できます。
+
+## クイックリンク
+
+- [はじめに](/quick-save/ja/getting-started.md)
+- [使い方](/quick-save/ja/usage/basic.md)
+- [API リファレンス](/quick-save/ja/api/methods.md)
+- [GitHub](https://github.com/achieveonepark/quick-save)
+
+
+
+---
+url: /quick-save/ja/usage/async.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ja/llms.txt, the full documentation bundle is available at /quick-save/ja/llms-full.txt.
+
+# 非同期の保存 / 読み込み
+
+## なぜ非同期が必要か
+
+`SaveData` / `LoadData` は内部で `File.WriteAllBytes` / `File.ReadAllBytes` を使用します。保存ファイルが大きい、または保存デバイスが遅い環境（特にモバイル）では、メインスレッドを一時的にブロックする可能性があります。
+
+`SaveDataAsync` / `LoadDataAsync` は `File.WriteAllBytesAsync` / `File.ReadAllBytesAsync` を使用し、メインスレッドをブロックせずに動作します。
+
+## SaveDataAsync
+
+```csharp
+await save.SaveDataAsync(playerData);
+```
+
+## LoadDataAsync
+
+```csharp
+PlayerData loaded = await save.LoadDataAsync();
+
+if (loaded == null)
+{
+    // 保存ファイルなし
+}
+```
+
+## 完全な例 (async/await)
+
+```csharp
+using Achieve.QuickSave;
+using UnityEngine;
+
+public class SaveManager : MonoBehaviour
+{
+    private QuickSave<PlayerData> _save;
+
+    void Awake()
+    {
+        _save = new QuickSave<PlayerData>.Builder().Build();
+    }
+
+    public async void OnSaveButtonClicked(PlayerData player)
+    {
+        await _save.SaveDataAsync(player);
+        Debug.Log("保存完了");
+    }
+
+    public async void OnLoadButtonClicked()
+    {
+        try
+        {
+            PlayerData data = await _save.LoadDataAsync();
+            if (data == null)
+                Debug.Log("保存データなし");
+            else
+                Debug.Log($"読み込み完了: {data.Name}");
+        }
+        catch (System.IO.InvalidDataException e)
+        {
+            Debug.LogError($"保存ファイル破損: {e.Message}");
+        }
+    }
+}
+```
+
+## UniTask と併用
+
+UniTask がプロジェクトにある場合、`Task` を `UniTask` に変換して使用できます。
+
+```csharp
+using Cysharp.Threading.Tasks;
+
+public async UniTaskVoid SaveAsync(PlayerData player)
+{
+    await _save.SaveDataAsync(player).AsUniTask();
+}
+```
+
+
+
+---
+url: /quick-save/ja/usage/basic.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ja/llms.txt, the full documentation bundle is available at /quick-save/ja/llms-full.txt.
+
+# 基本的な使い方
+
+## データクラスの準備
+
+Quick Save は `MemoryPack` でシリアライズするため、保存するクラスに 2 つの条件が必要です。
+
+- `[MemoryPackable]` 属性
+- `partial` キーワード
+
+```csharp
+using MemoryPack;
+
+[MemoryPackable]
+public partial class InventoryData
+{
+    public List<string> Items;
+    public int Capacity;
+}
+```
+
+
+> **Info**
+> 
+> `QuickSave<T>` のジェネリック制約は `where T : class` です。構造体（struct）はサポートしていません。
+> 
+
+
+## Builder でインスタンスを生成
+
+```csharp
+var save = new QuickSave<InventoryData>.Builder().Build();
+```
+
+`Build()` 呼び出し時に保存ディレクトリ（`persistentDataPath/quicksave/`）がなければ自動的に作成されます。その後の `SaveData` / `LoadData` 呼び出しではディレクトリチェックのコストは発生しません。
+
+## SaveData
+
+```csharp
+var inventory = new InventoryData
+{
+    Items = new List<string> { "Sword", "Shield" },
+    Capacity = 20
+};
+
+save.SaveData(inventory);
+```
+
+ファイルは `{persistentDataPath}/quicksave/InventoryData.acqs` に保存されます。
+
+## HasSaveData
+
+読み込み前にファイルの存在を確認します。
+
+```csharp
+if (save.HasSaveData())
+{
+    // ファイルがある場合のみ読み込み
+}
+```
+
+## LoadData
+
+```csharp
+InventoryData loaded = save.LoadData();
+```
+
+- ファイルがなければ `null` を返します。
+- ファイルは存在するがデシリアライズに失敗した場合は `InvalidDataException` が発生します。ファイルなしとファイル破損を区別して処理できます。
+
+```csharp
+try
+{
+    var data = save.LoadData();
+    if (data == null)
+    {
+        // 保存ファイルなし → デフォルト値を使用
+    }
+}
+catch (InvalidDataException e)
+{
+    Debug.LogError($"保存ファイル破損: {e.Message}");
+    save.DeleteData(); // 破損ファイルを削除して再起動
+}
+```
+
+## DeleteData
+
+```csharp
+save.DeleteData();
+```
+
+ファイルが存在しない場合は何もしません。（例外なし）
+
+## エディターから保存ファイルを削除
+
+Unity エディターのメニュー **Achieve > Delete Save** を使うと、`quicksave/` ディレクトリ内のすべての `.acqs` ファイルを削除できます。削除前に確認ダイアログが表示されます。
+
+
+
+---
+url: /quick-save/ja/usage/encryption.md
+---
+
+> For AI agents: the complete documentation index is available at /quick-save/ja/llms.txt, the full documentation bundle is available at /quick-save/ja/llms-full.txt.
+
+# 暗号化 & バージョン管理
+
+## 事前準備
+
+暗号化機能は [DataProtector](https://github.com/achieveonepark/DataProtector) パッケージがインストールされている場合のみ有効になります。
+
+DataProtector をインストールすると、Assembly Definition が自動的に `USE_ENCRYPT` シンボルを定義し、Builder の `UseEncryption()`・`UseVersion()` メソッドがコンパイルに含まれます。
+
+## UseEncryption
+
+```csharp
+var save = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-secret-key-32chars")
+    .Build();
+```
+
+- `SaveData` / `SaveDataAsync` 呼び出し時、シリアライズしたバイナリを暗号化してから保存します。
+- `LoadData` / `LoadDataAsync` 呼び出し時、ファイルを復号してからデシリアライズします。
+
+
+> **Warning**
+> 
+> 暗号化キーは安全な場所に保管してください。キーが変わると既存の保存ファイルを読み込めなくなります。
+> 
+
+
+## UseVersion
+
+バージョンを指定すると、ファイル名にバージョン番号が含まれます。ゲーム更新時に旧バージョンと新バージョンの保存ファイルを分けて運用できます。
+
+```csharp
+var saveV1 = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(1)
+    .Build();
+
+var saveV2 = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(2)
+    .Build();
+```
+
+保存ファイルのパス:
+
+```
+{persistentDataPath}/quicksave/PlayerData_1.acqs   ← v1
+{persistentDataPath}/quicksave/PlayerData_2.acqs   ← v2
+```
+
+## マイグレーションパターン
+
+旧バージョンの保存ファイルを新バージョンへ移行する例です。
+
+```csharp
+var oldSave = new QuickSave<PlayerDataV1>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(1)
+    .Build();
+
+var newSave = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    .UseVersion(2)
+    .Build();
+
+if (oldSave.HasSaveData() && !newSave.HasSaveData())
+{
+    PlayerDataV1 legacy = oldSave.LoadData();
+    PlayerData migrated = Migrate(legacy);
+    newSave.SaveData(migrated);
+    oldSave.DeleteData();
+}
+```
+
+## バージョンなしで暗号化のみ使用
+
+`UseVersion` を呼び出さない場合、バージョンは既定値 `0` として扱われ、ファイル名は `TypeName_0.acqs` になります。
+
+```csharp
+var save = new QuickSave<PlayerData>.Builder()
+    .UseEncryption("my-key")
+    // UseVersion 未呼び出し → _0.acqs
+    .Build();
+```
+
+

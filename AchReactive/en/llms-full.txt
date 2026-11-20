@@ -1,0 +1,817 @@
+---
+url: /AchReactive/en/api.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/en/llms.txt, the full documentation bundle is available at /AchReactive/en/llms-full.txt.
+
+# API reference
+
+All namespaces are `AchReactive`.
+
+## DataBase\<T>
+
+```csharp
+public sealed class DataBase<T> where T : IData
+{
+    void Load(IDataLoader<T> loader);   // full replace
+    void Add(IDataLoader<T> loader);    // merge
+    void Add(T item);
+    T Get(string id);
+    bool TryGet(string id, out T value);
+    bool Has(string id);
+    void Clear();
+    int Count { get; }
+    IReadOnlyCollection<T> All { get; }
+}
+```
+
+## IDataLoader / implementations
+
+```csharp
+public interface IDataLoader<T> where T : IData
+{
+    IReadOnlyList<T> Load();
+}
+
+public sealed class JsonDataLoader<T> : IDataLoader<T> where T : IData
+{
+    JsonDataLoader(string json, JsonSerializerSettings settings = null);
+    JsonDataLoader(Func<string> read, JsonSerializerSettings settings = null);
+}
+
+public sealed class CsvDataLoader<T> : IDataLoader<T> where T : IData
+{
+    CsvDataLoader(string csv, ICsvMapper<T> mapper);
+    CsvDataLoader(Func<string> read, ICsvMapper<T> mapper);
+}
+
+public interface ICsvMapper<out T> where T : IData
+{
+    T Map(IReadOnlyDictionary<string, string> row);
+}
+```
+
+## Data model
+
+```csharp
+public interface IData { string Id { get; } }
+
+[Serializable]
+public class EntityData : IData
+{
+    public string id;
+    public Dictionary<string, float> stats;
+    public Reaction[] reactions;
+    public string Id => id;
+}
+
+[Serializable]
+public class Reaction
+{
+    public string trigger;
+    public ParamBag triggerParams;
+    public ConditionDef[] conditions;
+    public EffectDef[] effects;
+}
+
+[Serializable] public class EffectDef    { public string type; public ParamBag @params; }
+[Serializable] public class ConditionDef { public string type; public ParamBag @params; }
+```
+
+## ParamBag
+
+```csharp
+public sealed class ParamBag
+{
+    static readonly ParamBag Empty;
+    bool Has(string key);
+    T Get<T>(string key, T fallback = default);
+    bool TryGet<T>(string key, out T value);
+    void Set<T>(string key, T value);
+}
+```
+
+## ReactionEngine
+
+```csharp
+public sealed class ReactionEngine
+{
+    int Run(string trigger, EntityData data, ReactionContext ctx);
+}
+
+public sealed class ReactionContext
+{
+    public IEntity Source;
+    public IEntity Target;
+    public IReadOnlyList<IEntity> Targets;
+    public IWorld World;
+    public ParamBag Params;
+}
+```
+
+## Registry
+
+```csharp
+public delegate void EffectFn(ReactionContext ctx);
+public delegate bool ConditionFn(ReactionContext ctx);
+public delegate bool TriggerFn(ReactionContext ctx, ParamBag triggerParams);
+
+public static class EffectRegistry
+{
+    static void AutoRegister();
+    static void Register(string name, EffectFn fn);
+    static bool TryGet(string name, out EffectFn fn);
+    static bool Has(string name);
+    static IEnumerable<string> Names { get; }
+}
+// ConditionRegistry and TriggerRegistry follow the same pattern
+```
+
+## Integration boundary
+
+```csharp
+public interface IEntity
+{
+    string Id { get; }
+    Vector3 Position { get; set; }
+    StatSheet Stats { get; }
+    bool IsAlive { get; }
+}
+
+public interface IWorld
+{
+    IEntity Spawn(string dataId, Vector3 at);
+    void Collect(Vector3 center, float radius, List<IEntity> buffer);
+}
+```
+
+## StatSheet / CooldownStore
+
+```csharp
+public sealed class StatSheet
+{
+    void SetBase(string statKey, float value);
+    float GetBase(string statKey);
+    float Get(string statKey);   // final value with modifiers applied
+    void AddModifier(string statKey, string modifierType, float value, object source);
+    void RemoveSource(object source);
+}
+
+public sealed class CooldownStore
+{
+    CooldownStore(Func<float> timeProvider = null);
+    bool IsReady(string id);
+    void Start(string id, float cooldown);
+    float Remaining(string id);
+}
+```
+
+
+
+---
+url: /AchReactive/en/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/en/llms.txt, the full documentation bundle is available at /AchReactive/en/llms-full.txt.
+
+# Changelog
+
+## 0.1.0
+
+First public release. Transitioned from the skill-only tool (Skill Creator) to the **domain-agnostic reaction framework AchReactive**.
+
+### Added
+
+- **Data Layer** — `IData`, `IDataLoader<T>`, `DataBase<T>` (no use of typeof)
+- **Loader** — `JsonDataLoader<T>` (Newtonsoft), `CsvDataLoader<T>` + `ICsvMapper<T>`
+- **Reaction Layer** — `Reaction`, `EntityData`, `ParamBag`, `ReactionContext`, `ReactionEngine`
+- **Registry** — `Effect/Condition/TriggerRegistry` (attribute auto-collection + manual registration)
+- **Default behavior pool** — 8 effects, 8 conditions, 1 trigger guard
+- **Integration boundary** — `IEntity`, `IWorld`, `StatSheet`, `CooldownStore`
+- **UIToolkit authoring tools** — Type Designer (code generation), Data Editor (data generation)
+- **Basic sample** — example with two domains: skills + monsters
+
+### Changed
+
+- Package name `com.achieve.skill-creator` → `com.achieve.reactive`
+- Namespace → `AchReactive`
+- `JsonUtility` → `Newtonsoft.Json` (wrapper classes removed)
+
+### Removed
+
+- Skill-only legacy (`SkillSystem`/`SkillRunner`/`EffectExecutor`, etc.)
+- The buff duration/stack system is temporarily on hold because it requires a redesign of runtime state (planned for a follow-up)
+
+
+
+---
+url: /AchReactive/en/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/en/llms.txt, the full documentation bundle is available at /AchReactive/en/llms-full.txt.
+
+# Getting started
+
+## Installation
+
+In the Unity Package Manager, choose **Add package from git URL** and enter the following address.
+
+```
+https://github.com/achieveonepark/AchReactive.git
+```
+
+Or add it directly to `Packages/manifest.json`.
+
+```json
+{
+  "dependencies": {
+    "com.achieve.reactive": "https://github.com/achieveonepark/AchReactive.git"
+  }
+}
+```
+
+The requirement is **Unity 2021.3 or later**. The only dependency is `com.unity.nuget.newtonsoft-json`,
+which is installed automatically.
+
+## 1. Implement the integration boundary
+
+AchReactive does not impose a structure on your game. You only need to implement two interfaces.
+
+- `IEntity` — the subject/target of a reaction (characters, monsters, etc.)
+- `IWorld` — the world boundary for spawning, range queries, etc.
+
+```csharp
+using AchReactive;
+using UnityEngine;
+
+public sealed class Character : MonoBehaviour, IEntity
+{
+    public StatSheet Stats { get; } = new StatSheet();   // provided by the package, use as is
+    public string Id => name;
+    public Vector3 Position { get => transform.position; set => transform.position = value; }
+    public bool IsAlive => Stats.GetBase(StatKeys.Hp) > 0f;
+
+    void Awake()
+    {
+        Stats.SetBase(StatKeys.Hp, 100f);
+        Stats.SetBase(StatKeys.HpMax, 100f);
+        Stats.SetBase(StatKeys.Atk, 10f);
+        Stats.SetBase(StatKeys.Def, 2f);
+    }
+}
+```
+
+## 2. Author the data
+
+Define skills as JSON in the `reactions` format. (You can also build them with the [Data Editor](/AchReactive/en/usage/authoring-tools.md) instead of writing them by hand.)
+
+```json
+[
+  {
+    "id": "fire_slash",
+    "cooldown": 5.0,
+    "reactions": [
+      {
+        "trigger": "on_use",
+        "conditions": [{ "type": "alive" }],
+        "effects": [
+          { "type": "damage", "params": { "power": 1.8 } },
+          { "type": "log", "params": { "message": "fire_slash 명중!" } }
+        ]
+      }
+    ]
+  }
+]
+```
+
+## 3. Assemble and run
+
+```csharp
+using AchReactive;
+
+var skills = new DataBase<SkillData>();
+var engine = new ReactionEngine();
+
+void Start()
+{
+    // Auto-collect the behavior pool (includes default damage/heal/…)
+    EffectRegistry.AutoRegister();
+    ConditionRegistry.AutoRegister();
+    TriggerRegistry.AutoRegister();
+
+    // Load data — any source you like
+    skills.Load(new JsonDataLoader<SkillData>(() => skillsJson.text));
+}
+
+void UseSkill(IEntity caster, IEntity target)
+{
+    var ctx = new ReactionContext { Source = caster, Target = target };
+    engine.Run("on_use", skills.Get("fire_slash"), ctx);
+}
+```
+
+Default effects like `damage`, `heal`, and `add_modifier` are provided by the package, so no extra code is required.
+You can immediately see a working scene in the **Basic** example under `Samples`.
+
+## Next steps
+
+- [Concepts](/AchReactive/en/usage/concepts.md) — why the structure is this way
+- [Default behavior pool](/AchReactive/en/usage/reactions.md) — the list of provided effects/conditions
+- [Extending](/AchReactive/en/usage/extending.md) — new behaviors and new domains
+
+
+
+---
+url: /AchReactive/en/index.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/en/llms.txt, the full documentation bundle is available at /AchReactive/en/llms-full.txt.
+
+# AchReactive
+
+**AchReactive** is a Unity framework that builds all game content — skills, monsters, items, maps, quests, and more —
+from data composition following the **trigger → condition → effect** pattern.
+
+## Core idea
+
+> Domains are infinite, but behaviors (primitives) are finite.
+
+Building a new system for every domain means filling in the `domain × behavior` matrix each time.
+AchReactive makes the behavior pool **shared by all domains**, turning this multiplication into addition.
+From the second domain onward, it's almost free.
+
+```
+        damage  heal  add_modifier  spawn
+Skill     ✓      ✓        ✓
+Monster                    ✓          ✓     ← reuse the same effect
+Item               ✓       ✓
+```
+
+## Features
+
+- **Domain-agnostic** — a single `DataBase<T>` handles Skill/Monster/Item/… all of them
+- **Source-agnostic** — load from anywhere: JSON, CSV, remote, etc. (implement `IDataLoader<T>` for a new source)
+- **Automatic behavior registration** — collects `[Effect]`/`[Condition]`/`[Trigger]` methods via reflection, zero wiring
+- **UIToolkit authoring tools** — create types and data in the editor (no hand-written JSON)
+- **Minimal dependencies** — just Newtonsoft.Json
+
+## At a glance
+
+```csharp
+// 1) Auto-collect the behavior pool (includes default effects/conditions/triggers)
+EffectRegistry.AutoRegister();
+ConditionRegistry.AutoRegister();
+TriggerRegistry.AutoRegister();
+
+// 2) Load data (any source)
+var skills = new DataBase<SkillData>();
+skills.Load(new JsonDataLoader<SkillData>(() => json));
+
+// 3) Run — identical even across domains
+engine.Run("on_use", skills.Get("fire_slash"), ctx);
+```
+
+## Next steps
+
+- [Getting started](/AchReactive/en/getting-started.md) — from installation to running your first reaction
+- [Concepts](/AchReactive/en/usage/concepts.md) — triggers/conditions/effects and the domain model
+- [Extending](/AchReactive/en/usage/extending.md) — adding new behaviors and new domains
+
+
+
+---
+url: /AchReactive/en/usage/authoring-tools.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/en/llms.txt, the full documentation bundle is available at /AchReactive/en/llms-full.txt.
+
+# Authoring tools
+
+You don't write data by hand in JSON. Two UIToolkit editor windows generate code and data.
+
+## Type Designer — generate code from a type
+
+Menu: **Tools ▸ AchReactive ▸ Type Designer**
+
+```
+Type Name:   [ Monster        ]
+Base Type:   [ EntityData ▾   ]
+Output:      [ Assets/Generated ]
+Fields:
+  [ hp        ] [ Float    ▾ ] [−]
+  [ dropTable ] [ StringArray ▾ ] [−]
+  [ + Add Field ]
+                              [ Generate ]
+```
+
+Pressing **Generate** produces two files.
+
+- `MonsterData.cs` — an `IData` implementation that inherits `EntityData` (Newtonsoft compatible)
+- `MonsterCsvMapper.cs` — an `ICsvMapper<MonsterData>` implementation
+
+Supported field types: `string`, `int`, `float`, `bool`, and their array forms (`string[]`, etc.).
+Arrays are separated by `|` in CSV.
+
+If you'd rather not generate, writing `class MonsterData : EntityData { ... }` by hand works 100% as well.
+
+## Data Editor — create/edit data
+
+Menu: **Tools ▸ AchReactive ▸ Data Editor**
+
+- Left: instance list (add with + Instance)
+- Right: the selected instance's `id` and the **Reactions builder**
+  - **Trigger** dropdown — registered triggers + common channels (on_use, on_hit …)
+  - **Conditions / Effects** — `type` is a dropdown populated from the registry, `params` is JSON
+- Top **Export JSON…** — save as a `reactions`-format array
+
+```
+Reactions
+ ┌────────────────────────────────────────┐
+ │ Trigger: [ on_use ▾ ]              [−]  │
+ │ Conditions (AND)                        │
+ │   [ alive ▾ ] [ {} ]              [−]   │
+ │   [ + Condition ]                       │
+ │ Effects                                 │
+ │   [ damage ▾ ] [ { "power": 1.8 } ] [−] │
+ │   [ + Effect ]                          │
+ └────────────────────────────────────────┘
+```
+
+The key point is that **you don't type trigger/condition/effect types directly**.
+The dropdowns expose only the names actually registered in the registry, so typos and unregistered types are blocked at the source.
+The saved JSON is read by `JsonDataLoader` as is.
+
+> Authoring is UI, runtime consumption is data files — users never need to touch JSON directly.
+
+
+
+---
+url: /AchReactive/en/usage/concepts.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/en/llms.txt, the full documentation bundle is available at /AchReactive/en/llms-full.txt.
+
+# Core concepts
+
+## Multiplication into addition
+
+Building a dedicated system for each domain (SkillSystem, MonsterSystem, …) means
+filling in the `domain × behavior` matrix every time. AchReactive makes the **behavior pool
+shared by all domains**, turning this into `domain + behavior`.
+
+- Adding a new domain → 1 data class (0 system code)
+- Reusing an existing behavior → 0 code, data only
+- A genuinely new behavior → 1 function, then shared by all domains
+
+## The four layers
+
+```
+Data Layer       IData · IDataLoader<T> · DataBase<T>      (generic, provided by the package)
+Reaction Layer   Reaction · ReactionEngine · Registry      (generic, provided by the package)
+Behavior Pool    [Effect("damage")] [Condition("alive")]   (written by the game, domain-agnostic)
+Domain Data      SkillData · MonsterData · ItemData         (data, code-gen capable)
+```
+
+The top two layers are provided by the package and don't change. You only fill in the bottom two layers.
+
+## Reaction = trigger → condition → effect
+
+Every domain is expressed in the same language.
+
+```
+Reaction
+ ├─ trigger      "on_use" | "on_hit" | "on_hp_below" ...
+ ├─ conditions   evaluated with AND (alive, hp_below, chance ...)
+ └─ effects      executed in order (damage, heal, add_modifier ...)
+```
+
+The shape is identical even across different domains.
+
+```json
+// Skill — damage on use
+{ "trigger": "on_use",
+  "effects": [{ "type": "damage", "params": { "power": 1.8 } }] }
+
+// Monster — enrage when HP is at or below 30%
+{ "trigger": "on_hp_below", "triggerParams": { "threshold": 0.3 },
+  "effects": [{ "type": "add_modifier", "params": { "stat": "atk", "modifier": "percent_add", "value": 0.5 } }] }
+
+// Item — aura on equip
+{ "trigger": "on_equip",
+  "effects": [{ "type": "add_modifier", "params": { "stat": "def", "modifier": "flat", "value": 5 } }] }
+```
+
+`add_modifier` is **one and the same code** whether a skill or an item uses it.
+
+## Integration boundary
+
+The game only implements two interfaces.
+
+- **`IEntity`** — `Id`, `Position`, `Stats` (StatSheet), `IsAlive`
+- **`IWorld`** — `Spawn`, `Collect`
+
+Effects/conditions access `Source`/`Target`/`Targets`/`World` through the `ReactionContext`.
+
+## We don't use typeof
+
+When grouping multiple domains, we don't use a type-keyed service locator like `Dictionary<Type, object>`.
+Each `DataBase<T>` is **held explicitly**, and effects that need cross-domain references are
+solved with [manual registration + closure capture](/AchReactive/en/usage/extending.md#cross-domain).
+
+```csharp
+public sealed class GameDataContext
+{
+    public readonly DataBase<SkillData>   Skills   = new();
+    public readonly DataBase<MonsterData> Monsters = new();
+}
+```
+
+
+
+---
+url: /AchReactive/en/usage/data-sources.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/en/llms.txt, the full documentation bundle is available at /AchReactive/en/llms-full.txt.
+
+# Data and sources
+
+## IData and DataBase
+
+All domain data implements `IData` (= `string Id`). `DataBase<T>` is an in-memory index of
+`id → definition`, and **all domains share this single class generically**.
+
+```csharp
+var skills = new DataBase<SkillData>();
+skills.Load(loader);              // full replace
+skills.Add(loader);               // merge
+SkillData s = skills.Get("fire_slash");
+bool has   = skills.Has("fire_slash");
+```
+
+## Source-agnostic — IDataLoader\<T>
+
+No matter where you read data from, it goes through the same boundary, `IDataLoader<T>`. The package provides two implementations.
+
+### JSON
+
+Based on Newtonsoft.Json, it reads a top-level array as is. (No wrapper class needed.)
+
+```csharp
+// Direct string
+skills.Load(new JsonDataLoader<SkillData>(json));
+
+// Deferred read (file/StreamingAssets/network)
+skills.Load(new JsonDataLoader<SkillData>(
+    () => File.ReadAllText(path)));
+```
+
+```json
+[
+  { "id": "fire_slash", "cooldown": 5.0, "reactions": [ /* ... */ ] }
+]
+```
+
+### CSV
+
+Uses the first row as the header and converts each row with `ICsvMapper<T>`. Quotes, commas, and newlines are supported.
+
+```csharp
+skills.Load(new CsvDataLoader<SkillData>(
+    () => File.ReadAllText(path), new SkillCsvMapper()));
+```
+
+`ICsvMapper<T>` implementations are usually generated by the [Type Designer](/AchReactive/en/usage/authoring-tools.md).
+
+### Custom sources
+
+For binary, ScriptableObject, in-house formats, etc., you only need to implement `IDataLoader<T>`.
+
+```csharp
+public sealed class MyBinaryLoader<T> : IDataLoader<T> where T : IData
+{
+    public IReadOnlyList<T> Load() { /* decode directly */ }
+}
+```
+
+> JSON in the editor, CSV/Remote in production — you just **swap out the source**.
+
+## Data format (reactions)
+
+Domain data inherits from `EntityData`. The common fields are `id`, `stats`, and `reactions`.
+
+```csharp
+[Serializable]
+public class SkillData : EntityData   // inherits id / stats / reactions
+{
+    public float cooldown;
+    public float castTime;
+}
+```
+
+```json
+{
+  "id": "fire_slash",
+  "cooldown": 5.0,
+  "stats": { "manaCost": 20 },
+  "reactions": [
+    {
+      "trigger": "on_use",
+      "conditions": [{ "type": "alive" }],
+      "effects": [{ "type": "damage", "params": { "power": 1.8 } }]
+    }
+  ]
+}
+```
+
+`params` is an arbitrary key-value (`ParamBag`) that effects/conditions read with type conversion,
+like `ctx.Params.Get<float>("power")`.
+
+
+
+---
+url: /AchReactive/en/usage/extending.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/en/llms.txt, the full documentation bundle is available at /AchReactive/en/llms-full.txt.
+
+# Extending
+
+## Adding a new behavior
+
+### Path A — Attribute (recommended)
+
+Write a static method annotated with `[Effect]`/`[Condition]`/`[Trigger]`, and `AutoRegister()`
+collects it automatically from all assemblies. There is no wiring code.
+
+```csharp
+using AchReactive;
+
+public static class MyEffects
+{
+    [Effect("teleport")]
+    public static void Teleport(ReactionContext c) =>
+        c.Source.Position = c.World != null ? /* ... */ c.Source.Position;
+}
+```
+
+The signatures are fixed.
+
+```csharp
+[Effect("name")]    static void M(ReactionContext ctx)
+[Condition("name")] static bool M(ReactionContext ctx)
+[Trigger("name")]   static bool M(ReactionContext ctx, ParamBag triggerParams)
+```
+
+### Path B — Manual registration
+
+Use this when you need DI, runtime state, or closures.
+
+```csharp
+EffectRegistry.Register("teleport", c => myTeleporter.Move(c.Source));
+```
+
+## Adding a new domain
+
+A new domain needs only **1 data class**. There is no system code.
+
+```csharp
+[Serializable]
+public class MonsterData : EntityData   // inherits id / stats / reactions
+{
+    public int expReward;               // domain-specific field
+}
+```
+
+```csharp
+var monsters = new DataBase<MonsterData>();
+monsters.Load(new JsonDataLoader<MonsterData>(() => json));
+
+engine.Run("on_hp_below", monsters.Get("goblin_boss"), ctx);
+```
+
+`damage`/`add_modifier`, etc., reuse what skills already registered, as is → 0 lines of code.
+Data classes and CSV mappers can be generated with the [Type Designer](/AchReactive/en/usage/authoring-tools.md).
+
+## Cross-domain
+
+When an effect needs to reference another domain's data, use **manual registration + closure capture**
+instead of auto-registration to capture the relevant `DataBase<T>`. No type keys (typeof) are used.
+
+```csharp
+var items = new DataBase<ItemData>();
+
+EffectRegistry.Register("drop_item", c =>
+{
+    var item = items.Get(c.Params.Get<string>("itemId")); // capture items via closure
+    c.World.Spawn(item.id, c.Source.Position);
+});
+```
+
+> Recommendation: auto-register only pure behaviors that know nothing about domains; manually register only effects that need domain coupling.
+
+## AOT (IL2CPP) caveat
+
+`AutoRegister()` is reflection-based, so methods may be stripped in IL2CPP builds.
+Preserve the assembly containing your behavior methods with `link.xml`.
+
+```xml
+<linker>
+  <assembly fullname="YourGameAssembly" preserve="all" />
+</linker>
+```
+
+If you want to avoid reflection, you may use only **Path B (manual registration)**.
+
+
+
+---
+url: /AchReactive/en/usage/reactions.md
+---
+
+> For AI agents: the complete documentation index is available at /AchReactive/en/llms.txt, the full documentation bundle is available at /AchReactive/en/llms-full.txt.
+
+# Reactions and default behaviors
+
+## Execution flow
+
+```csharp
+var engine = new ReactionEngine();
+engine.Run("on_use", skillData, ctx);
+```
+
+`Run(trigger, data, ctx)` iterates over `data.reactions` and processes each reaction as follows.
+
+```
+1. Does the trigger channel name match?      (otherwise skip)
+2. Does the trigger guard pass?              (TriggerRegistry, passes if none)
+3. Do all conditions (AND) pass?             (ConditionRegistry)
+4. Execute effects in order                  (EffectRegistry)
+```
+
+The return value is the number of reactions actually executed.
+
+## ReactionContext
+
+```csharp
+var ctx = new ReactionContext
+{
+    Source  = caster,     // subject
+    Target  = target,     // single target
+    Targets = targets,    // area targets (takes priority if present)
+    World   = world,      // spawn/query boundary
+};
+```
+
+An effect reads its own arguments from `ctx.Params`. The engine injects them per item.
+
+## Default effects
+
+| type              | Description                                 | params                                |
+| ----------------- | ------------------------------------------- | ------------------------------------- |
+| `damage`          | reduces hp by `atk*power + flat - def`      | `power`, `flat`                       |
+| `heal`            | heals `atk*power + flat` (capped at hp_max) | `power`, `flat`                       |
+| `set_stat`        | set a stat base value                       | `stat`, `value`                       |
+| `add_stat`        | increase/decrease a stat base value         | `stat`, `delta`                       |
+| `add_modifier`    | add a stat modifier (basic buff form)       | `stat`, `modifier`, `value`, `source` |
+| `remove_modifier` | remove modifiers for a source token         | `source`                              |
+| `spawn`           | spawn an entity via World                   | `entityId`                            |
+| `log`             | debug log                                   | `message`                             |
+
+The `modifier` value is one of `flat` / `percent_add` / `percent_mul`. The targets are all of `Targets` if present,
+otherwise `Target`.
+
+## Default conditions
+
+| type                        | Description          | params          |
+| --------------------------- | -------------------- | --------------- |
+| `always`                    | always true          | —               |
+| `alive` / `dead`            | target alive/dead    | —               |
+| `chance`                    | pass by probability  | `value` (0\~1)  |
+| `hp_below` / `hp_above`     | compare HP ratio     | `value` (0\~1)  |
+| `stat_above` / `stat_below` | compare a stat value | `stat`, `value` |
+
+Unless otherwise specified, conditions evaluate `Target` (or `Source` if absent).
+
+## Default trigger guard
+
+Most triggers (`on_use`, `on_hit`, `on_equip`, etc.) fire on the channel name alone, so they have no guard.
+Only triggers that need a threshold comparison have a guard.
+
+| type          | Description                                                | triggerParams      |
+| ------------- | ---------------------------------------------------------- | ------------------ |
+| `on_hp_below` | fires only when Source's HP ratio is at or below threshold | `threshold` (0\~1) |
+
+## Stat conventions
+
+The default effects/conditions use the following keys (`StatKeys`). To use a different scheme, register the effect
+directly to override it.
+
+| Key      | Meaning                                           |
+| -------- | ------------------------------------------------- |
+| `hp`     | current health (resource)                         |
+| `hp_max` | maximum health (denominator for ratio conditions) |
+| `atk`    | attack power (modifiers applied)                  |
+| `def`    | defense (modifiers applied)                       |
+
+

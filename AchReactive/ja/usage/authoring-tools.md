@@ -1,0 +1,59 @@
+> For AI agents: the complete documentation index is available at /AchReactive/ja/llms.txt, the full documentation bundle is available at /AchReactive/ja/llms-full.txt.
+
+# オーサリングツール
+
+データを JSON で手書きしません。2つの UIToolkit エディタウィンドウがコードとデータを生成します。
+
+## Type Designer — 型からコードを生成
+
+メニュー: **Tools ▸ AchReactive ▸ Type Designer**
+
+```
+Type Name:   [ Monster        ]
+Base Type:   [ EntityData ▾   ]
+Output:      [ Assets/Generated ]
+Fields:
+  [ hp        ] [ Float    ▾ ] [−]
+  [ dropTable ] [ StringArray ▾ ] [−]
+  [ + Add Field ]
+                              [ Generate ]
+```
+
+**Generate** を押すと2つのファイルが生成されます。
+
+- `MonsterData.cs` — `EntityData` を継承した `IData` 実装（Newtonsoft 互換）
+- `MonsterCsvMapper.cs` — `ICsvMapper<MonsterData>` 実装
+
+サポートするフィールド型: `string`, `int`, `float`, `bool`、そして各配列型（`string[]` など）。
+配列は CSV では `|` で区切ります。
+
+生成を望まない場合は、手で `class MonsterData : EntityData { ... }` を書いても100%動作します。
+
+## Data Editor — データの生成/編集
+
+メニュー: **Tools ▸ AchReactive ▸ Data Editor**
+
+- 左側: インスタンス一覧（+ Instance で追加）
+- 右側: 選択したインスタンスの `id` と **Reactions ビルダー**
+  - **Trigger** ドロップダウン — 登録済みトリガー + 一般チャンネル（on_use, on_hit …）
+  - **Conditions / Effects** — `type` はレジストリから埋めたドロップダウン、`params` は JSON
+- 上部 **Export JSON…** — `reactions` 形式の配列として保存
+
+```
+Reactions
+ ┌────────────────────────────────────────┐
+ │ Trigger: [ on_use ▾ ]              [−]  │
+ │ Conditions (AND)                        │
+ │   [ alive ▾ ] [ {} ]              [−]   │
+ │   [ + Condition ]                       │
+ │ Effects                                 │
+ │   [ damage ▾ ] [ { "power": 1.8 } ] [−] │
+ │   [ + Effect ]                          │
+ └────────────────────────────────────────┘
+```
+
+核心は、**trigger/condition/effect の型を直接タイピングしない**という点です。
+ドロップダウンがレジストリに実際に登録された名前だけを表示するため、タイプミスや未登録の型が根本から防がれます。
+保存された JSON は `JsonDataLoader` がそのまま読み込みます。
+
+> オーサリングは UI、ランタイムの消費はデータファイル — ユーザーが JSON を直接触る必要がありません。

@@ -1,0 +1,13 @@
+# Quick Save
+
+> Quick Save documentation
+
+## Others
+
+- [Builder](/quick-save/ko/api/builder.md)
+- [QuickSave<T> 메서드](/quick-save/ko/api/methods.md)
+- [변경 내역](/quick-save/ko/changelog.md): Quick Save 버전별 변경 내역
+- [시작하기](/quick-save/ko/getting-started.md): Quick Save 설치와 첫 저장/로드까지의 빠른 시작
+- [비동기 저장 / 로드](/quick-save/ko/usage/async.md)
+- [기본 사용법](/quick-save/ko/usage/basic.md)
+- [암호화 & 버전 관리](/quick-save/ko/usage/encryption.md)

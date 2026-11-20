@@ -1,0 +1,29 @@
+> For AI agents: the complete documentation index is available at /AchReactive/ja/llms.txt, the full documentation bundle is available at /AchReactive/ja/llms-full.txt.
+
+# 変更履歴
+
+## 0.1.0
+
+初公開。スキル専用ツール（Skill Creator）から **ドメイン非依存リアクションフレームワーク AchReactive** へ移行。
+
+### 追加
+
+- **Data Layer** — `IData`, `IDataLoader<T>`, `DataBase<T>`（typeof 不使用）
+- **Loader** — `JsonDataLoader<T>`（Newtonsoft）、`CsvDataLoader<T>` + `ICsvMapper<T>`
+- **Reaction Layer** — `Reaction`, `EntityData`, `ParamBag`, `ReactionContext`, `ReactionEngine`
+- **Registry** — `Effect/Condition/TriggerRegistry`（Attribute 自動収集 + 手動登録）
+- **基本動作プール** — effect 8種、condition 8種、trigger ガード 1種
+- **統合境界** — `IEntity`, `IWorld`, `StatSheet`, `CooldownStore`
+- **UIToolkit オーサリングツール** — Type Designer（コード生成）、Data Editor（データ生成）
+- **Basic サンプル** — スキル + モンスターの 2 ドメイン例
+
+### 変更
+
+- パッケージ名 `com.achieve.skill-creator` → `com.achieve.reactive`
+- 名前空間 → `AchReactive`
+- `JsonUtility` → `Newtonsoft.Json`（ラッパークラスを削除）
+
+### 削除
+
+- スキル専用レガシー（`SkillSystem`/`SkillRunner`/`EffectExecutor` など）
+- バフ持続/スタックシステムはランタイム状態の再設計が必要なため一時保留（後続予定）

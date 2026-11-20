@@ -1,0 +1,15 @@
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# PoolManager
+
+封装 Unity `ObjectPool<GameObject>`，减少子弹、粒子等反复创建和销毁造成的 GC 压力。
+
+```csharp
+var pool = ServiceLocator.Resolve<PoolManager>();
+pool.RegisterPool("Bullet", bulletPrefab, defaultCapacity: 20, maxSize: 100);
+var bullet = pool.Get<BulletComponent>("Bullet");
+var gameObject = pool.Get("Bullet");
+pool.Release("Bullet", gameObject);
+pool.ClearPool("Bullet");
+pool.ClearAll();
+```

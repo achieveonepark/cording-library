@@ -1,0 +1,98 @@
+> For AI agents: the complete documentation index is available at /AchEngine/ja/llms.txt, the full documentation bundle is available at /AchEngine/ja/llms-full.txt.
+
+# 変更履歴
+
+## 1.3.2
+
+**新機能**
+
+- Unity Ads Legacy 4.16.4 を標準プロバイダーとし、非同期初期化と全画面・リワード・バナー広告のロード・表示を管理する `AdsManager` を追加しました。
+- `AdsShowResult.ShouldGrantReward` が `true` の場合だけリワードを付与します。
+- Unity LevelPlay、AppLovin MAX、Google AdMob/Google Ad Manager、FairBid などのメディエーション SDK に切り替えられる公開 `IAdsProvider` を追加しました。
+- `com.unity.ads` 4.16.4 依存関係と `AchManagerInstaller` の `AdsManager` 自動登録を追加しました。
+
+**ドキュメント**
+
+- 設定とメディエーション移行を説明する 4 言語の `AdsManager` ガイドを追加しました。
+
+## 1.3.1
+
+**改善**
+
+- Unity Editor で `IAPManager` が Unity IAP Fake Store を明示的に使用するようにしました。
+- Editor では `ReceiptValidator` または `PurchaseProcessor` が未設定でも Fake Store の注文を自動確定し、バックエンドなしで購入 UI の流れをテストできるようにしました。
+- Full Sample の購入ポップアップが Editor Fake Store のテスト時に検証コンポーネントなしで有効になります。実際のビルドでは引き続き報酬処理の検証が必要です。
+
+## 1.3.0
+
+**新機能**
+
+- Unity 6000.3 以降で Build Settings のシーンを選択し、未保存の変更を確認して開ける `AchEngine/Scene Navigator` ツールバーを追加しました。
+- `UIRoot` が `Screen`、`Popup`、`Tooltip` レイヤーへ `UISafeAreaFitter` を自動追加するようになりました。`Background` と `Overlay` は全画面のままです。
+
+**改善**
+
+- Addressables のアセット・ロケーションキャッシュが、要求された型を確認してからハンドルを再利用するようになりました。
+- 初期化、ダウンロードサイズ確認、依存関係ダウンロード、カタログ確認・更新に使う一時ハンドルを自動解放します。
+- Domain Reload を無効にした Play Mode 再入場時のデバッグコンソール重複コールバックを防止しました。
+- ランタイム探索を `FindFirstObjectByType` に更新し、子 UI Root への `DontDestroyOnLoad` の重複呼び出しを避けました。
+- `IScene` を任意のライフサイクルフックとして扱い、実装していないシーンに警告を出さなくなりました。
+
+**ドキュメント**
+
+- Addressables、UI Safe Area、Scene Navigator、AI Assistant Skill のガイドを更新し、1.2.0 / 1.3.0 のリリースノートを追加しました。
+
+## 1.2.0
+
+- Addressables を静的な `AddressableManager` と `AchTask` ベースの API 中心に再構成しました。
+- ロケーションメタデータ・アセットハンドルキャッシュ、シーンハンドル追跡、エディター設定、監視フォルダー機能、サンプルを追加しました。
+- キャッシュ解放フローに合わせて Addressables と統合ガイドを更新しました。
+
+## 1.1.2
+
+- iOS ネイティブデバッグコンソールを削除しました。Android オーバーレイと Editor IMGUI は維持されます。
+
+## 1.1.1
+
+- `IIAPReceiptValidator` 拡張ポイント、Apple StoreKit 2 JWS / app-account-token、手動復元、未確定注文の再試行 API を追加しました。
+- 取引 ID による購入結果の照合、IAP 単体テスト、Full Sample 購入ドキュメントを追加しました。
+
+## 1.1.0
+
+- `IAPManager` に Unity IAP 5.4.1 対応を追加し、`com.unity.purchasing` を依存関係に登録しました。
+
+## 1.0.8
+
+- AchEngine に同梱する `AIAssistantSkills/` 定義を追加しました。
+
+## 1.0.7
+
+- `com.unity.addressables` 未導入時の Addressables エディターコンパイル問題を修正しました。
+- 不足していた `AGENTS.md.meta` を追加しました。
+
+## 1.0.6
+
+- `AchEngine.Extensions` アセンブリと拡張メソッドガイドを削除しました。
+
+## 1.0.5
+
+- `AchTask` / `AchTask<T>` と非同期ガイドを追加しました。
+
+## 1.0.4
+
+- `SoundManager` を `AudioManager` に置き換えました。
+- `AudioManager`、`AchTimer`、`UIAchTimer`、ボタン拡張、`AchDebugConsole`、RedDot API を追加しました。
+- 現在の API シグネチャに合わせて全ガイドを更新しました。
+
+## 1.0.3
+
+- Save Service、`AchProjectile`、独立した `AchFollower`、多言語 TMP FontAsset ベイクを追加しました。
+
+## 1.0.2
+
+- ECS、Manager、Singleton、ログ、WebRequest、PlayerData、QuickSave、A\*、AchMover、RedDot、UI、Full Sample を追加しました。
+- Addressables、DI、Localization、Table、UI、ドキュメントを改善しました。
+
+## 1.0.1
+
+- JSON ファイル・フォルダーを CSV に変換するツールを追加しました。

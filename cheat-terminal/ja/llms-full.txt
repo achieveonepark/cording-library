@@ -1,0 +1,886 @@
+---
+url: /cheat-terminal/ja/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ja/llms.txt, the full documentation bundle is available at /cheat-terminal/ja/llms-full.txt.
+
+# はじめに
+
+## インストール
+
+Unity Package Manager で **Add package from git URL** を選びます。
+
+```
+https://github.com/achieveonepark/cheat-terminal.git
+```
+
+## コンソールを開く
+
+エディターと開発ビルドでは、シーン読み込み後に自動でブートストラップされます。右上のドックでスライダーのアイコンは Cheat Library、ターミナルのアイコンは Terminal を開きます。グリップやアイコンをドラッグすると、安全領域内でドックを移動できます。
+
+```csharp
+// リリースビルドでは自動生成されないため、一度だけ呼び出します。
+Achieve.CheatTerminal.TerminalBehaviour.Bootstrap();
+```
+
+| 操作                           | 方法                                          | エディター / デスクトップ |
+| ---------------------------- | ------------------------------------------- | -------------- |
+| 右上の `Terminal` ハンドルの表示 / 非表示 | **4 本指の同時タップ 3 回**                          | `F9`           |
+| チート HUD の開閉                  | **3 本指の同時タップ 3 回**                          | `F1`, `F10`    |
+| コンソールの開閉                     | `Terminal` ハンドル、またはパネル右上の `Close` をタップ      | `F2`, `` ` ``  |
+| コマンド実行                       | 入力して Enter                                  |                |
+| 前 / 次の履歴                     | 上 / 下矢印                                     |                |
+| ヘルプ                          | `help`, `help <category>`, `help <command>` |                |
+
+同じジェスチャーをもう一度行うと閉じます。詳細は [チート HUD](/cheat-terminal/ja/usage/cheat-hud.md) を参照してください。
+
+## エディターで使う
+
+マウスではマルチタッチジェスチャーを出せないため、エディターとデスクトップではキーを使います。
+`F1` は Cheat Library、`F2` は Terminal の開閉です。`F10` でもチート UI を開き、`F9` でドックの表示を切り替えます。バッククォートは Terminal を開くだけで、Escape は現在の画面を閉じます。
+
+Game ビューがフォーカスされていないとキーはゲームに届きません。そのときはメニューを使います。
+
+```
+Tools > Cheat Terminal > Toggle Console
+                       > Toggle Cheat HUD
+                       > Toggle Corner Handle
+                       > Pause Game While Open
+```
+
+:::info
+`EventSystem` がないと UI はクリック・タップできません。シーンに無ければターミナルが作成し、
+Input System のみのプロジェクトでは `InputSystemUIInputModule` を付けて作ります。
+:::
+
+## コードから制御
+
+```csharp
+using Achieve.CheatTerminal;
+
+TerminalBehaviour.Open();        // 開く
+TerminalBehaviour.Toggle();      // 切り替え
+TerminalBehaviour.Execute("gold 100000"); // 直接実行
+
+TerminalBehaviour.ToggleCheatHud();      // チート HUD を切り替え
+TerminalBehaviour.HandleVisible = true;  // 右上ハンドルを表示
+
+// 開閉リスナー（コンソールとチート HUD をまとめて）
+TerminalBehaviour.VisibilityChanged += open => Time.timeScale = open ? 0.2f : 1f;
+TerminalBehaviour.PauseGameWhileOpen = true; // 同じ処理を 1 行で
+```
+
+## パラメーターの入力と実行
+
+パラメーター欄は常に表示されます。コマンド名ではなく値だけを入力し、Run または Enter で実行します。`<amount>` は必須、`[amount]` は任意、`<x> <y> <z>` は座標別の入力欄です。`<on|off>` は選択ボタンも表示します。必須欄はすべて入力し、任意欄は末尾から省略してください。`[args]` と `<text...>` は空白区切りの複数引数を受け取り、空白を含む一つの値は引用符で囲みます。
+
+カテゴリーボタンと検索でコマンドを探せます。入力値は絞り込み、画面サイズの変更、再表示後も保持されます。結果やエラーはカード、下部のステータス行、Terminal に表示されます。別の画面を開くと前の画面は閉じます。
+
+次へ: [コマンドを追加する](/cheat-terminal/ja/usage/adding-commands.md)
+
+
+
+---
+url: /cheat-terminal/ja/usage/adding-commands.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ja/llms.txt, the full documentation bundle is available at /cheat-terminal/ja/llms-full.txt.
+
+# コマンドを追加する
+
+コマンドは `RegisterCommand(...)` で明示的に登録します。自動 scan はなく、実行経路も reflection 呼び出しではなく `CommandContext` delegate です。
+
+> **usage 文字列のルール** — `usage` はチート HUD での実行方法を決めます。
+> 引数が不要なら括弧なし（`god`）、必須引数は `<amount>`、任意引数は `[amount]` と書きます。
+> HUD はパラメーター別の入力欄と Run ボタンを生成します。コマンド名の入力は不要です。 → [チート HUD](/cheat-terminal/ja/usage/cheat-hud.md)
+
+## 基本登録
+
+```csharp
+using System.Globalization;
+using Achieve.CheatTerminal;
+using UnityEngine;
+
+public class PlayerCheats : MonoBehaviour
+{
+    private int _gold;
+
+    private void Start()
+    {
+        TerminalBehaviour.RegisterCommand(
+            "gold",
+            AddGold,
+            "ゴールドを追加",
+            "Cheats",
+            "gold <amount>");
+
+        TerminalBehaviour.RegisterCommand(
+            "god",
+            ctx => ctx.Output.WriteLine("god toggled", LogLevel.Success),
+            "無敵を切り替え",
+            "Cheats",
+            "god");
+    }
+
+    private void AddGold(CommandContext ctx)
+    {
+        if (!ctx.Has(0) ||
+            !int.TryParse(ctx.Args[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int amount))
+        {
+            ctx.Output.WriteLine("Usage: gold <amount>", LogLevel.Error);
+            return;
+        }
+
+        _gold += amount;
+        ctx.Output.WriteLine($"Gold is now {_gold}", LogLevel.Success);
+    }
+}
+```
+
+コンソールで `gold 100000` や `god` を実行できます。`help Cheats` はカテゴリ内のコマンドを説明付きで表示します。
+
+## static コマンド
+
+static メソッドも自動収集しません。必要なタイミングで明示的に登録してください。
+
+```csharp
+public static class DebugCheats
+{
+    public static void Register(Terminal terminal)
+    {
+        terminal.RegisterCommand("ping", Ping, "Print pong", "Debug", "ping");
+        terminal.RegisterCommand("timescale", SetTimeScale, "Set Time.timeScale", "Debug", "timescale <scale>");
+    }
+
+    private static void Ping(CommandContext ctx)
+        => ctx.Output.WriteLine("pong", LogLevel.Success);
+
+    private static void SetTimeScale(CommandContext ctx)
+    {
+        if (!ctx.Has(0) || !float.TryParse(ctx.Args[0], NumberStyles.Float,
+                CultureInfo.InvariantCulture, out float scale))
+        {
+            ctx.Output.WriteLine("Usage: timescale <scale>", LogLevel.Error);
+            return;
+        }
+
+        Time.timeScale = scale;
+    }
+}
+```
+
+登録:
+
+```csharp
+DebugCheats.Register(TerminalBehaviour.Current);
+```
+
+## 引数
+
+`CommandContext` から引数を読みます。
+
+- `ctx.Args`: 元の引数リスト
+- `ctx.Has(index)`: 引数が存在するか
+- `ctx.GetString/GetInt/GetFloat/GetBool`: fallback 付きの簡易 getter
+- 厳密な検証が必要な場合は `TryParse(..., CultureInfo.InvariantCulture, ...)` を直接使ってください。
+
+## 補完候補を追加する
+
+登録時に command-specific suggestions を追加できます。
+
+```csharp
+TerminalBehaviour.RegisterCommand(
+    "difficulty",
+    ctx => SetDifficulty(ctx.GetString(0, "normal")),
+    "Set difficulty",
+    "Cheats",
+    "difficulty <easy|normal|hard>",
+    (ctx, results) =>
+    {
+        if (ctx.ArgumentIndex != 0) return;
+        foreach (var value in new[] { "easy", "normal", "hard" })
+        {
+            if (value.StartsWith(ctx.CurrentToken, System.StringComparison.OrdinalIgnoreCase))
+                results.Add(new CompletionItem(value, value, "difficulty value", "Cheats"));
+        }
+    });
+```
+
+`<easy|normal|hard>` のような usage token も 기본 keyword suggestions として cache されます。
+
+## Data table 登録
+
+登録した table は `data` command、input suggestions、`Data` tab に表示されます。
+
+```csharp
+TerminalBehaviour.RegisterDataTable("items", "Items", () => new[]
+{
+    new DataTableRow("sword_001", "Bronze Sword"),
+    new DataTableRow("potion_hp", "Health Potion"),
+});
+```
+
+## 出力
+
+`CommandContext.Output` でレベル付きの出力ができます。
+
+```csharp
+TerminalBehaviour.RegisterCommand("save", ctx =>
+{
+    ctx.Output.WriteLine("Saved", LogLevel.Success); // Info/Success/Warning/Error/System
+}, "Save game", "System", "save");
+```
+
+## 高度: ITerminalModule
+
+:::info
+**これは誰向けですか?**
+
+関連コマンドを再利用可能なパッケージとして配布したい場合に使います。
+
+ゲーム内のチートやデバッグコマンドなら `RegisterCommand(...)` で十分です。
+
+:::
+
+`ITerminalModule` を実装すると、`InstallModule()` でまとめて登録できます。
+
+```csharp
+using Achieve.CheatTerminal;
+
+public class NetworkDebugModule : ITerminalModule
+{
+    public string Name => "NetworkDebug";
+
+    public void Install(Terminal terminal)
+    {
+        terminal.RegisterCommand(
+            "net",
+            Run,
+            "Network debug tools",
+            "Network",
+            "net <ping|status>");
+    }
+
+    private static void Run(CommandContext ctx)
+    {
+        string sub = ctx.GetString(0, "status");
+        switch (sub)
+        {
+            case "ping":   ctx.Output.WriteLine("pong", LogLevel.Success); break;
+            case "status": ctx.Output.WriteLine("connected", LogLevel.Info); break;
+            default:       ctx.Output.WriteLine($"Unknown: {sub}", LogLevel.Error); break;
+        }
+    }
+}
+```
+
+bootstrap 後に登録できます:
+
+```csharp
+TerminalBehaviour.Instance.InstallModule(new NetworkDebugModule());
+```
+
+次: [コマンドリファレンス](/cheat-terminal/ja/usage/commands.md)
+
+
+
+---
+url: /cheat-terminal/ja/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ja/llms.txt, the full documentation bundle is available at /cheat-terminal/ja/llms-full.txt.
+
+# 変更履歴
+
+パッケージの主な変更点です。このプロジェクトは [Semantic Versioning](https://semver.org/) に従います。
+
+各リリースの背景と設計の変化は[開発の歩み](/cheat-terminal/ja/history.md)にまとめています。
+
+## 1.1.0 - 2026-10-17
+
+### 追加
+
+- 安全領域内でドラッグできる開発者ドック。チートと Terminal のアイコンを個別に表示します。
+- usage から生成する必須・任意の入力欄、選択ボタン、座標欄、複数引数、入力値の保持と検証。
+- カテゴリーフィルター、カード別の結果とエラー。Terminal に Run、Tab 補完、履歴操作と安全領域対応を追加。
+- ローカルのチート作成スキルと Unity のコア・UI テスト。
+
+### 変更・修正
+
+- `F1`: Cheat Library、`F2`: Terminal、`F10`: チート UI、`F9`: ドック、Escape: 閉じる。
+- Run ボタンで実行し、画面切り替え時には前の画面を閉じます。一時停止状態は維持します。
+- 引用符、空白、バックスラッシュ、空文字の引数を保持し、実行エラーを表示します。
+- ドックのアイコンとパネル背景に必要な CanvasRenderer を生成。テーマがなくても入力欄の最小高さを保ち、Run ボタンとの重なりを防ぎます。
+- 過去のリリース記録を `1.0.0`〜`1.0.4`、今回の UI 更新を `1.1.0` に整理しました。
+
+## 1.0.4 - 2026-08-29
+
+### Changed
+
+- チート HUD が左からスライドするパネルではなく**画面全体**を覆うようになりました。各行が押しやすい大きさ（最小 104px）になり、`Screen.safeArea` を避けて配置され、広い画面では 2〜3 列に分かれます。下部には大きな `CLOSE` ボタンがあります。以前のパネルは `TerminalBehaviour.CheatHudFullScreen = false` と `CheatHudView.WidthPercent` で引き続き使えます。
+
+### Added
+
+- 開閉リスナー: `TerminalBehaviour.VisibilityChanged`（コンソールと HUD をまとめて）、`ConsoleVisibilityChanged`、`CheatHudVisibilityChanged`。ビューからも `OnOpened` / `OnClosed` / `OnVisibilityChanged` で受け取れます。
+- `TerminalBehaviour.PauseGameWhileOpen` / `PausedTimeScale`: 開いている間 `Time.timeScale` を固定し、閉じたときに元へ戻します。
+- エディター・デスクトップ向けのコンソールキー: `F1`（切り替え）とバッククォート `` ` ``（開くだけなので入力の邪魔にならない）。チート HUD は `F10` に加えて `F2` でも開きます。
+- プレイモード用の `Tools > Cheat Terminal` エディターメニュー（コンソール / HUD / ハンドルの切り替え、Pause Game While Open、手動ブートストラップ）。
+- `TerminalShortcutKey` に `F1`〜`F4`、`F11`、`F12`、`BackQuote`、`Escape` を追加。`MultiFingerTapGesture` は 2 つ目のキー `AlternateKey` を受け取ります。
+
+### Fixed
+
+- Input System のみのプロジェクトで `EventSystem` が作られず、コンソールとチート HUD のボタンがすべて反応しなかった問題。`InputSystemUIInputModule` 付きで作成するようになりました。
+
+### Documentation
+
+- コミット履歴をもとに整理した[開発の歩み](/cheat-terminal/ja/history.md)ページを追加 (ko / en / ja / zh)。
+
+## 1.0.3 - 2026-08-17
+
+### Changed
+
+- 右上の `>_` ハンドルは既定で非表示になりました。画面のどこでも **4 本指で 3 回タップ**すると表示され、同じジェスチャーで再び隠れます。コードからは `TerminalCornerTrigger.Visible` / `TerminalBehaviour.HandleVisible` で制御します（`TerminalCornerTrigger.Enabled` は別名として維持）。
+
+### Added
+
+- チート HUD (`CheatHudView`): 左からスライドインする UI Toolkit パネル。登録済みのコマンドをカテゴリー別に表示します。**3 本指で 3 回タップ**（デスクトップは F10）または `TerminalBehaviour.Open/Close/ToggleCheatHud()` で切り替えます。引数のないチートはワンタップで実行され、`<...>` / `[...]` 引数を持つチートはインライン入力欄が開きます。検索欄、直近の実行を示すステータス行、コンソールを開く `>_` ボタンを含みます。
+- `MultiFingerTapGesture`: 「N 本指・M 連タップ」を検出する再利用可能なコンポーネント。指の本数が完全に一致した場合のみ成立するため、3 本指と 4 本指のジェスチャーが干渉しません。エディター・デスクトップ用のキーボードフォールバック（F9 / F10）付き。
+- `TerminalInput`: レガシー Input Manager と Input System パッケージの両方に対応する、リフレクション不要の入力抽象化。
+- チート作成時の規約をまとめた `AGENT.md`。
+
+## 1.0.2 - 2026-06-27
+
+### Changed (breaking)
+
+- reflection ベースの `[Terminal]` メソッド探索と呼び出しを削除しました。コマンドは `RegisterCommand(...)` で明示的に登録します。
+- reflection ベースの Object Inspector module をデフォルト runtime から削除しました。
+- EventSystem fallback は optional Input System 型を reflection で探索しなくなりました。Input System-only のプロジェクトでは `InputSystemUIInputModule` 付きの EventSystem を用意してください。
+
+### Fixed
+
+- Terminal input は focus loss ではなく、明示的な submit のときだけ実行されます。
+- Terminal output は color tag で包む前に rich text-sensitive 文字を escape します。
+- Unity component commands は invariant-culture の数値 parsing、厳密な bool parsing、必要に応じた inactive-inclusive GameObject lookup を使います。
+- Logs / Performance module が作成する runtime helper GameObject は terminal bootstrap と一緒に dispose されます。
+
+### Added
+
+- command name、usage keyword、command-specific provider の cached completion items を追加しました。
+- scene、logs、GameObject、component target、boolean value など、built-in command 向けの context-aware completion を追加しました。
+- reflection-free data lookup のための `data [table] [id|text]` command と `RegisterDataTable(...)` を追加しました。
+- Console、registered Commands、registered Data tables を表示する Terminal UI tabs を追加しました。
+
+## 1.0.1 - 2026-05-30
+
+### 変更
+
+- 名前空間を `UniTerminal` から `Achieve.CheatTerminal` に変更。
+
+### 追加
+
+- Unity コンポーネントを操作する `transform`、`rb`、`cam`、`light`、`audio`、`time`、`go` コマンド。
+- 韓国語・英語・日本語・中国語のドキュメントと高度なモジュールの使用方法。
+
+## 1.0.0 - 2026-05-29
+
+### Changed (breaking)
+
+- 内部協調用インターフェース (`ICommandRegistry`, `ICommandParser`, `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`, `ITerminalTrigger`, `ITerminal`) と `TerminalBuilder` を削除しました。core `Terminal` は concrete collaborator を所有する concrete class になりました。拡張ポイントとして残るのは `ICommand`, `ICommandOutput`, `ITerminalView`, `ITerminalModule` です。
+- command 用 marker interface はなくなり、`[Terminal]` attribute が唯一の marker になりました。
+- `Terminal.ScanStaticCommands()` は user assemblies を scan し、すべての static `[Terminal]` methods を自動登録します。bootstrap 時に `TerminalBehaviour.AutoScanStaticCommands` を通じて実行されます。instance commands は引き続き `Register(this)` を使います。
+
+### Added
+
+- Runtime Logs module: `Debug.Log` output を ring buffer に収集し、`logs [n | error | warning | info | <text> | find <text> | clear | export]` で扱えます。export は `Application.persistentDataPath` に書き込むため、device から logs を回収できます。
+- input field で Up/Down arrow により前後の command history を呼び出せます。uGUI `IMoveHandler` 経由なので、legacy Input Manager と Input System package の両方で動作します。
+- `help <category>` は category 内の commands を descriptions 付きで表示します。`help` は `help <command>` / `help <category>` を案内します。
+
+### Fixed
+
+- Input System package が有効な場合、EventSystem は reflection 経由で `InputSystemUIInputModule` を作成するようになり、毎 frame の `InvalidOperationException` を避けます。
+- top-right corner trigger は表示される `>_` handle になり、single tap で開くようになりました。
+
+## 0.1.0 - 2026-05-29
+
+### Added
+
+- Core command system: `ICommandRegistry`, quote-aware `ICommandParser`, `ICommandHistory`, `IAutoCompleteProvider`, `IAliasResolver`, `IArgumentConverter`, default implementation 付きの `ICommandOutput`。
+- `[Terminal("name {0}")]` attribute と reflection-based `AttributeCommand` binding。positional binding、optional parameters、`CommandContext` injection を含みます。
+- `TerminalBuilder` で組み立てる interface-driven `Terminal` core。
+- closed 時に zero idle cost になる uGUI overlay view (`UGuiTerminalView`)。
+- top-right corner open gesture (`TerminalCornerTrigger`, default は double-tap)。
+- static convenience API を持つ `TerminalBehaviour` bootstrap。editor と development build では auto-bootstrap します。
+- built-in commands: `help`, `clear`, `history`, `echo`, `alias`。
+- bootstrap 上の `InstallModule` / `GetModule<T>` による module system (`ITerminalModule`)。
+- Scene Tools module: `scene list | load <name> [additive] | unload <name>`。
+- Object Inspector module: `find`, `inspect`, `set <name>.<member> <value>`, `call`。explicit object registration (`ObjectInspectorModule.RegisterObject`) に対応。
+- Performance Monitor module: `perf` (FPS, frame ms, memory, GC, render stats via `ProfilerRecorder`)。
+- Basic Usage sample。
+
+
+
+---
+url: /cheat-terminal/ja/history.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ja/llms.txt, the full documentation bundle is available at /cheat-terminal/ja/llms-full.txt.
+
+# 開発の歩み
+
+コミット履歴をもとに整理した、このパッケージの変遷です。各リリースで
+「何が」変わったかは[変更履歴](/cheat-terminal/ja/changelog.md)に、「なぜ」変わったかはこのページにまとめます。
+
+## 一覧
+
+| バージョン | 日付         | 主な変化                                           |
+| ----- | ---------- | ---------------------------------------------- |
+| 1.1.0 | 2026-10-17 | パラメーター欄、移動可能なドック、F1/F2 と実行結果                   |
+| 1.0.4 | 2026-08-29 | 全画面チート HUD、表示イベントとエディター対応                      |
+| 1.0.3 | 2026-08-17 | マルチタッチジェスチャーで UI を呼び出し、UI Toolkit のチート HUD を追加 |
+| 1.0.2 | 2026-06-27 | リフレクションを完全に排除、文脈対応の補完、データテーブル                  |
+| 1.0.1 | 2026-05-30 | 名前空間 `Achieve.CheatTerminal`、Unity コンポーネントコマンド |
+| 1.0.0 | 2026-05-29 | 具象コア中心に書き直し、Logs モジュール                         |
+| 0.1.0 | 2026-05-29 | 最初のコア / uGUI ビュー / モジュールシステム                   |
+
+## 3 つの転換点
+
+1. **リフレクション → 明示的な登録。** 0.1.0 は `[Terminal("name {0}")]` 属性とリフレクション
+   バインディングでコマンドを探し、1.0.0 では static メソッドの自動スキャンも加わりました。
+   IL2CPP/AOT ビルドでも挙動が予測できるように、1.0.2 で属性・自動スキャン・リフレクション
+   呼び出し経路をすべて削除し、`RegisterCommand(...)` による明示登録だけを残しました。
+2. **インターフェイスの分解 → 具象コア。** 0.1.0 の協力オブジェクト用インターフェイス
+   （`ICommandRegistry`、`ICommandParser`、`IAutoCompleteProvider` など）と `TerminalBuilder`
+   は 1.0.0 で削除され、`Terminal` が具象の協力オブジェクトを直接保持する形になりました。
+   拡張点は `ICommand`、`ICommandOutput`、`ITerminalView`、`ITerminalModule` の 4 つだけです。
+3. **常時表示の UI → ジェスチャーで呼び出す UI。** 0.1.0 の見えないダブルタップ領域は 1.0.0 で
+   目に見える `>_` ハンドル（シングルタップ）になり、1.0.3 ではそのハンドル自体が既定で非表示に
+   なり、マルチタッチジェスチャーからのみ呼び出せるようになりました。
+
+## 1.0.3 — ジェスチャーとチート HUD
+
+- 右上の `>_` ハンドルは既定で非表示になり、**4 本指の 3 連タップ**で表示・非表示を切り替えます。
+- 左からスライドインする **UI Toolkit のチート HUD** を追加しました。登録済みのコマンドが
+  カテゴリー別に自動で並び、引数のないチートはワンタップで実行できます。
+  **3 本指の 3 連タップ**で開閉します。 → [チート HUD](/cheat-terminal/ja/usage/cheat-hud.md)
+- ジェスチャーは `MultiFingerTapGesture` が担当し、指の本数が完全に一致した場合のみ成立するため、
+  3 本指と 4 本指のジェスチャーが互いに誤作動しません。
+- タッチ入力は `TerminalInput` の抽象化を通し、レガシー Input Manager と Input System パッケージの
+  両方にリフレクションなしで対応します（後者はバージョンデファインで解決される任意依存）。
+- チート作成時の規約をまとめた `AGENT.md` をリポジトリ直下に追加しました。
+
+## 1.0.2 — リフレクション排除と補完の強化
+
+- `TerminalAttribute`、`AttributeCommand`、リフレクションベースの Object Inspector モジュールを
+  削除しました。属性で登録していたコマンドは `RegisterCommand(...)` へ移す必要があります。
+- 補完がコマンド名・`usage` のキーワード・コマンド固有の候補をキャッシュし、シーン、ログ、
+  GameObject、コンポーネント対象、真偽値などの文脈候補を提供します
+  （`ICommandCompletionProvider`、`CommandCompletionContext`、`CompletionItem` を導入）。
+- `RegisterDataTable(...)` と `data [table] [id|text]` コマンドで、ゲームのデータテーブルを
+  リフレクションなしで参照できます。
+- ターミナル UI に `Console / Commands / Data` タブが加わりました。
+- 修正: フォーカス喪失ではなく明示的な submit でのみ実行、出力のリッチテキストエスケープ、
+  Unity コンポーネントコマンドの invariant カルチャー解析、Logs・Performance モジュールが
+  生成したヘルパー GameObject の破棄。
+- 同時期にドキュメントサイトを Docusaurus から **Fumadocs + Next.js** へ移行し、フォルダー名を
+  `docs~` に統一、Introduction / Getting started / Usage / Changelog の構成を整え、
+  韓国語版 `CHANGELOG.ko.md` を追加しました。
+
+## 1.0.1 — 名前空間と Unity コンポーネントコマンド
+
+- 名前空間を `UniTerminal` → `Achieve.CheatTerminal` に変更しました（互換性なし）。
+- Unity 組み込みコンポーネントを直接操作するコマンド（`transform`、`rb`、`cam`、`light`、
+  `audio`、`time`、`go`）を追加しました。 → [Unity コンポーネントコマンド](/cheat-terminal/ja/usage/unity-components.md)
+- ドキュメントを ko / en / ja / zh の 4 言語に対応させ、`ITerminalModule` の応用セクションと
+  `CHANGELOG` を導入しました。
+
+## 1.0.0 — 具象コアへの書き直し
+
+- 協力オブジェクト用インターフェイスと `TerminalBuilder` を削除し、`Terminal` を具象クラスにしました。
+- `Terminal.ScanStaticCommands()` が static な `[Terminal]` メソッドを自動登録しました
+  （この機能は 1.0.2 で削除）。
+- **Runtime Logs モジュール**: `Debug.Log` をリングバッファに集め、
+  `logs [n | error | warning | info | <text> | find <text> | clear | export]` で参照します。
+  `export` は `Application.persistentDataPath` に書き出すため、実機からも回収できます。
+- 入力欄で上下矢印による履歴呼び出し、`help <category>` に対応しました。
+- EventSystem の入力モジュールを修正し、右上トリガーを目に見える `>_` ハンドル + シングルタップに
+  変更、Unity の `.meta` を整備し、パッケージ名を `com.achieve.cheat-terminal` に確定しました。
+- ドキュメントサイト（Docusaurus）と GitHub Pages への自動デプロイ CI を追加しました。
+
+## 0.1.0 — 最初のリリース
+
+- 引用符を解釈するパーサー、履歴、エイリアス、引数変換、補完、出力バッファーからなるコア。
+- `[Terminal]` 属性のリフレクションバインディングと `TerminalBuilder` による組み立て。
+- 閉じている間は完全に無効化される uGUI オーバーレイビューと、右上のダブルタップトリガー。
+- 組み込みコマンド `help` / `clear` / `history` / `echo` / `alias`。
+- モジュールシステム（`ITerminalModule`）と Scene Tools / Object Inspector / Performance
+  モジュール、Basic Usage サンプル。
+
+## アップグレード早見表
+
+| これまで                            | 現在                                                  |
+| ------------------------------- | --------------------------------------------------- |
+| `[Terminal]` 属性 / static 自動スキャン | `TerminalBehaviour.RegisterCommand(...)`            |
+| `UniTerminal` 名前空間              | `Achieve.CheatTerminal`                             |
+| `TerminalBuilder` による組み立て       | `new Terminal()` + `AttachView(...)`                |
+| Object Inspector モジュール          | `RegisterDataTable(...)` と `data` コマンド              |
+| 常に表示される右上ハンドル                   | 4 本指の 3 連タップ（`TerminalBehaviour.HandleVisible`）     |
+| `TerminalCornerTrigger.Enabled` | `TerminalCornerTrigger.Visible`（`Enabled` は別名として維持） |
+
+
+
+---
+url: /cheat-terminal/ja/index.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ja/llms.txt, the full documentation bundle is available at /cheat-terminal/ja/llms-full.txt.
+
+# 소개
+
+Unity ランタイム開発者コンソールです。チート、デバッグ、ログ確認、実行時の状態操作を 1 か所で扱えます。
+
+コマンドは `RegisterCommand(...)` で明示的に登録します。デフォルトのランタイム経路では自動アセンブリ走査や reflection 呼び出しを使わないため、IL2CPP/AOT ビルドでも挙動を予測しやすくなります。閉じている間は **待機コスト 0** の uGUI オーバーレイとして動作します。
+
+```csharp
+TerminalBehaviour.RegisterCommand(
+    "gold",
+    ctx => ctx.Output.WriteLine("gold added", LogLevel.Success),
+    "ゴールドを追加",
+    "Cheats",
+    "gold <amount>");
+```
+
+## 特徴
+
+- **明示登録** - `RegisterCommand("name", ctx => ...)` で登録。隠れた reflection scan はありません。
+- **Runtime IntelliSense** - command / keyword / data table / row suggestions を詳細付きで表示します。
+- **性能優先** - 閉じている間は Canvas を無効化し、出力は capped ring buffer、履歴移動は共通の `TerminalInput` 経由。
+- **モジュール式** - Scene / Data / Performance / Logs / Unity Components を標準搭載。
+- **Tab UI** - Console / Commands / Data tab で出力、登録コマンド、登録データを確認できます。
+- **モバイル対応** - マルチタッチジェスチャー（3 本指 / 4 本指の 3 連タップ）で呼び出し、端末上のログをファイルに export できます。
+- **チート HUD** - 登録済みのチートを、全画面の UI Toolkit パネルでパラメーターを入力し Run で実行。開閉リスナーで `Time.timeScale` を制御できます。
+
+## 要件
+
+- Unity 6 (6000.x)
+- `com.unity.ugui` (標準同梱)
+
+次: [はじめに](/cheat-terminal/ja/getting-started.md)
+
+
+
+---
+url: /cheat-terminal/ja/usage/cheat-hud.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ja/llms.txt, the full documentation bundle is available at /cheat-terminal/ja/llms-full.txt.
+
+# チート HUD
+
+ターミナルに登録したチートを、**画面全体を覆う UI Toolkit の HUD** から直接実行できます。
+コマンドを登録するだけで HUD に自動で反映されます。
+
+## 開き方
+
+| ジェスチャー             | 動作                                | エディター / デスクトップ |
+| ------------------ | --------------------------------- | -------------- |
+| **3 本指の同時タップ 3 回** | チート HUD の開閉                       | `F1` / `F10`   |
+| **4 本指の同時タップ 3 回** | 右上の `Terminal / F2` ハンドルの表示 / 非表示 | `F9`           |
+| ハンドルをタップ           | コンソールの開閉                          | `F2` / `` ` `` |
+
+エディターでは `Tools > Cheat Terminal` メニューからも開けます。Game ビューがフォーカスされて
+おらず、キー入力がゲームに届かないときに使ってください。
+
+```csharp
+using Achieve.CheatTerminal;
+
+TerminalBehaviour.OpenCheatHud();
+TerminalBehaviour.CloseCheatHud();
+TerminalBehaviour.ToggleCheatHud();
+```
+
+## レイアウト
+
+- HUD は既定で**画面全体**を覆います。各行は指で押しやすい大きさ（最小 104px）で、文字もそれに合わせています。
+- ノッチやホームインジケーターを避けるため、`Screen.safeArea` の分だけ内側に余白を取ります。
+- 画面が広い場合（横向き、タブレット、エディターの Game ビュー）は一覧が自動で 2〜3 列になります。
+- 下部のステータス行に大きな `CLOSE` ボタンがあります。縦長の画面で上部の `X` に指が届かないときに使えます。
+- 以前のように左からスライドする細いパネルが必要なら、全画面表示をオフにします。
+
+```csharp
+TerminalBehaviour.CheatHudFullScreen = false;           // スライドパネルに戻す
+TerminalBehaviour.Instance.CheatHud.WidthPercent = 42f; // そのときの幅(%)
+```
+
+## 開閉リスナー
+
+HUD やコンソールを開いてもゲームは動き続けます。開閉を購読して `Time.timeScale` を下げたり、
+入力を止めたりしてください。
+
+```csharp
+// コンソールかチート HUD が開くと true、両方閉じると false
+TerminalBehaviour.VisibilityChanged += open => Time.timeScale = open ? 0.2f : 1f;
+
+// 個別に受け取る場合
+TerminalBehaviour.CheatHudVisibilityChanged += open => { /* ... */ };
+TerminalBehaviour.ConsoleVisibilityChanged  += open => { /* ... */ };
+```
+
+時間を止めるだけなら 1 行で済みます。開いたときの `Time.timeScale` を保存し、閉じたときに戻します。
+
+```csharp
+TerminalBehaviour.PauseGameWhileOpen = true; // 開いている間 timeScale を固定
+TerminalBehaviour.PausedTimeScale = 0f;      // 既定値は 0（完全停止）
+```
+
+:::info
+購読の解除は `-=` です。ビューから直接受け取ることもできます:
+`CheatHudView.OnOpened` / `OnClosed` / `OnVisibilityChanged`、および `UGuiTerminalView` の同名イベント。
+:::
+
+## 表示ルール
+
+- コマンドは `category` ごとにまとめられ、組み込みの `System` カテゴリーは常に最後に並びます。
+- 上部の検索欄で名前 / 説明 / カテゴリーを絞り込めます。
+- `usage` 文字列が実行方法を決めます。
+
+| usage           | HUD の挙動               |
+| --------------- | --------------------- |
+| `god`（引数なし）     | Run ボタンで実行            |
+| `gold <amount>` | amount を入力して Run      |
+| `heal [amount]` | amount を省略または入力して Run |
+
+```csharp
+// ワンタップチート: usage に <> や [] を使いません。
+TerminalBehaviour.RegisterCommand("god", ToggleGod, "無敵を切り替え", "Cheats", "god");
+
+// 引数付きチート
+TerminalBehaviour.RegisterCommand("gold", AddGold, "ゴールドを追加", "Cheats", "gold <amount>");
+```
+
+## 挙動
+
+- HUD は `Terminal.Registry.Changed` を購読しているため、実行時にコマンドを追加・削除しても一覧が更新されます。
+- 実行結果はターミナルのコンソール出力と HUD 下部のステータス行の両方に表示されます。
+- 閉じている間はパネルが `display: none` なので描画・レイアウトのコストがなく、
+  ルート要素は入力を奪わないためゲーム操作に影響しません。
+- ヘッダーの `Terminal / F2` ボタンでターミナル本体を開けます。
+
+## ドックとショートカット
+
+エディターと開発ビルドでは、シーン読み込み後に自動でブートストラップされます。右上のドックでスライダーのアイコンは Cheat Library、ターミナルのアイコンは Terminal を開きます。グリップやアイコンをドラッグすると、安全領域内でドックを移動できます。
+
+`F1` は Cheat Library、`F2` は Terminal の開閉です。`F10` でもチート UI を開き、`F9` でドックの表示を切り替えます。バッククォートは Terminal を開くだけで、Escape は現在の画面を閉じます。
+
+## パラメーターの入力と実行
+
+パラメーター欄は常に表示されます。コマンド名ではなく値だけを入力し、Run または Enter で実行します。`<amount>` は必須、`[amount]` は任意、`<x> <y> <z>` は座標別の入力欄です。`<on|off>` は選択ボタンも表示します。必須欄はすべて入力し、任意欄は末尾から省略してください。`[args]` と `<text...>` は空白区切りの複数引数を受け取り、空白を含む一つの値は引用符で囲みます。
+
+カテゴリーボタンと検索でコマンドを探せます。入力値は絞り込み、画面サイズの変更、再表示後も保持されます。結果やエラーはカード、下部のステータス行、Terminal に表示されます。別の画面を開くと前の画面は閉じます。
+
+
+
+---
+url: /cheat-terminal/ja/usage/commands.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ja/llms.txt, the full documentation bundle is available at /cheat-terminal/ja/llms-full.txt.
+
+# コマンドリファレンス
+
+## 組み込みコマンド
+
+| コマンド                       | 説明                                           |
+| -------------------------- | -------------------------------------------- |
+| `help [command\|category]` | コマンド一覧 / 詳細                                  |
+| `clear`                    | 出力をクリア                                       |
+| `history`                  | 入力履歴                                         |
+| `echo <text>`              | テキストを出力                                      |
+| `alias <name> <expansion>` | エイリアス登録 (`alias remove <name>`, `alias` で一覧) |
+
+## モジュール
+
+デフォルトの bootstrap で以下のモジュールが自動インストールされます。
+
+### Scene
+
+```bash
+scene list                 # 読み込み済み scene + build settings scene
+scene load Lobby           # 単一ロード
+scene load InGame additive # 加算ロード
+scene unload InGame
+```
+
+### Data
+
+登録された data table ID と row 名を表示します。
+
+```bash
+data                 # table ID / name / row count
+data items           # items table の row ID / name
+data items sword     # ID, name, summary を検索して fields を表示
+```
+
+### Performance
+
+```bash
+perf   # FPS / frame ms / memory / Mono / GC / draw calls, batches, triangles when available
+```
+
+### Logs
+
+`Debug.Log` 出力を capped ring buffer に収集します。
+
+```bash
+logs                 # 最新 30 件
+logs 100             # 最新 100 件
+logs error           # レベルフィルタ (error / warning / info)
+logs network         # テキスト部分一致
+logs find <text>     # 明示的な検索
+logs clear           # クリア
+logs export          # ファイル保存 (persistentDataPath)
+```
+
+### Unity Components
+
+Unity の組み込みコンポーネントをターミナルから直接制御します。詳細は [Unity コンポーネントコマンド](/cheat-terminal/ja/usage/unity-components.md) を参照してください。
+
+| コマンド        | 説明                                   |
+| ----------- | ------------------------------------ |
+| `transform` | position / rotation / scale の取得・変更   |
+| `rb`        | Rigidbody プロパティ制御                    |
+| `cam`       | Camera 設定 (FOV, background color など) |
+| `light`     | Light プロパティ制御                        |
+| `audio`     | AudioListener volume / mute / pause  |
+| `time`      | Time.timeScale / fixedDeltaTime 制御   |
+| `go`        | GameObject active / tag / list       |
+
+## エイリアス & マクロ
+
+よく使う組み合わせはエイリアスにできます:
+
+```bash
+alias rich gold 999999
+rich            # -> gold 999999
+```
+
+
+
+---
+url: /cheat-terminal/ja/usage/unity-components.md
+---
+
+> For AI agents: the complete documentation index is available at /cheat-terminal/ja/llms.txt, the full documentation bundle is available at /cheat-terminal/ja/llms-full.txt.
+
+# Unity コンポーネントコマンド
+
+`UnityComponentsModule` は、Unity でよく使われる 7 種類の組み込みコンポーネントをターミナルから直接操作するコマンドを提供します。\
+エディターと開発ビルドで自動的にインストールされるため、追加のセットアップは不要です。
+
+***
+
+## `transform` — Transform 操作
+
+```bash
+transform get   <name>                   # 位置・回転・スケールを出力
+transform pos   <name> [x y z]           # 位置を取得または設定
+transform rot   <name> [x y z]           # オイラー角を取得または設定
+transform scale <name> [x y z]           # ローカルスケールを取得または設定
+transform reset <name>                   # position/rotation/scale を初期化
+```
+
+### 例
+
+```bash
+transform get   Player
+transform pos   Player 0 1 0
+transform rot   Enemy  0 90 0
+transform scale Boss   2 2 2
+transform reset Cube
+```
+
+***
+
+## `rb` — Rigidbody 制御
+
+```bash
+rb get       <name>           # Rigidbody の全プロパティを出力
+rb velocity  <name> [x y z]  # 線速度を取得または設定
+rb gravity   <name> [on|off] # useGravity を取得または設定
+rb kinematic <name> [on|off] # isKinematic を取得または設定
+rb mass      <name> [value]  # 質量を取得または設定
+rb drag      <name> [value]  # 線形減衰 (drag) を取得または設定
+```
+
+***
+
+## `cam` — Camera 設定
+
+`Camera.main` に対して操作します。
+
+```bash
+cam list                          # シーン内の全カメラ一覧
+cam fov  [value]                  # fieldOfView を取得または設定 (1–179°)
+cam bg   [r g b [a]]              # backgroundColor を取得または設定 (0–1)
+cam ortho [on|off]                # 遠近法/平行投影の切り替え
+cam size  [value]                 # orthographicSize を取得または設定
+cam clip  [near far]              # クリッピングプレーンを取得または設定
+```
+
+***
+
+## `light` — Light 制御
+
+```bash
+light list                        # シーン内の全 Light 一覧
+light intensity <name> [value]    # 明るさを取得または設定
+light color     <name> [r g b]    # 色を取得または設定 (0–1)
+light range     <name> [value]    # 範囲を取得または設定
+light shadow    <name> [on|off]   # ソフトシャドウの on/off
+```
+
+***
+
+## `audio` — AudioListener 制御
+
+```bash
+audio volume [value]   # マスターボリュームを取得または設定 (0–1)
+audio mute   [on|off]  # ミュート on/off
+audio pause            # 音声を一時停止
+audio resume           # 音声を再開
+```
+
+***
+
+## `time` — Time 制御
+
+```bash
+time get            # timeScale, fixedDeltaTime, time, frameCount を出力
+time scale [value]  # Time.timeScale を取得または設定 (0 以上)
+time fixed [value]  # Time.fixedDeltaTime を取得または設定
+```
+
+### 例
+
+```bash
+time scale 0.5     # スローモーション
+time scale 0       # 一時停止
+time scale 1       # 通常速度に戻す
+```
+
+***
+
+## `go` — GameObject ユーティリティ
+
+```bash
+go list   [tag]             # GameObject 一覧 (最大 40 件、タグでフィルタ可)
+go active <name> <on|off>   # SetActive を呼び出す
+go tag    <name> [tag]      # タグを取得または設定
+```
+
+***
+
+## カテゴリ
+
+すべてのコマンドは `Components` カテゴリに属します。`help Components` で一覧を確認できます。
+
+

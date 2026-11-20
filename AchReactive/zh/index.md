@@ -1,0 +1,51 @@
+> For AI agents: the complete documentation index is available at /AchReactive/zh/llms.txt, the full documentation bundle is available at /AchReactive/zh/llms-full.txt.
+
+# AchReactive
+
+**AchReactive** 是一个 Unity 框架，它将技能、怪物、道具、地图、任务等所有游戏内容
+都用 **触发器 → 条件 → 效果** 的数据组合来构建。
+
+## 核心理念
+
+> 领域是无限的，但动作（primitive）是有限的。
+
+如果为每个领域都重新构建一套系统，就必须每次都填满 `领域 × 动作` 的矩阵。
+AchReactive 让动作池被**所有领域共享**，从而将这个乘法变成了加法。
+从第二个领域开始，几乎是免费的。
+
+```
+        damage  heal  add_modifier  spawn
+Skill     ✓      ✓        ✓
+Monster                    ✓          ✓     ← 复用相同的 effect
+Item               ✓       ✓
+```
+
+## 特性
+
+- **领域无关** — 仅用一个 `DataBase<T>` 即可处理 Skill/Monster/Item/… 全部
+- **来源无关** — 可从任意位置加载 JSON、CSV、远程等（只要实现 `IDataLoader<T>` 即可接入新来源）
+- **动作自动注册** — 通过反射收集 `[Effect]`/`[Condition]`/`[Trigger]` 方法，0 行接线代码
+- **UIToolkit 创作工具** — 在编辑器中生成类型与数据（无需手写 JSON）
+- **依赖最小** — 仅 Newtonsoft.Json 一个
+
+## 一目了然
+
+```csharp
+// 1) 自动收集动作池（包含默认的 effect/condition/trigger）
+EffectRegistry.AutoRegister();
+ConditionRegistry.AutoRegister();
+TriggerRegistry.AutoRegister();
+
+// 2) 加载数据（来源自由）
+var skills = new DataBase<SkillData>();
+skills.Load(new JsonDataLoader<SkillData>(() => json));
+
+// 3) 执行 —— 即使领域不同也完全一致
+engine.Run("on_use", skills.Get("fire_slash"), ctx);
+```
+
+## 下一步
+
+- [开始使用](/AchReactive/zh/getting-started.md) — 从安装到运行第一个响应
+- [核心概念](/AchReactive/zh/usage/concepts.md) — 触发器/条件/效果与领域模型
+- [扩展](/AchReactive/zh/usage/extending.md) — 添加新动作、新领域

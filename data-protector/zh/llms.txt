@@ -1,0 +1,9 @@
+# Data Protector
+
+> Data Protector package documentation
+
+## Others
+
+- [API](/data-protector/zh/api.md): DataProtector / HashChecker API 参考
+- [更新日志](/data-protector/zh/changelog.md): Data Protector 各版本的更新日志
+- [快速开始](/data-protector/zh/getting-started.md): Data Protector 的安装与基本用法

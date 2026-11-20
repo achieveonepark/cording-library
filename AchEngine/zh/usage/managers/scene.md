@@ -1,0 +1,20 @@
+> For AI agents: the complete documentation index is available at /AchEngine/zh/llms.txt, the full documentation bundle is available at /AchEngine/zh/llms-full.txt.
+
+# AchSceneManager
+
+提供异步场景切换，并通过 `IScene` 管理场景生命周期。
+
+```csharp
+public class GameScene : MonoBehaviour, IScene
+{
+    public async Task OnSceneStart() { }
+    public Task OnSceneEnd() => Task.CompletedTask;
+}
+
+var scenes = ServiceLocator.Resolve<AchSceneManager>();
+await scenes.LoadSceneAsync("Lobby");
+await scenes.ReloadSceneAsync();
+await scenes.UnloadSceneAsync("SubScene");
+```
+
+使用 `Ach` 前缀以区别 Unity 的 `SceneManager`。

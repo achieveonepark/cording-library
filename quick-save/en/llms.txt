@@ -1,0 +1,13 @@
+# Quick Save
+
+> Quick Save documentation
+
+## Others
+
+- [Builder](/quick-save/en/api/builder.md)
+- [QuickSave<T> Methods](/quick-save/en/api/methods.md)
+- [Changelog](/quick-save/en/changelog.md)
+- [Getting Started](/quick-save/en/getting-started.md): From installing Quick Save to your first save/load
+- [Async Save / Load](/quick-save/en/usage/async.md)
+- [Basic Usage](/quick-save/en/usage/basic.md)
+- [Encryption & Versioning](/quick-save/en/usage/encryption.md)

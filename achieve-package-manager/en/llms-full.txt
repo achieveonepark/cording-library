@@ -1,0 +1,532 @@
+---
+url: /achieve-package-manager/en/api/architecture.md
+---
+
+> For AI agents: the complete documentation index is available at /achieve-package-manager/en/llms.txt, the full documentation bundle is available at /achieve-package-manager/en/llms-full.txt.
+
+# Architecture
+
+## Folder layout
+
+```
+Editor/
+├── AchievePackageManagerEditorWindow.cs   # UI Toolkit window
+├── Dto/
+│   ├── PackageCenter.cs                   # manifest read/write + package list
+│   └── OpenUpmPackageInfo.cs              # OpenUPM package DTO
+└── Services/
+    ├── OpenUpmService.cs                  # OpenUPM API client
+    └── CuratedPackages.cs                 # curated Git package list
+```
+
+## Core components
+
+### `PackageCenter` (static, `[InitializeOnLoad]`)
+
+- Single entry point for reading/writing `manifest.json`
+- Calls `Client.List(true)` asynchronously and caches `InstalledPackages`
+- Exposes an `InstalledPackagesRefreshed` event for subscribers
+- After every write: `AssetDatabase.Refresh()` → `Client.Resolve()` → re-fetch list
+- `IsValidPackageName` — validates UPM package-name rules
+- `ManifestData.ToJson()` — preserves unknown top-level fields when serializing (so `lockFile`, etc., are not lost)
+
+### `OpenUpmService` (static)
+
+- Calls `https://package.openupm.com/-/all` (entire catalog in one request)
+- In-memory cache (`_cache`) — one request per session
+- `forceRefresh` option to invalidate the cache
+- `ParseAll` calls `PackageCenter.IsValidPackageName` to pre-filter npm-scoped names
+- `FetchPackageDetail` — per-package detail endpoint (not used by the UI today, kept for extension)
+
+### `CuratedPackages` (static list)
+
+- Compile-time list — no external calls
+- Each entry: `Id`, `DisplayName`, `Description`, `GitUrl`, `Repository`, `Category`
+- The Featured tab groups this list by `Category` and renders cards
+
+### `AchievePackageManagerEditorWindow`
+
+- `EditorWindow` + UI Toolkit (`rootVisualElement`)
+- Single window; tab content is rebuilt by `Clear()` + re-add
+- Styles are inline (`IStyle`) — no USS file required
+
+## Data flow (OpenUPM install)
+
+```
+UI click (Install)
+    ↓
+window.InstallOpenUpm(pkg)
+    ↓
+PackageCenter.AddOpenUpmPackage(name, version)
+    ↓
+1) IsValidPackageName check
+2) LoadManifest()
+3) Manifest.RegisterOpenUpmScope(name)   ← auto-register scope
+4) Manifest.AddDependency(name, version)
+5) SaveManifest()                        ← write manifest.json to disk
+6) ResolveAndRefresh()
+    ├ AssetDatabase.Refresh()
+    ├ Client.Resolve()                   ← Unity downloads the new package
+    └ Refresh() → Client.List(true)      ← UI updates
+```
+
+## External API usage
+
+| Call                                | Frequency                        | Notes                                                           |
+| ----------------------------------- | -------------------------------- | --------------------------------------------------------------- |
+| `https://package.openupm.com/-/all` | First OpenUPM tab open + Refresh | Cached in memory, once per session                              |
+| GitHub API                          | **Never**                        | Git installs only edit the manifest; Unity does the `git clone` |
+| `Client.List` / `Client.Resolve`    | On every refresh / write         | Local operations                                                |
+
+Far below any rate limit you'd run into.
+
+
+
+---
+url: /achieve-package-manager/en/api/extending-curated-list.md
+---
+
+> For AI agents: the complete documentation index is available at /achieve-package-manager/en/llms.txt, the full documentation bundle is available at /achieve-package-manager/en/llms-full.txt.
+
+# Extending the Curated List
+
+To add or modify entries in the Featured tab, edit `Editor/Services/CuratedPackages.cs`.
+
+## Data model
+
+```csharp
+internal class CuratedPackage
+{
+    public string Id;          // manifest dependency key (e.g. com.cysharp.unitask)
+    public string DisplayName; // shown large on the card
+    public string Description; // one-line description
+    public string GitUrl;      // manifest dependency value - Git URL or version string
+    public string Repository;  // URL opened by the "GitHub" button
+    public string Category;    // grouping key for the card grid
+}
+```
+
+## Example: adding an entry
+
+```csharp
+new CuratedPackage
+{
+    Id = "com.example.awesome",
+    DisplayName = "Awesome Library",
+    Description = "Does awesome things for Unity.",
+    GitUrl = "https://github.com/example/awesome.git?path=Packages/com.example.awesome",
+    Repository = "https://github.com/example/awesome",
+    Category = "Tools",
+},
+```
+
+Append this block to `CuratedPackages.All` (or next to its category siblings) and it appears in the Featured tab immediately.
+
+## Recommendations
+
+- **Make `Id` match the package's real `package.json` name.** This is what lets Unity detect duplicate installs and "already installed" state correctly.
+- Many repos aren't UPM-ready at the root, so use `?path=...` in `GitUrl` to point at the package subfolder. Check the target repo's README.
+- To pin a version, use the `?path=...#v1.2.3` format.
+- For packages officially hosted on OpenUPM, `GitUrl` can be a plain **version string** (e.g. `"3.2.1"`). The user must already have the OpenUPM scoped registry configured, so the Git URL form is more self-contained.
+- `Category` is a free-form string, but reusing the same names produces cleaner grouping.
+
+## Display order
+
+- Categories are grouped alphabetically.
+- Cards within a category are sorted by `DisplayName` alphabetically.
+
+If you need a specific category order, prefixing with `"01 - Async"` works but is not recommended.
+
+
+
+---
+url: /achieve-package-manager/en/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /achieve-package-manager/en/llms.txt, the full documentation bundle is available at /achieve-package-manager/en/llms-full.txt.
+
+# Changelog
+
+## 🎉 1.0.0 — 2026.05.24
+
+The first official release, redesigning the package manager with UI Toolkit.
+
+### Added
+
+- **UI Toolkit window** — A single window opened from `Tools > Achieve Package Manager` (toolbar + sidebar + content + status bar).
+- **Installed tab** — Shows all packages in the manifest, auto-detects the source (Registry / Git / Local / Embedded / Built-in), and removes non-built-in entries.
+- **OpenUPM tab** — Downloads the full OpenUPM catalog once into a session cache; search/filter and install with one click (scoped registries merged automatically).
+- **Featured tab** — Shows curated Git packages as category cards with one-click manifest injection.
+- **Custom Git URL tab** — Install by entering an arbitrary Git URL (`https://`, `git@`, `?path=`, `#branch/tag`).
+- **Unresolved entries** — Surfaces resolve failures with a warning banner and Remove button.
+- **UPM name validation** — Validates before writing the manifest to prevent corruption.
+
+### Changed
+
+- Rewrote the IMGUI-based "Manifest Data Viewer" entirely as a UI Toolkit window.
+- Renamed the menu item from `Tools > Manifest Data Viewer` to `Tools > Achieve Package Manager`.
+
+### Fixed
+
+- Fixed loss of top-level fields (e.g. `scopedRegistries`) other than `dependencies` during manifest serialization.
+- Fixed a `CS0246` compile error related to `ToolbarSearchField`.
+- Fixed a layout bug where the toolbar/status bar collapsed.
+- Blocked OpenUPM `@scope/name` style names from breaking manifest resolution.
+
+
+
+---
+url: /achieve-package-manager/en/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /achieve-package-manager/en/llms.txt, the full documentation bundle is available at /achieve-package-manager/en/llms-full.txt.
+
+# Getting Started
+
+## Installation
+
+### Add via Git URL in Unity Package Manager (recommended)
+
+`Window > Package Manager` → top-left **+** → **Add package from git URL...**, then enter:
+
+```
+https://github.com/achieveonepark/achieve-package-manager.git
+```
+
+To pin a specific version, append a tag.
+
+```
+https://github.com/achieveonepark/achieve-package-manager.git#1.0.0
+```
+
+### Add to manifest.json directly
+
+Add to `dependencies` in `<Project>/Packages/manifest.json`.
+
+```json
+{
+  "dependencies": {
+    "com.achieve.achieve-package-manager": "https://github.com/achieveonepark/achieve-package-manager.git"
+  }
+}
+```
+
+### Requirements
+
+- Unity **2022.3** or later
+- `com.unity.nuget.newtonsoft-json`, `com.unity.serialization` (installed automatically as dependencies)
+- Network access (for OpenUPM catalog lookups and Git downloads)
+
+## Opening the window
+
+From the Unity menu:
+
+```
+Tools > Achieve Package Manager
+```
+
+## Layout
+
+- **Toolbar**: refresh, search, open the manifest file location
+- **Sidebar**: four category tabs
+- **Status bar**: number of installed packages / refresh status
+
+## The four tabs at a glance
+
+| Tab                                                             | Purpose                                                             |
+| --------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [Installed](/achieve-package-manager/en/usage/installed.md)     | View/remove packages in the current manifest and unresolved entries |
+| [OpenUPM](/achieve-package-manager/en/usage/openupm.md)         | Browse and install from the whole OpenUPM registry                  |
+| [Featured (Git)](/achieve-package-manager/en/usage/featured.md) | One-click install of curated Git packages                           |
+| [Custom Git URL](/achieve-package-manager/en/usage/git-url.md)  | Install by entering an arbitrary Git URL                            |
+
+## Search and refresh
+
+- The toolbar **search** applies to the list of the active tab.
+- `↻ Refresh` re-fetches the Unity package list (`Client.List`) and forces a re-download of the OpenUPM catalog. The OpenUPM catalog is cached automatically within a session.
+
+See [Usage](/achieve-package-manager/en/usage/installed.md) for details.
+
+
+
+---
+url: /achieve-package-manager/en/index.md
+---
+
+> For AI agents: the complete documentation index is available at /achieve-package-manager/en/llms.txt, the full documentation bundle is available at /achieve-package-manager/en/llms-full.txt.
+
+# Introduction
+
+**Clean Unity package management.**
+Manage UI Toolkit · OpenUPM · curated Git packages · custom Git URLs from a single window.
+
+## Features
+
+- **Installed** — Shows every package in your manifest on one screen and auto-detects its source (Registry / Git / Local / Built-in). Unresolved entries are surfaced so you can fix a broken manifest right from the tool.
+- **OpenUPM** — Search and install packages from the OpenUPM registry.
+- **Curated Git** — Browse a curated list of Git packages.
+- **Custom Git URL** — Add any package by Git URL.
+
+## Quick links
+
+- [Getting Started](/achieve-package-manager/en/getting-started.md)
+- [Installation](/achieve-package-manager/en/getting-started.md)
+- [GitHub](https://github.com/achieveonepark/achieve-package-manager)
+
+
+
+---
+url: /achieve-package-manager/en/usage/featured.md
+---
+
+> For AI agents: the complete documentation index is available at /achieve-package-manager/en/llms.txt, the full documentation bundle is available at /achieve-package-manager/en/llms-full.txt.
+
+# Featured Tab
+
+Frequently used free and open-source Git packages, grouped by category as cards. One click on `Install` and you're done.
+
+## Current curated list
+
+| Category             | Packages                                                               |
+| -------------------- | ---------------------------------------------------------------------- |
+| Async                | UniTask, R3                                                            |
+| Animation            | DOTween, PrimeTween                                                    |
+| Performance          | ZString                                                                |
+| Messaging            | MessagePipe                                                            |
+| Serialization        | Newtonsoft Json, MemoryPack, OdinSerializer                            |
+| Logging              | ZLogger                                                                |
+| Dependency Injection | VContainer, Extenject (Zenject)                                        |
+| Networking           | Mirror                                                                 |
+| UI                   | UI Effect, Soft Mask, Particle Effect for uGUI, Unmask for uGUI        |
+| Editor               | NaughtyAttributes, xNode                                               |
+| Tools                | NuGet for Unity                                                        |
+| Debug                | In-Game Debug Console, Graphy, Asset Usage Detector, Runtime Inspector |
+
+## Anatomy of a card
+
+Each card shows:
+
+- **Display name** (e.g. `UniTask`)
+- **Package id** (key written into manifest, e.g. `com.cysharp.unitask`)
+- One-line **description**
+- **Install / Reinstall** button
+- **GitHub** button — opens the repository
+
+The `Install` button writes the card's `GitUrl` value into the manifest dependency. Most are `https://github.com/...git?path=...` URLs, but for OpenUPM-standard packages (e.g. Newtonsoft Json) a version string like `3.2.1` is written instead.
+
+## Adding or editing entries
+
+Edit the static list in `Editor/Services/CuratedPackages.cs`. See [Extending the curated list](/achieve-package-manager/en/api/extending-curated-list.md) for full details.
+
+
+
+---
+url: /achieve-package-manager/en/usage/git-url.md
+---
+
+> For AI agents: the complete documentation index is available at /achieve-package-manager/en/llms.txt, the full documentation bundle is available at /achieve-package-manager/en/llms-full.txt.
+
+# Custom Git URL Tab
+
+Any package not in the curated list can still be installed with one click — just paste its Git URL.
+
+## Supported URL formats
+
+Anything UPM accepts as a Git URL works:
+
+- `https://github.com/user/repo.git`
+- `git@github.com:user/repo.git` (SSH keys must be configured)
+- `https://gitlab.com/user/repo.git`
+- `https://bitbucket.org/user/repo.git`
+- `?path=` to point at a subfolder\
+  e.g. `https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask`
+- `#branch` or `#tag` to pin a version\
+  e.g. `https://github.com/Cysharp/UniTask.git#2.5.0`
+
+## Input fields
+
+| Field                   | Description                                     |
+| ----------------------- | ----------------------------------------------- |
+| Git URL                 | Required. A URL in the format above.            |
+| Package name (optional) | Optional. Used as the manifest key if provided. |
+
+## Inferred package name
+
+Leave `Package name` blank and the tool builds a name from the URL's last segment:
+
+```
+https://github.com/Cysharp/UniTask.git
+→ com.git.unitask
+```
+
+The name is always lowercase, in the form `com.git.<repo>`.
+
+> If the inferred name is ugly or doesn't match the package's actual `package.json` name, **enter the correct name manually**. Matching the real package id is what lets Unity detect duplicates and "already installed" state correctly.
+
+## Validation
+
+Before writing to the manifest, the tool validates the package name:
+
+- Only `a-z`, `0-9`, `-`, `_`, `.` allowed
+- First character must be a lowercase letter or digit
+- Length ≤ 214
+
+If the name fails validation the manifest is not written, a `Failed to install ...` notification is shown, and a Console error is logged. (A single invalid name can block the entire manifest from resolving.)
+
+## Installed Git packages list
+
+Below the input card, a list shows the **Git-sourced packages** currently in the project. Same row format as the Installed tab; the `Remove` button works the same way.
+
+
+
+---
+url: /achieve-package-manager/en/usage/installed.md
+---
+
+> For AI agents: the complete documentation index is available at /achieve-package-manager/en/llms.txt, the full documentation bundle is available at /achieve-package-manager/en/llms-full.txt.
+
+# Installed Tab
+
+Shows packages currently registered in `Packages/manifest.json` along with their direct/indirect dependencies.
+
+## Columns
+
+| Column   | Description                                                                   |
+| -------- | ----------------------------------------------------------------------------- |
+| Package  | Display name + package id (e.g. `com.cysharp.unitask`)                        |
+| Version  | Installed version                                                             |
+| Source   | Auto-detected source — `Registry` / `Git` / `Local` / `Embedded` / `Built-in` |
+| (action) | `Remove` button when removable                                                |
+
+## Source detection rules
+
+- `packageId` contains `https://`, `git@`, or `.git` → **Git**
+- `packageId` starts with `file:` → **Local**
+- `PackageSource.BuiltIn` or `com.unity.modules.*` → **Built-in** (Remove disabled)
+- Anything else → Unity's reported `PackageSource`
+
+## Remove behavior
+
+The `Remove` button:
+
+1. Shows a confirmation dialog
+2. Deletes the entry from `manifest.json` dependencies
+3. Calls `Client.Resolve()` so Unity re-resolves immediately
+
+> **Built-in modules (`com.unity.modules.*`) and this package itself cannot be removed for safety.**
+
+## Unresolved entries
+
+Entries that exist in `manifest.json` but Unity could not resolve (invalid names, broken Git repos, network failures, etc.) appear at the top with a **yellow warning banner**:
+
+```
+⚠ 1 manifest entry did not resolve. An invalid entry blocks ALL package
+   resolution - remove it to recover.
+```
+
+Each unresolved entry has its own `Remove` button so you can **recover a broken manifest from inside the tool**.
+
+> If the manifest is broken badly enough that Package Manager itself fails to load, edit `Packages/manifest.json` directly to delete the bad entry. See [Troubleshooting](/achieve-package-manager/en/usage/troubleshooting.md).
+
+
+
+---
+url: /achieve-package-manager/en/usage/openupm.md
+---
+
+> For AI agents: the complete documentation index is available at /achieve-package-manager/en/llms.txt, the full documentation bundle is available at /achieve-package-manager/en/llms-full.txt.
+
+# OpenUPM Tab
+
+Browse the entire [OpenUPM](https://openupm.com/) registry and install with one click.
+
+## Data source
+
+```
+GET https://package.openupm.com/-/all
+```
+
+OpenUPM is an npm-compatible registry (Verdaccio-based). The endpoint above returns every package OpenUPM indexes, in a single response.
+
+> The response is a few MB. The tool caches the result in memory, so it is only downloaded **once per editor session**. The toolbar `↻ Refresh` button is the only way to force a re-fetch.
+
+## Search
+
+The search field filters on three fields with case-insensitive substring match:
+
+- Package id (e.g. `com.cysharp.unitask`)
+- Display name
+- Description
+
+For readability the list is capped at **500 results**. Narrow your search to see more.
+
+## Install behavior
+
+Clicking `Install`:
+
+1. Adds (or merges into) the `package.openupm.com` scoped registry
+2. Auto-registers the package scope\
+   e.g. `com.cysharp.unitask` → scope `com.cysharp`
+3. Writes the package + latest version (`dist-tags.latest`) to `dependencies`
+4. Calls `Client.Resolve()`
+
+Results are surfaced as a bottom-right notification.
+
+## Invalid name filter
+
+OpenUPM's `/-/all` is in npm format and can include `@scope/name` style names that are **not valid UPM package names**. The tool filters these out automatically. Without this filter, accidentally installing one would break the manifest and block all package resolution.
+
+## Already installed
+
+Installed packages show an `Installed` badge, and the button label switches to `Reinstall`.
+
+
+
+---
+url: /achieve-package-manager/en/usage/troubleshooting.md
+---
+
+> For AI agents: the complete documentation index is available at /achieve-package-manager/en/llms.txt, the full documentation bundle is available at /achieve-package-manager/en/llms-full.txt.
+
+# Troubleshooting
+
+## `Project has invalid dependencies: <name> is invalid.`
+
+Cause: an entry in `manifest.json` violates UPM package-name rules. Unity **rejects the whole resolve** when even one entry is invalid, which is why every install afterward fails with the same error.
+
+**Recover:**
+
+1. **From the tool (preferred)** — if Package Manager still loads, open `Tools > Achieve Package Manager > Installed`. The bad entry appears at the top with a yellow warning banner and a `Remove` button.
+2. **Manually** — if the tool itself does not load, open `<Project>/Packages/manifest.json` and delete the offending line. Don't forget to clean up the surrounding commas.
+
+The tool blocks invalid names at install time now, so this won't reoccur.
+
+## `error CS0246: 'ToolbarSearchField' could not be found`
+
+The `UnityEditor.UIElements` using directive was missing. It is already present in current code — if you see this error, update the package.
+
+## Toolbar appears compressed at the top
+
+`flexShrink` defaults to 1 in UI Toolkit, so when content grew tall the toolbar and status bar were being squeezed. Fixed in 1.0.0+ by setting `flexShrink = 0` on the toolbar, sidebar, and status bar. Update the package if you're on an older revision.
+
+## Package isn't updating to the latest version
+
+Git dependencies are not auto-updated by Unity.
+
+- Open Package Manager, select the package, click **Update**
+- If that doesn't help, delete `Library/PackageCache/com.achieve.achieve-package-manager@*` and restart Unity
+- Or remove the entry from `manifest.json` and re-add it
+
+## OpenUPM list is empty or fails to load
+
+- Verify network access to `https://package.openupm.com/-/all`
+- In restricted corporate networks, OpenUPM may need to be allow-listed
+- Click `↻ Refresh` to re-request
+
+The response is several MB, so the first load may take a few seconds.
+
+## Manifest looks reformatted / alphabetized
+
+When the tool rewrites `manifest.json`, dependencies and scopes are sorted alphabetically. This is intentional and does not change the manifest's meaning.
+
+

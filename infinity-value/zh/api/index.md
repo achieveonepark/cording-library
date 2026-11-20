@@ -1,0 +1,97 @@
+> For AI agents: the complete documentation index is available at /infinity-value/zh/llms.txt, the full documentation bundle is available at /infinity-value/zh/llms-full.txt.
+
+# API 参考
+
+## 主要类型
+
+| 类型                          | 用途                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------------ |
+| `InfinityValue`             | 大数值类型                                                                                |
+| `InfinityValueUnitNames`    | 用于解析和显示的实例单位后缀表                                                                      |
+| `InfinityValueConverter`    | 可选的 Newtonsoft.Json 转换器                                                              |
+| `SerializableInfinityValue` | 用于在 Unity 检视面板中暴露 `InfinityValue` 的序列化包装器([详情](/infinity-value/zh/api/inspector.md)) |
+
+## 构造函数
+
+```csharp
+new InfinityValue(long number)
+new InfinityValue(long number, InfinityValueUnitNames unitNames)
+
+new InfinityValue(double number)
+new InfinityValue(double number, InfinityValueUnitNames unitNames)
+
+new InfinityValue(float number)
+new InfinityValue(float number, InfinityValueUnitNames unitNames)
+
+new InfinityValue(BigInteger number)
+new InfinityValue(BigInteger number, InfinityValueUnitNames unitNames)
+
+new InfinityValue(string input)
+new InfinityValue(string input, InfinityValueUnitNames unitNames)
+```
+
+## 静态值
+
+```csharp
+InfinityValue.Zero
+InfinityValue.One
+```
+
+当零值或一值需要携带自定义单位上下文时，使用 `WithUnitNames`：
+
+```csharp
+InfinityValue zeroGold = InfinityValue.Zero.WithUnitNames(goldUnits);
+```
+
+## 解析
+
+```csharp
+InfinityValue.TryParse(string input, out InfinityValue result)
+InfinityValue.TryParse(string input, InfinityValueUnitNames unitNames, out InfinityValue result)
+```
+
+## 实例成员
+
+```csharp
+bool IsEmpty { get; }
+InfinityValueUnitNames UnitNames { get; }
+InfinityValue WithUnitNames(InfinityValueUnitNames unitNames)
+string ToString()
+int CompareTo(InfinityValue other)
+bool Equals(InfinityValue other)
+int GetHashCode()
+```
+
+## 运算符
+
+```csharp
+a + b
+a - b
+a * 10L
+a * 1.5
+a / 2L
+a / 2.0
+
+a == b
+a != b
+a < b
+a > b
+a <= b
+a >= b
+```
+
+## 类型转换
+
+```csharp
+InfinityValue value = 1000;
+InfinityValue parsed = "500A";
+
+long asLong = (long)value;
+double asDouble = (double)value;
+float asFloat = (float)value;
+```
+
+## 另请参阅
+
+- [数学辅助函数](/infinity-value/zh/api/math.md) — 成长曲线、`AffordableCount`、`ToProgress`、`Min`/`Max`/`Clamp`、自增/自减运算符
+- [检视面板与精确序列化](/infinity-value/zh/api/inspector.md) — `SerializableInfinityValue`、`ToExactString`/`TryParseExact`

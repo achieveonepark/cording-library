@@ -1,0 +1,14 @@
+# LiteDB
+
+> A lightweight package for reading SQLite-based static table data in Unity.
+
+## Others
+
+- [API](/lite-db/zh/api.md): Initialize、Get、GetList、Exist、TryGetValue 等运行时 API 参考
+- [更新日志](/lite-db/zh/changelog.md): LiteDB 各版本的更新日志
+- [快速开始](/lite-db/zh/getting-started.md): 从安装 LiteDB 到第一次查询的快速上手指南
+- [CSV Importer](/lite-db/zh/usage/csv-importer.md): 在编辑器中把 CSV 插入 DB 表并生成模型类
+- [数据模型](/lite-db/zh/usage/data-models.md): 模型类规则、IDataBase、支持的 Attribute 与列映射
+- [使用方法](/lite-db/zh/usage/index.md): 按主题浏览 LiteDB 的使用说明
+- [本地化](/lite-db/zh/usage/localization.md): 使用基于 SQLite 表数据的本地化辅助工具
+- [故障排查](/lite-db/zh/usage/troubleshooting.md): DllNotFoundException、查询失败等常见问题

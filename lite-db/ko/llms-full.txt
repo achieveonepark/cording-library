@@ -1,0 +1,428 @@
+---
+url: /lite-db/ko/api.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/ko/llms.txt, the full documentation bundle is available at /lite-db/ko/llms-full.txt.
+
+# API
+
+런타임 진입점은 `Achieve.Database.LiteDB`입니다.
+
+## Initialize
+
+```csharp
+LiteDB.Initialize(path);
+```
+
+전달한 SQLite 파일 경로로 즉시 연결합니다.
+
+```csharp
+await LiteDB.Initialize();
+```
+
+기본 DB 파일을 `StreamingAssets/data/file.db`에서 `persistentDataPath/data/localdatasqlite.db`로 복사한 뒤 연결합니다.
+
+## Get
+
+```csharp
+var item = LiteDB.Get<ItemData>(1);
+```
+
+모델의 Primary Key 또는 `Id` 컬럼이 전달한 값과 같은 첫 번째 행을 반환합니다. 초기화되지 않은 상태에서는 `default`를 반환합니다.
+
+## GetList
+
+```csharp
+var items = LiteDB.GetList<ItemData>(100, 199);
+```
+
+`Id >= startId AND Id <= endId` 범위의 행을 조회합니다.
+
+## Exist
+
+```csharp
+if (LiteDB.Exist<ItemData>(10))
+{
+    // 존재함
+}
+```
+
+해당 타입의 테이블에서 `Id`가 존재하는지 확인합니다.
+
+## TryGetValue
+
+```csharp
+if (LiteDB.TryGetValue<ItemData>(10, out var item))
+{
+    Debug.Log(item.Name);
+}
+```
+
+존재 여부를 확인한 뒤 데이터가 있으면 `out`으로 반환합니다. 초기화되지 않았거나 데이터가 없으면 `false`를 반환합니다.
+
+## 직접 SQLiteConnection 사용
+
+고급 사용이 필요하면 `SQLite.SQLiteConnection`을 직접 사용할 수 있습니다.
+
+```csharp
+using var db = new SQLiteConnection(path);
+var rows = db.Query<ItemData>("SELECT * FROM ItemData WHERE Price >= ?", 100);
+var count = db.ExecuteScalar<int>("SELECT COUNT(1) FROM ItemData");
+```
+
+현재 제공하는 직접 API는 조회 중심입니다. sqlite-net의 전체 ORM 기능, LINQ 테이블 쿼리, 비동기 커넥션 풀은 포함하지 않습니다.
+
+
+
+---
+url: /lite-db/ko/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/ko/llms.txt, the full documentation bundle is available at /lite-db/ko/llms-full.txt.
+
+# 변경 내역
+
+## v1.0.1 — 2026.01.02
+
+- (추가) 코드 생성 기능
+- (수정) CsvImporterWindow
+
+## v1.0.0 — 2025.06.07
+
+- 패키지 릴리스!
+
+
+
+---
+url: /lite-db/ko/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/ko/llms.txt, the full documentation bundle is available at /lite-db/ko/llms-full.txt.
+
+# 시작하기
+
+이 문서는 설치부터 첫 데이터 조회까지의 최소 흐름을 안내합니다.
+
+## 설치
+
+Unity Package Manager의 `Add package from git URL...` 메뉴에 아래 주소를 입력합니다.
+
+```text
+https://github.com/achieveonepark/lite-db.git
+```
+
+### 의존성
+
+| 패키지                        | 용도                 |
+| -------------------------- | ------------------ |
+| `com.cysharp.unitask`      | 비동기 DB 파일 복사 및 초기화 |
+| `com.unity.test-framework` | Unity 테스트 환경       |
+
+Unity `2022.3` 이상을 대상으로 합니다.
+
+## DB 파일 준비
+
+LiteDB는 SQLite DB 파일을 읽어서 C# 모델로 매핑합니다. DB 파일은 DB Browser for SQLite 같은 도구로 만들 수 있습니다.
+
+기본 초기화 API는 다음 위치를 사용합니다.
+
+| 용도      | 경로                                                       |
+| ------- | -------------------------------------------------------- |
+| 원본 DB   | `Application.streamingAssetsPath/data/file.db`           |
+| 런타임 복사본 | `Application.persistentDataPath/data/localdatasqlite.db` |
+
+원본 DB 파일을 `StreamingAssets/data/file.db` 위치에 둡니다.
+
+## 데이터 모델 작성
+
+조회할 테이블에 대응하는 C# 클래스를 작성합니다. `Id`를 Primary Key로 두는 것을 권장합니다.
+
+```csharp
+using Achieve.Database;
+using SQLite;
+
+[Table("Quest")]
+public sealed class Quest : IDataBase
+{
+    [PrimaryKey]
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int RewardGold { get; set; }
+}
+```
+
+## 초기화와 첫 조회
+
+게임 시작 시 `await LiteDB.Initialize()`를 호출하면 원본 DB 파일을 런타임 경로로 복사한 뒤 연결합니다. 이후 `LiteDB.Get<T>(id)` 같은 API로 데이터를 읽습니다.
+
+```csharp
+await LiteDB.Initialize();
+
+var quest = LiteDB.Get<Quest>(1);
+if (LiteDB.TryGetValue<Quest>(2, out var nextQuest))
+{
+    Debug.Log(nextQuest.Name);
+}
+```
+
+
+> **Info**
+> 
+> Android에서는 `UnityWebRequest`로 `StreamingAssets` 파일을 읽고, 그 외 플랫폼에서는 파일 복사를 사용합니다. 직접 경로를 지정하려면 `LiteDB.Initialize(path)`를 사용하세요.
+> 
+
+
+## 다음 단계
+
+- [사용법 › 데이터 모델](/lite-db/ko/usage/data-models.md) — 모델 규칙과 Attribute
+- [API](/lite-db/ko/api.md) — 전체 런타임 API
+
+
+
+---
+url: /lite-db/ko/index.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/ko/llms.txt, the full documentation bundle is available at /lite-db/ko/llms-full.txt.
+
+# 소개
+
+LiteDB는 Unity 프로젝트에서 SQLite 데이터베이스를 읽기 전용 테이블 데이터 저장소처럼 다루기 위한 경량 패키지입니다. 게임 밸런스 데이터, 퀘스트, 아이템, 지역화 텍스트처럼 빌드에 포함되는 정적 데이터를 C# 모델로 매핑해서 조회할 수 있습니다.
+
+이 패키지는 sqlite-net 또는 SQLite Asset 패키지를 래핑하지 않습니다. `SQLiteConnection`, `[Table]`, `[PrimaryKey]`처럼 기존 사용부와 비슷한 인터페이스를 제공하되 내부에서는 네이티브 SQLite C API를 직접 호출합니다.
+
+## 제공 기능
+
+- StreamingAssets에 포함된 DB 파일을 런타임 저장소로 복사하고 초기화
+- Primary Key 기반 단일 데이터 조회
+- Id 범위 조회, 존재 여부 확인, 안전한 조회
+- Editor CSV Importer를 통한 CSV 테이블 삽입
+- CSV 헤더 기반 데이터 모델 코드 생성
+- Localization 헬퍼
+
+## 다음 단계
+
+- [시작하기](/lite-db/ko/getting-started.md) — 설치부터 첫 데이터 조회까지
+- [사용법](/lite-db/ko/usage.md) — 데이터 모델, CSV Importer, 지역화
+- [API](/lite-db/ko/api.md) — 런타임 API 레퍼런스
+
+
+
+---
+url: /lite-db/ko/usage/csv-importer.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/ko/llms.txt, the full documentation bundle is available at /lite-db/ko/llms-full.txt.
+
+# CSV Importer
+
+Editor 메뉴에서 CSV를 DB 테이블로 넣고 모델 클래스를 생성할 수 있습니다.
+
+```text
+GameFramework/Data/CsvImporter
+```
+
+## CSV를 DB에 삽입
+
+1. SQLite DB 파일을 선택하거나 새로 만듭니다.
+2. CSV 파일을 선택합니다.
+3. 테이블 이름은 CSV 파일 이름으로 자동 지정됩니다.
+4. 미리보기로 헤더와 일부 행을 확인합니다.
+5. `Insert!` 버튼을 눌러 DB에 삽입합니다.
+
+첫 번째 CSV 행은 컬럼 헤더로 사용됩니다. 빈 헤더가 있거나 행의 필드 수가 헤더 수와 다르면 예외가 발생합니다.
+
+## C# 클래스 생성
+
+`Generate C# Class` 버튼을 누르면 CSV 컬럼을 기반으로 데이터 모델 클래스를 생성합니다.
+
+생성 위치:
+
+```text
+Assets/Runtime/DataModel/{TableName}.cs
+```
+
+생성 규칙:
+
+- `id` 컬럼은 `[PrimaryKey, AutoIncrement]`가 붙습니다.
+- 정수로 모두 해석되면 `int`
+- 정수가 아니지만 실수로 해석되면 `float`
+- 그 외에는 `string`
+
+생성된 클래스는 프로젝트 규칙에 맞게 namespace나 타입을 조정해서 사용하면 됩니다.
+
+
+
+---
+url: /lite-db/ko/usage/data-models.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/ko/llms.txt, the full documentation bundle is available at /lite-db/ko/llms-full.txt.
+
+# 데이터 모델
+
+데이터 모델은 public 기본 생성자를 가진 C# 클래스여야 합니다. `LiteDB.Get<T>()`와 `LiteDB.Query<T>()`는 조회 결과 컬럼 이름과 모델의 public set 가능한 프로퍼티 또는 public 필드를 매칭합니다.
+
+```csharp
+using Achieve.Database;
+using SQLite;
+
+[Table("ItemData")]
+public sealed class ItemData : IDataBase
+{
+    [PrimaryKey]
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int Price { get; set; }
+    public float Weight { get; set; }
+}
+```
+
+## IDataBase
+
+`GetList`, `Exist`, `TryGetValue`는 `IDataBase`를 기준으로 `Id`와 `Name`을 기대합니다.
+
+```csharp
+public interface IDataBase
+{
+    int Id { get; set; }
+    string Name { get; set; }
+}
+```
+
+## 지원 Attribute
+
+| Attribute          | 설명                  |
+| ------------------ | ------------------- |
+| `[Table("Name")]`  | 클래스와 다른 테이블 이름을 지정  |
+| `[Column("Name")]` | 멤버와 다른 컬럼 이름을 지정    |
+| `[PrimaryKey]`     | Primary Key 멤버를 지정  |
+| `[AutoIncrement]`  | 코드 생성 호환용 Attribute |
+| `[Ignore]`         | 매핑에서 제외             |
+| `[NotNull]`        | 모델 표현용 Attribute    |
+
+`[AutoIncrement]`와 `[NotNull]`은 현재 테이블 생성 API를 제공하지 않기 때문에 런타임 스키마 생성에는 사용되지 않습니다. CSV Importer나 외부 DB 도구에서 스키마를 만들 때 의미를 맞춰두는 용도입니다.
+
+## 컬럼 매핑
+
+기본 매핑은 대소문자를 구분하지 않습니다.
+
+```csharp
+[Column("display_name")]
+public string DisplayName { get; set; }
+```
+
+set이 없는 프로퍼티와 `readonly` 필드는 매핑 대상에서 제외됩니다.
+
+## 타입 매핑
+
+조회 API는 `Id` 컬럼을 기준으로 동작합니다. SQLite 타입과 C# 타입은 다음과 같이 대응됩니다.
+
+| SQLite 타입 | C# 타입                        |
+| --------- | ---------------------------- |
+| `INTEGER` | `int`, `long`, `bool`, enum  |
+| `REAL`    | `float`, `double`            |
+| `TEXT`    | `string`, `DateTime`, `Guid` |
+| `BLOB`    | `byte[]`                     |
+
+권장 규칙:
+
+- 테이블에는 `Id` 컬럼을 둡니다.
+- 단일 조회 대상 모델은 `Id`를 Primary Key로 관리합니다.
+- C# 프로퍼티 이름과 DB 컬럼 이름을 같게 맞춥니다.
+- 클래스 이름과 테이블 이름이 다르면 `[Table("TableName")]`을 사용합니다.
+
+
+
+---
+url: /lite-db/ko/usage/index.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/ko/llms.txt, the full documentation bundle is available at /lite-db/ko/llms-full.txt.
+
+# 사용법
+
+- [데이터 모델](/lite-db/ko/usage/data-models.md)
+- [CSV Importer](/lite-db/ko/usage/csv-importer.md)
+- [지역화](/lite-db/ko/usage/localization.md)
+- [문제 해결](/lite-db/ko/usage/troubleshooting.md)
+
+
+
+---
+url: /lite-db/ko/usage/localization.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/ko/llms.txt, the full documentation bundle is available at /lite-db/ko/llms-full.txt.
+
+# 지역화
+
+`Achieve.Database.Localization` 네임스페이스에는 SQLite 테이블 데이터를 이용한 간단한 지역화 헬퍼가 포함되어 있습니다.
+
+## 언어 설정
+
+```csharp
+LocalizationManager.SetLanguage(SystemLanguage.Korean);
+```
+
+언어가 바뀌면 `LocalizationManager.onChangeLanguage` 이벤트가 호출됩니다.
+
+## 문자열 조회
+
+```csharp
+var text = LocalizationManager.GetString(1001);
+```
+
+명시적으로 언어를 지정할 수도 있습니다.
+
+```csharp
+var english = LocalizationManager.GetString(1001, SystemLanguage.English);
+```
+
+## 컬렉션 조회
+
+```csharp
+var collection = LocalizationManager.GetCollection(1001);
+var data = collection.GetLocalizedData(SystemLanguage.Japanese);
+```
+
+지역화 테이블 모델은 `LocalizationCollection`을 기준으로 `LiteDB.Get<LocalizationCollection>(key)`가 가능해야 합니다.
+
+
+
+---
+url: /lite-db/ko/usage/troubleshooting.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/ko/llms.txt, the full documentation bundle is available at /lite-db/ko/llms-full.txt.
+
+# 문제 해결
+
+## DllNotFoundException
+
+`gilzoide-sqlite-net` 네이티브 라이브러리를 찾지 못하면 SQLite 연결이 실패합니다.
+
+확인할 것:
+
+- `Runtime/Plugins/lib` 폴더가 패키지에 포함되어 있는지 확인합니다.
+- 대상 플랫폼의 바이너리가 있는지 확인합니다.
+- Unity Plugin Importer 설정이 플랫폼에 맞게 유지되어 있는지 확인합니다.
+
+## Get\<T>가 데이터를 찾지 못함
+
+확인할 것:
+
+- 테이블 이름과 `[Table("...")]` 이름이 일치하는지 확인합니다.
+- `Id` 컬럼 또는 `[PrimaryKey]`가 붙은 컬럼이 있는지 확인합니다.
+- DB 파일이 `StreamingAssets/data/file.db`에 있는지 확인합니다.
+- `await LiteDB.Initialize()`가 조회보다 먼저 호출되었는지 확인합니다.
+
+## CSV Importer에서 컬럼 오류
+
+첫 번째 행은 헤더로 사용됩니다. 빈 헤더가 있거나 어떤 행의 필드 수가 헤더 수와 다르면 Importer가 중단됩니다.
+
+## Unity 프로젝트가 아닌 환경에서 테스트할 때
+
+Unity는 `Runtime/Plugins`의 네이티브 플러그인을 플랫폼별로 로드합니다. 일반 .NET 또는 Mono 콘솔에서 직접 실행하면 Unity의 플러그인 로더가 없기 때문에 DLL 탐색 경로를 별도로 맞춰야 합니다.
+
+

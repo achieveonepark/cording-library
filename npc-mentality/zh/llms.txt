@@ -1,0 +1,14 @@
+# NPC Mentality
+
+> NPC AI systems for Unity games.
+
+## Others
+
+- [安装与快速入门](/npc-mentality/zh/getting-started.md)
+- [自然群体AI](/npc-mentality/zh/usage/crowd-ai.md)
+- [基于情感的动画系统](/npc-mentality/zh/usage/emotion.md)
+- [NPC记忆系统](/npc-mentality/zh/usage/memory.md)
+- [AI任务生成器](/npc-mentality/zh/usage/quest-generator.md)
+- [关系传染系统](/npc-mentality/zh/usage/relationship.md)
+- [谣言系统](/npc-mentality/zh/usage/rumor.md)
+- [时间流逝世界系统](/npc-mentality/zh/usage/world-time.md)

@@ -1,0 +1,14 @@
+# Infinity Value
+
+> Large-number values for Unity idle and incremental games.
+
+## Others
+
+- [API リファレンス](/infinity-value/ja/api/index.md)
+- [インスペクターと厳密なシリアライズ](/infinity-value/ja/api/inspector.md)
+- [JSON](/infinity-value/ja/api/json.md)
+- [数学ヘルパー](/infinity-value/ja/api/math.md)
+- [単位名](/infinity-value/ja/api/unit-names.md)
+- [変更履歴](/infinity-value/ja/changelog.md)
+- [使い始める](/infinity-value/ja/getting-started.md)
+- [使い方](/infinity-value/ja/usage.md)

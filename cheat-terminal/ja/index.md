@@ -1,0 +1,33 @@
+> For AI agents: the complete documentation index is available at /cheat-terminal/ja/llms.txt, the full documentation bundle is available at /cheat-terminal/ja/llms-full.txt.
+
+# 소개
+
+Unity ランタイム開発者コンソールです。チート、デバッグ、ログ確認、実行時の状態操作を 1 か所で扱えます。
+
+コマンドは `RegisterCommand(...)` で明示的に登録します。デフォルトのランタイム経路では自動アセンブリ走査や reflection 呼び出しを使わないため、IL2CPP/AOT ビルドでも挙動を予測しやすくなります。閉じている間は **待機コスト 0** の uGUI オーバーレイとして動作します。
+
+```csharp
+TerminalBehaviour.RegisterCommand(
+    "gold",
+    ctx => ctx.Output.WriteLine("gold added", LogLevel.Success),
+    "ゴールドを追加",
+    "Cheats",
+    "gold <amount>");
+```
+
+## 特徴
+
+- **明示登録** - `RegisterCommand("name", ctx => ...)` で登録。隠れた reflection scan はありません。
+- **Runtime IntelliSense** - command / keyword / data table / row suggestions を詳細付きで表示します。
+- **性能優先** - 閉じている間は Canvas を無効化し、出力は capped ring buffer、履歴移動は共通の `TerminalInput` 経由。
+- **モジュール式** - Scene / Data / Performance / Logs / Unity Components を標準搭載。
+- **Tab UI** - Console / Commands / Data tab で出力、登録コマンド、登録データを確認できます。
+- **モバイル対応** - マルチタッチジェスチャー（3 本指 / 4 本指の 3 連タップ）で呼び出し、端末上のログをファイルに export できます。
+- **チート HUD** - 登録済みのチートを、全画面の UI Toolkit パネルでパラメーターを入力し Run で実行。開閉リスナーで `Time.timeScale` を制御できます。
+
+## 要件
+
+- Unity 6 (6000.x)
+- `com.unity.ugui` (標準同梱)
+
+次: [はじめに](/cheat-terminal/ja/getting-started.md)

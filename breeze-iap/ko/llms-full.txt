@@ -1,0 +1,782 @@
+---
+url: https://docs.somiri.dev/breeze-iap/ko/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at https://docs.somiri.dev/breeze-iap/ko/llms.txt, the full documentation bundle is available at https://docs.somiri.dev/breeze-iap/ko/llms-full.txt.
+
+# 시작하기
+
+## 요구사항
+
+| 항목                      | 버전           |
+| ----------------------- | ------------ |
+| Unity                   | 2022.3 이상    |
+| Unity In-App Purchasing | **5.3.0 이상** |
+
+## 설치
+
+### Unity Package Manager (Git URL)
+
+1. **Window → Package Manager** 열기
+2. 좌측 상단 **+** 버튼 → **Add package from git URL…** 클릭
+3. 아래 URL 입력 후 **Add**
+
+```
+https://github.com/achieveonepark/breeze-iap.git
+```
+
+`com.unity.purchasing 5.3.0` 의존성은 Unity Package Manager가 자동으로 설치합니다.
+
+***
+
+## 기본 설정
+
+### 1. 상품 목록 정의
+
+App Store Connect / Google Play Console에 등록한 상품 ID와 타입을 `InitializeDto` 배열로 작성합니다.
+
+```csharp
+var products = new[]
+{
+    new InitializeDto { ProductId = "gold_100",  ProductType = ProductType.Consumable },
+    new InitializeDto { ProductId = "gold_500",  ProductType = ProductType.Consumable },
+    new InitializeDto { ProductId = "no_ads",    ProductType = ProductType.NonConsumable },
+    new InitializeDto { ProductId = "vip_month", ProductType = ProductType.Subscription },
+};
+```
+
+`ProductType`은 `UnityEngine.Purchasing` 네임스페이스에 있습니다.
+
+### 2. 초기화
+
+앱 실행 초기에 한 번 `InitializeAsync`를 호출합니다. 일반적으로 씬 진입 시 가장 먼저 실행되는 `MonoBehaviour.Start`에서 호출합니다.
+
+```csharp
+private async void Start()
+{
+    await BreezeIAP.InitializeAsync(products, isDebug: true);
+}
+```
+
+`isDebug: true`를 전달하면 Unity 콘솔에 상세 로그가 출력됩니다. 출시 빌드에서는 생략하거나 `false`로 설정하세요.
+
+> **초기화는 한 번만** — 이미 초기화된 상태에서 `InitializeAsync`를 다시 호출하면 조용히 무시됩니다.
+
+### 3. 미확정 구매 처리
+
+초기화 직후 반드시 `GetPendingList()`를 호출합니다. 이전 세션에서 구매는 완료됐지만 `Confirm`이 호출되기 전에 앱이 종료된 경우, 해당 구매가 여기에 담겨 있습니다.
+
+```csharp
+var pending = BreezeIAP.GetPendingList();
+if (pending != null)
+{
+    foreach (var item in pending)
+    {
+        GrantItem(item.Product.definition.id);  // 아이템 지급
+        BreezeIAP.Confirm(item);                // 구매 확정
+    }
+}
+```
+
+`GetPendingList()`는 초기화 전에 호출하면 `null`을 반환합니다.
+
+### 4. 구매
+
+```csharp
+var result = await BreezeIAP.PurchaseAsync("gold_100");
+
+if (result.IsSuccess)
+{
+    GrantItem(result.Product.definition.id);
+    BreezeIAP.Confirm(result);
+}
+else
+{
+    Debug.LogWarning($"구매 실패: {result.ErrorMessage}");
+}
+```
+
+> **반드시 Confirm 호출** — 아이템 지급 후 `Confirm`을 호출하지 않으면 해당 구매가 다음 실행 시 `GetPendingList()`에 다시 나타납니다.
+
+***
+
+## 전체 예시
+
+```csharp
+using UnityEngine;
+using UnityEngine.Purchasing;
+using Achieve.BreezeIAP;
+
+public class ShopManager : MonoBehaviour
+{
+    private async void Start()
+    {
+        var products = new[]
+        {
+            new InitializeDto { ProductId = "gold_100", ProductType = ProductType.Consumable },
+            new InitializeDto { ProductId = "no_ads",   ProductType = ProductType.NonConsumable },
+        };
+
+        await BreezeIAP.InitializeAsync(products);
+
+        // 이전 세션의 미확정 구매 복구
+        var pending = BreezeIAP.GetPendingList();
+        if (pending != null)
+        {
+            foreach (var item in pending)
+            {
+                Grant(item.Product.definition.id);
+                BreezeIAP.Confirm(item);
+            }
+        }
+    }
+
+    public async void OnBuyGoldClicked()
+    {
+        var result = await BreezeIAP.PurchaseAsync("gold_100");
+
+        if (result.IsSuccess)
+        {
+            Grant(result.Product.definition.id);
+            BreezeIAP.Confirm(result);
+        }
+        else
+        {
+            ShowErrorPopup(result.ErrorMessage);
+        }
+    }
+
+    // iOS 복원 버튼 (App Store 정책상 비소모성 상품이 있으면 필수)
+    public void OnRestoreClicked()
+    {
+        BreezeIAP.Restore();
+    }
+
+    private void Grant(string productId)
+    {
+        // 상품 ID에 따라 아이템 지급
+    }
+
+    private void ShowErrorPopup(string message)
+    {
+        // 오류 안내 UI 표시
+    }
+}
+```
+
+***
+
+## 에러 처리
+
+`PurchaseAsync`는 실패해도 예외를 던지지 않고 항상 `PurchaseResult`를 반환합니다. `IsSuccess`가 `false`인 경우 `ErrorMessage`에 실패 이유가 담겨 있습니다.
+
+| 상황        | IsSuccess | ErrorMessage |
+| --------- | --------- | ------------ |
+| 정상 구매 완료  | `true`    | `""`         |
+| 초기화 전 호출  | `false`   | `"초기화 실패"`   |
+| 60초 타임아웃  | `false`   | `"결제 시간 초과"` |
+| 스토어 구매 실패 | `false`   | 스토어 오류 메시지   |
+
+초기화 단계에서 타임아웃이 발생하면 `InitializeAsync`는 반환되지만 내부 상태가 초기화되지 않은 채로 남습니다. 이후 `PurchaseAsync` 호출 시 즉시 오류 결과가 반환됩니다.
+
+***
+
+## 다음 단계
+
+- [API 레퍼런스 — InitializeAsync](https://docs.somiri.dev/breeze-iap/ko/api/initialize.md)
+- [API 레퍼런스 — PurchaseAsync](https://docs.somiri.dev/breeze-iap/ko/api/purchase.md)
+- [타입 정의](https://docs.somiri.dev/breeze-iap/ko/api/types.md)
+
+
+
+---
+url: https://docs.somiri.dev/breeze-iap/ko/api/initialize.md
+---
+
+> For AI agents: the complete documentation index is available at https://docs.somiri.dev/breeze-iap/ko/llms.txt, the full documentation bundle is available at https://docs.somiri.dev/breeze-iap/ko/llms-full.txt.
+
+# InitializeAsync
+
+스토어에 연결하고 상품 카탈로그를 등록합니다. 다른 모든 Breeze IAP 메서드보다 먼저 호출해야 합니다.
+
+## 시그니처
+
+```csharp
+public static async Task InitializeAsync(InitializeDto[] dtos, bool isDebug = false)
+public static async Task InitializeAsync(List<InitializeDto> dtos, bool isDebug = false)
+```
+
+## 파라미터
+
+| 파라미터      | 타입                                         | 설명                                           |
+| --------- | ------------------------------------------ | -------------------------------------------- |
+| `dtos`    | `InitializeDto[]` \| `List<InitializeDto>` | 스토어에 등록할 상품 정의 목록                            |
+| `isDebug` | `bool`                                     | `true`이면 Unity 콘솔에 상세 로그를 출력합니다. 기본값 `false` |
+
+## 동작 방식
+
+내부적으로 Unity IAP v5 시퀀스를 순서대로 실행합니다:
+
+1. `UnityIAPServices.StoreController()` — 컨트롤러 인스턴스 생성
+2. `Connect()` — 스토어 연결 (10초 타임아웃)
+3. `FetchProducts(List<ProductDefinition>)` — 상품 정보 조회 (10초 타임아웃)
+4. `FetchPurchases()` — 미확정 구매 조회 (10초 타임아웃)
+
+각 단계에 **10초 타임아웃**이 적용됩니다. 타임아웃 초과 시 경고 로그를 남기고 초기화를 중단합니다.
+
+- 이미 초기화된 상태에서 재호출하면 조용히 무시됩니다 (멱등성).
+- `InitializeDto` 각각은 내부적으로 `ProductDefinition`으로 변환됩니다.
+
+## 예시
+
+```csharp
+await BreezeIAP.InitializeAsync(new[]
+{
+    new InitializeDto { ProductId = "gold_100",  ProductType = ProductType.Consumable },
+    new InitializeDto { ProductId = "no_ads",    ProductType = ProductType.NonConsumable },
+    new InitializeDto { ProductId = "vip_month", ProductType = ProductType.Subscription },
+}, isDebug: true);
+```
+
+### List\<T> 오버로드
+
+```csharp
+var list = new List<InitializeDto>
+{
+    new InitializeDto { ProductId = "gold_100", ProductType = ProductType.Consumable },
+};
+
+await BreezeIAP.InitializeAsync(list);
+```
+
+## 초기화 실패 시
+
+타임아웃이나 스토어 오류로 초기화가 실패하면 `InitializeAsync`는 반환되지만 내부 상태(`_isInitialized`)가 `false`로 남습니다. 이후 `PurchaseAsync`, `GetPendingList` 호출 시 즉시 오류 결과 또는 `null`을 반환합니다.
+
+재시도가 필요한 경우 `InitializeAsync`를 다시 호출하세요.
+
+## 관련 항목
+
+- [`InitializeDto`](https://docs.somiri.dev/breeze-iap/ko/api/types.md#initializedto)
+- [`GetPendingList`](https://docs.somiri.dev/breeze-iap/ko/api/pending.md) — 초기화 직후 호출하여 미확정 구매를 처리
+
+
+
+---
+url: https://docs.somiri.dev/breeze-iap/ko/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at https://docs.somiri.dev/breeze-iap/ko/llms.txt, the full documentation bundle is available at https://docs.somiri.dev/breeze-iap/ko/llms-full.txt.
+
+# 변경 내역
+
+## 3.0.0 — 2026-06-04
+
+### Breaking Changes
+
+- **Migrated to the Unity IAP v5 store API.** Requires `com.unity.purchasing` **5.3.0+**.
+- The legacy `IStoreController` / `IExtensionProvider` / `IStoreListener` model was replaced with `UnityIAPServices.StoreController()` and its event-based API (`OnPurchasePending`, `OnPurchaseConfirmed`, `OnProductsFetched`, `OnPurchasesFetched`, …).
+- Initialization now runs `Connect()` → `FetchProducts(List<ProductDefinition>)` → `FetchPurchases()` instead of `ConfigurationBuilder` + `UnityPurchasing.Initialize`.
+- Purchases are now confirmed against an **order**: `Confirm(Product)` is removed in favor of `Confirm(PendingOrder)`. `Confirm(PurchaseResult)` is unchanged.
+- Removed the internal `InitializeResult` type.
+
+### Added
+
+- `PurchaseResult.Order` (`PendingOrder`), plus convenience `Receipt` and `TransactionId` accessors sourced from `Order.Info`.
+- `PurchaseType.Deferred` for purchases awaiting external approval (e.g. Ask to Buy).
+- Non-generic `Task.Timeout` overload to support awaiting `StoreController.Connect()`.
+
+### Notes
+
+- The high-level API (`InitializeAsync`, `PurchaseAsync`, `Confirm(PurchaseResult)`, `GetPendingList`, `Restore`) is source-compatible with 2.0.0.
+
+***
+
+## 2.0.0 — 2026-05-25
+
+### Breaking Changes
+
+- **Unity IAP 5.0.0+ required.** v4 and below are no longer supported.
+- Removed `OnInitializeFailed(InitializationFailureReason)` overload (no-message variant removed in IAP v5).
+- Removed `OnPurchaseFailed(Product, PurchaseFailureReason)` overload (replaced by `PurchaseFailureDescription` in IAP v5).
+
+### Bug Fixes
+
+- Fixed `NullReferenceException` caused by `initializeCompletionSource` never being initialized before `UnityPurchasing.Initialize` was called.
+- Fixed inverted `_isInitialized` guard in `GetPendingList` and `PurchaseAsync` — both methods were blocking when initialized and allowing calls when not.
+- Fixed missing `return` in `PurchaseAsync` after an early-exit error result.
+- Removed dead code in the `List<InitializeDto>` overload (a dummy product was added after `ToArray()` was called, so it had no effect).
+
+***
+
+## 1.0.0 — 2024-09-17
+
+- Initial release.
+- Async/await wrapper for Unity IAP with pending-purchase queue, timeout handling, and iOS restore support.
+
+
+
+---
+url: https://docs.somiri.dev/breeze-iap/ko/api/confirm.md
+---
+
+> For AI agents: the complete documentation index is available at https://docs.somiri.dev/breeze-iap/ko/llms.txt, the full documentation bundle is available at https://docs.somiri.dev/breeze-iap/ko/llms-full.txt.
+
+# Confirm
+
+구매를 스토어에 확정합니다. **아이템 지급 후 반드시 호출해야 합니다.**
+
+## 시그니처
+
+```csharp
+public static void Confirm(PurchaseResult result)
+public static void Confirm(PendingOrder order)
+```
+
+## 파라미터
+
+| 파라미터     | 타입               | 설명                                             |
+| -------- | ---------------- | ---------------------------------------------- |
+| `result` | `PurchaseResult` | `PurchaseAsync` 반환값 또는 `GetPendingList`의 항목    |
+| `order`  | `PendingOrder`   | Unity IAP v5의 `PendingOrder`를 직접 전달하는 저수준 오버로드 |
+
+## 동작 방식
+
+내부적으로 Unity IAP v5의 `StoreController.ConfirmPurchase(PendingOrder)`를 호출합니다.
+
+`Confirm`이 호출되기 전까지 구매는 **Pending 상태**로 유지됩니다. 앱을 다시 시작하면 Unity IAP가 해당 주문을 다시 전달하고, `GetPendingList()`에 나타납니다.
+
+`PurchaseResult` 오버로드는 내부적으로 `result.Order`를 사용합니다. `result.Order`가 `null`인 경우(실패/Deferred 결과) 경고 로그만 출력하고 반환합니다.
+
+## 예시
+
+### PurchaseAsync 후 확정
+
+```csharp
+var result = await BreezeIAP.PurchaseAsync("no_ads");
+
+if (result.IsSuccess)
+{
+    PlayerPrefs.SetInt("no_ads", 1); // 아이템 지급 먼저
+    BreezeIAP.Confirm(result);       // 그 다음 확정
+}
+```
+
+### GetPendingList 항목 확정
+
+```csharp
+var pending = BreezeIAP.GetPendingList();
+foreach (var item in pending)
+{
+    Grant(item.Product.definition.id); // 아이템 지급 먼저
+    BreezeIAP.Confirm(item);           // 그 다음 확정
+}
+```
+
+### 순서가 중요합니다
+
+```csharp
+// ✅ 올바른 순서
+Grant(result.Product.definition.id);
+BreezeIAP.Confirm(result);
+
+// ❌ 잘못된 순서 — Confirm 후 크래시 시 아이템이 지급되지 않은 채 구매 확정
+BreezeIAP.Confirm(result);
+Grant(result.Product.definition.id);
+```
+
+## 관련 항목
+
+- [`PurchaseAsync`](https://docs.somiri.dev/breeze-iap/ko/api/purchase.md)
+- [`GetPendingList`](https://docs.somiri.dev/breeze-iap/ko/api/pending.md)
+- [`PurchaseResult`](https://docs.somiri.dev/breeze-iap/ko/api/types.md#purchaseresult)
+
+
+
+---
+url: https://docs.somiri.dev/breeze-iap/ko/api/pending.md
+---
+
+> For AI agents: the complete documentation index is available at https://docs.somiri.dev/breeze-iap/ko/llms.txt, the full documentation bundle is available at https://docs.somiri.dev/breeze-iap/ko/llms-full.txt.
+
+# GetPendingList
+
+초기화 중 스토어로부터 수집된 미확정 구매 목록을 반환합니다. `InitializeAsync` 직후에 호출하세요.
+
+## 시그니처
+
+```csharp
+public static List<PurchaseResult> GetPendingList()
+```
+
+## 반환값
+
+`List<PurchaseResult>` — 미확정 구매가 없으면 빈 리스트를 반환합니다. `InitializeAsync` 호출 전에 사용하면 `null`을 반환합니다.
+
+## 미확정 구매란?
+
+구매가 Pending 상태로 남는 경우:
+
+1. 스토어에서 구매 완료 신호(`PendingOrder`)가 도착했으나
+2. `Confirm`이 호출되기 전에 앱이 종료되거나 크래시된 경우
+
+다음 앱 실행 시 Unity IAP v5의 `FetchPurchases` — `OnPurchasesFetched` 이벤트를 통해 해당 주문이 다시 전달됩니다. Breeze IAP는 이 주문들을 자동으로 수집하여 `GetPendingList()`에서 꺼낼 수 있도록 합니다.
+
+## 예시
+
+```csharp
+await BreezeIAP.InitializeAsync(products);
+
+var pending = BreezeIAP.GetPendingList();
+if (pending != null && pending.Count > 0)
+{
+    foreach (var item in pending)
+    {
+        Grant(item.Product.definition.id);
+        BreezeIAP.Confirm(item);
+    }
+}
+```
+
+### 구독 상품 처리
+
+```csharp
+var pending = BreezeIAP.GetPendingList();
+if (pending == null) return;
+
+foreach (var item in pending)
+{
+    string id = item.Product.definition.id;
+
+    switch (item.Product.definition.type)
+    {
+        case ProductType.Consumable:
+            GrantConsumable(id);
+            break;
+        case ProductType.NonConsumable:
+            GrantNonConsumable(id);
+            break;
+        case ProductType.Subscription:
+            ActivateSubscription(id);
+            break;
+    }
+
+    BreezeIAP.Confirm(item);
+}
+```
+
+## 관련 항목
+
+- [`InitializeAsync`](https://docs.somiri.dev/breeze-iap/ko/api/initialize.md)
+- [`Confirm`](https://docs.somiri.dev/breeze-iap/ko/api/confirm.md)
+- [`PurchaseResult`](https://docs.somiri.dev/breeze-iap/ko/api/types.md#purchaseresult)
+
+
+
+---
+url: https://docs.somiri.dev/breeze-iap/ko/api/purchase.md
+---
+
+> For AI agents: the complete documentation index is available at https://docs.somiri.dev/breeze-iap/ko/llms.txt, the full documentation bundle is available at https://docs.somiri.dev/breeze-iap/ko/llms-full.txt.
+
+# PurchaseAsync
+
+지정한 상품 ID로 구매를 시작하고 스토어 응답이 올 때까지 대기합니다.
+
+## 시그니처
+
+```csharp
+public static async Task<PurchaseResult> PurchaseAsync(string productId)
+```
+
+## 파라미터
+
+| 파라미터        | 타입       | 설명                                                                                                  |
+| ----------- | -------- | --------------------------------------------------------------------------------------------------- |
+| `productId` | `string` | 구매할 상품 ID. `InitializeAsync`에 전달한 값, App Store Connect / Google Play Console에 등록된 ID와 정확히 일치해야 합니다. |
+
+## 반환값
+
+[`PurchaseResult`](https://docs.somiri.dev/breeze-iap/ko/api/types.md#purchaseresult) — `IsSuccess`로 성공 여부를 확인하세요.
+
+## 동작 방식
+
+- `InitializeAsync`가 호출되지 않은 상태에서 호출하면 즉시 오류 `PurchaseResult`를 반환합니다.
+- 스토어에 `PurchaseProduct(productId)`를 호출한 뒤 응답을 기다립니다.
+- **60초 타임아웃** — 스토어가 응답하지 않으면 타임아웃 오류 결과를 반환합니다.
+- 구매 성공 시 `PurchaseResult.Order`에 Unity IAP v5 `PendingOrder`가 담겨 반환됩니다. [`Confirm`](https://docs.somiri.dev/breeze-iap/ko/api/confirm.md)을 호출하기 전까지 구매는 **Pending 상태**를 유지합니다.
+
+## 예시
+
+### 기본 구매
+
+```csharp
+var result = await BreezeIAP.PurchaseAsync("gold_100");
+
+if (result.IsSuccess)
+{
+    GiveGold(100);
+    BreezeIAP.Confirm(result);
+}
+else
+{
+    Debug.LogWarning($"구매 실패: {result.ErrorMessage}");
+}
+```
+
+### 결과 타입별 처리
+
+```csharp
+var result = await BreezeIAP.PurchaseAsync("no_ads");
+
+switch (result.Type)
+{
+    case PurchaseType.Purchase:
+        // 정상 구매
+        ApplyNoAds();
+        BreezeIAP.Confirm(result);
+        break;
+
+    case PurchaseType.Deferred:
+        // Ask to Buy 등 외부 승인 대기 중 (예: 자녀 보호 설정)
+        ShowDeferredMessage();
+        break;
+
+    case PurchaseType.Error:
+        ShowErrorMessage(result.ErrorMessage);
+        break;
+}
+```
+
+### 서버 영수증 검증
+
+```csharp
+var result = await BreezeIAP.PurchaseAsync("gold_100");
+
+if (result.IsSuccess)
+{
+    bool verified = await VerifyWithServer(result.Receipt, result.TransactionId);
+    if (verified)
+    {
+        GiveGold(100);
+        BreezeIAP.Confirm(result);
+    }
+}
+```
+
+## 주의사항
+
+- 동시에 여러 `PurchaseAsync`를 호출하지 마세요. 하나의 구매가 완료된 후 다음 구매를 시작하세요.
+- **반드시 `Confirm`을 호출하세요.** 호출하지 않으면 다음 실행 시 `GetPendingList()`에 해당 구매가 다시 나타납니다.
+
+## 관련 항목
+
+- [`PurchaseResult`](https://docs.somiri.dev/breeze-iap/ko/api/types.md#purchaseresult)
+- [`PurchaseType`](https://docs.somiri.dev/breeze-iap/ko/api/types.md#purchasetype)
+- [`Confirm`](https://docs.somiri.dev/breeze-iap/ko/api/confirm.md)
+
+
+
+---
+url: https://docs.somiri.dev/breeze-iap/ko/api/restore.md
+---
+
+> For AI agents: the complete documentation index is available at https://docs.somiri.dev/breeze-iap/ko/llms.txt, the full documentation bundle is available at https://docs.somiri.dev/breeze-iap/ko/llms-full.txt.
+
+# Restore
+
+이전에 구매한 비소모성 상품과 구독을 복원합니다. **Apple 플랫폼 전용입니다.**
+
+## 시그니처
+
+```csharp
+public static void Restore()
+```
+
+## 동작 방식
+
+- Unity IAP v5의 `StoreController.RestoreTransactions(callback)`을 호출합니다.
+- v5에서 이 메서드는 Apple 확장 프로바이더(`IAppleExtensions`)에서 `StoreController`로 이동했습니다.
+- **Google Play**는 `InitializeAsync` 중 `FetchPurchases`에서 소유한 상품이 자동 복원되므로 이 메서드를 호출할 필요가 없습니다.
+- 복원된 구매는 `OnPurchasePending` 흐름을 통해 `GetPendingList()`에 나타납니다. 일반 구매와 동일하게 처리하고 `Confirm`을 호출하면 됩니다.
+- 성공/실패 결과는 Breeze IAP 로거를 통해 콘솔에 출력됩니다.
+
+## 예시
+
+```csharp
+// App Store 정책 — 비소모성 상품이 있는 앱은 복원 버튼을 반드시 노출해야 합니다.
+public void OnRestoreClicked()
+{
+    BreezeIAP.Restore();
+}
+```
+
+복원 후 결과 처리는 `GetPendingList()`에서 일반 미확정 구매와 동일하게 처리합니다. `PurchaseResult.Type`이 `PurchaseType.Restore`로 설정됩니다.
+
+```csharp
+// 복원 버튼 클릭
+public void OnRestoreClicked()
+{
+    BreezeIAP.Restore();
+}
+
+// 복원 결과는 이후 씬 로드 등 다음 InitializeAsync 시점에 GetPendingList()로 처리
+var pending = BreezeIAP.GetPendingList();
+foreach (var item in pending)
+{
+    if (item.Type == PurchaseType.Restore)
+    {
+        ApplyRestoredPurchase(item.Product.definition.id);
+    }
+    BreezeIAP.Confirm(item);
+}
+```
+
+## App Store 정책
+
+App Store 리뷰 가이드라인은 비소모성 인앱 상품을 판매하는 앱에 **복원 구매 버튼**을 반드시 표시하도록 요구합니다. 이 버튼을 노출하지 않으면 심사에서 리젝될 수 있습니다.
+
+## 관련 항목
+
+- [`GetPendingList`](https://docs.somiri.dev/breeze-iap/ko/api/pending.md)
+- [`Confirm`](https://docs.somiri.dev/breeze-iap/ko/api/confirm.md)
+- [`PurchaseType`](https://docs.somiri.dev/breeze-iap/ko/api/types.md#purchasetype)
+
+
+
+---
+url: https://docs.somiri.dev/breeze-iap/ko/api/types.md
+---
+
+> For AI agents: the complete documentation index is available at https://docs.somiri.dev/breeze-iap/ko/llms.txt, the full documentation bundle is available at https://docs.somiri.dev/breeze-iap/ko/llms-full.txt.
+
+# 타입 정의
+
+## InitializeDto
+
+스토어에 등록할 상품 하나를 정의하는 구조체입니다.
+
+```csharp
+public readonly struct InitializeDto
+{
+    public string      ProductId   { get; init; }
+    public ProductType ProductType { get; init; }
+}
+```
+
+| 필드            | 타입            | 설명                                                                                               |
+| ------------- | ------------- | ------------------------------------------------------------------------------------------------ |
+| `ProductId`   | `string`      | App Store Connect / Google Play Console에 등록된 상품 ID와 정확히 일치해야 합니다.                                |
+| `ProductType` | `ProductType` | `Consumable`(소모성), `NonConsumable`(비소모성), `Subscription`(구독) — `UnityEngine.Purchasing`에서 제공합니다. |
+
+### 예시
+
+```csharp
+new InitializeDto { ProductId = "gold_100",  ProductType = ProductType.Consumable }
+new InitializeDto { ProductId = "no_ads",    ProductType = ProductType.NonConsumable }
+new InitializeDto { ProductId = "vip_month", ProductType = ProductType.Subscription }
+```
+
+***
+
+## PurchaseResult
+
+[`PurchaseAsync`](https://docs.somiri.dev/breeze-iap/ko/api/purchase.md) 반환값 또는 [`GetPendingList`](https://docs.somiri.dev/breeze-iap/ko/api/pending.md)의 항목입니다.
+
+```csharp
+public readonly struct PurchaseResult
+{
+    public PurchaseType Type          { get; init; }
+    public Product      Product       { get; init; }
+    public PendingOrder Order         { get; init; }
+    public string       ErrorMessage  { get; init; }
+    public string       Receipt       => Order?.Info?.Receipt;
+    public string       TransactionId => Order?.Info?.TransactionID;
+    public bool         IsSuccess     => string.IsNullOrEmpty(ErrorMessage);
+}
+```
+
+| 필드              | 타입                              | 설명                                                                                                                               |
+| --------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `Type`          | [`PurchaseType`](#purchasetype) | 구매가 어떤 경로로 도달했는지를 나타냅니다.                                                                                                         |
+| `Product`       | `Product`                       | Unity IAP `Product` 객체. `Product.definition.id`로 상품 ID를 가져옵니다.                                                                   |
+| `Order`         | `PendingOrder`                  | Unity IAP v5 주문. [`Confirm`](https://docs.somiri.dev/breeze-iap/ko/api/confirm.md)에 전달하여 구매를 확정합니다. 실패/Deferred 결과에서는 `null`입니다. |
+| `ErrorMessage`  | `string`                        | `IsSuccess`가 `false`일 때 실패 이유가 담겨 있습니다.                                                                                          |
+| `Receipt`       | `string`                        | `Order.Info.Receipt`에서 가져온 영수증 JSON. 서버 검증에 사용합니다.                                                                               |
+| `TransactionId` | `string`                        | `Order.Info.TransactionID`에서 가져온 스토어 트랜잭션 ID.                                                                                    |
+| `IsSuccess`     | `bool`                          | `ErrorMessage`가 비어있으면 `true`.                                                                                                    |
+
+### 자주 사용하는 패턴
+
+```csharp
+var result = await BreezeIAP.PurchaseAsync("gold_100");
+
+// 성공 여부 확인
+if (!result.IsSuccess)
+{
+    Debug.LogWarning(result.ErrorMessage);
+    return;
+}
+
+// 상품 ID 가져오기
+string productId = result.Product.definition.id;
+
+// 서버 검증용 데이터
+string receipt       = result.Receipt;
+string transactionId = result.TransactionId;
+```
+
+***
+
+## PurchaseType
+
+`PurchaseResult.Type`에 설정되는 열거형으로, 구매가 어떤 경로로 도달했는지를 나타냅니다.
+
+```csharp
+public enum PurchaseType
+{
+    Purchase,  // 정상 구매 흐름
+    Pending,   // 이전 세션에서 재전달된 미확정 구매
+    Deferred,  // 외부 승인 대기 중 (예: Ask to Buy)
+    Restore,   // iOS 복원을 통해 도달
+    Error      // 구매 실패
+}
+```
+
+| 값          | 설명                                    | Confirm 필요 |
+| ---------- | ------------------------------------- | ---------- |
+| `Purchase` | 사용자가 직접 구매 완료                         | ✅          |
+| `Pending`  | 이전 세션의 미확정 구매 (`GetPendingList`에서 도달) | ✅          |
+| `Deferred` | Ask to Buy 등 외부 승인 대기 — 아직 결제되지 않음    | ❌          |
+| `Restore`  | iOS 복원을 통해 도달                         | ✅          |
+| `Error`    | 구매 실패                                 | ❌          |
+
+`Deferred`와 `Error`는 `Order`가 `null`이므로 `Confirm`을 호출하지 않아야 합니다.
+
+
+
+---
+url: https://docs.somiri.dev/breeze-iap/ko/index.md
+---
+
+> For AI agents: the complete documentation index is available at https://docs.somiri.dev/breeze-iap/ko/llms.txt, the full documentation bundle is available at https://docs.somiri.dev/breeze-iap/ko/llms-full.txt.
+
+# 소개
+
+**Unity IAP를 async/await로.**
+Unity IAP v5.3.0+ 기반의 경량 결제 래퍼. 콜백 없이 한 줄의 `await`로 초기화·구매를 처리하세요.
+
+## 특징
+
+- ⚡ **단순한 async/await API** — `InitializeAsync` 한 번, `PurchaseAsync` 한 번. `IStoreListener` 구현이나 콜백 체이닝 없이 결제 흐름을 작성할 수 있습니다.
+- 🔄 **자동 미확정 구매 처리** — 앱 충돌 등으로 확정되지 않은 구매를 초기화 시점에 자동으로 수집합니다. `GetPendingList()`로 한 번에 처리하세요.
+- ⏱️ **내장 타임아웃** — 초기화 단계별 10초, 구매 60초 타임아웃이 내장되어 있어 스토어 무응답 상황에서도 앱이 멈추지 않습니다.
+- 🍎 **iOS 복원 지원**
+
+## 바로가기
+
+- [시작하기](https://docs.somiri.dev/breeze-iap/ko/getting-started.md)
+- [API 레퍼런스](https://docs.somiri.dev/breeze-iap/ko/api/initialize.md)
+- [GitHub](https://github.com/achieveonepark/breeze-iap)
+
+

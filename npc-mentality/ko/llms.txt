@@ -1,0 +1,14 @@
+# NPC Mentality
+
+> NPC AI systems for Unity games.
+
+## Others
+
+- [설치 및 시작](/npc-mentality/ko/getting-started.md)
+- [자연스러운 군중 AI](/npc-mentality/ko/usage/crowd-ai.md)
+- [감정 기반 애니메이션 시스템](/npc-mentality/ko/usage/emotion.md)
+- [NPC 기억 시스템](/npc-mentality/ko/usage/memory.md)
+- [AI 퀘스트 생성기](/npc-mentality/ko/usage/quest-generator.md)
+- [관계 전염 시스템](/npc-mentality/ko/usage/relationship.md)
+- [루머 시스템](/npc-mentality/ko/usage/rumor.md)
+- [시간 흐름 세계 시스템](/npc-mentality/ko/usage/world-time.md)

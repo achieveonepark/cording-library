@@ -1,0 +1,428 @@
+---
+url: /lite-db/zh/api.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/zh/llms.txt, the full documentation bundle is available at /lite-db/zh/llms-full.txt.
+
+# API
+
+运行时入口是 `Achieve.Database.LiteDB`。
+
+## Initialize
+
+```csharp
+LiteDB.Initialize(path);
+```
+
+使用传入的 SQLite 文件路径立即连接。
+
+```csharp
+await LiteDB.Initialize();
+```
+
+把默认 DB 文件从 `StreamingAssets/data/file.db` 复制到 `persistentDataPath/data/localdatasqlite.db`，然后连接。
+
+## Get
+
+```csharp
+var item = LiteDB.Get<ItemData>(1);
+```
+
+返回主键或 `Id` 列等于传入值的第一行。未初始化时返回 `default`。
+
+## GetList
+
+```csharp
+var items = LiteDB.GetList<ItemData>(100, 199);
+```
+
+查询 `Id >= startId AND Id <= endId` 范围内的行。
+
+## Exist
+
+```csharp
+if (LiteDB.Exist<ItemData>(10))
+{
+    // 存在
+}
+```
+
+检查该类型的表中是否存在该 `Id`。
+
+## TryGetValue
+
+```csharp
+if (LiteDB.TryGetValue<ItemData>(10, out var item))
+{
+    Debug.Log(item.Name);
+}
+```
+
+先检查存在性，若有数据则通过 `out` 返回。未初始化或没有数据时返回 `false`。
+
+## 直接使用 SQLiteConnection
+
+如需高级用法，可以直接使用 `SQLite.SQLiteConnection`。
+
+```csharp
+using var db = new SQLiteConnection(path);
+var rows = db.Query<ItemData>("SELECT * FROM ItemData WHERE Price >= ?", 100);
+var count = db.ExecuteScalar<int>("SELECT COUNT(1) FROM ItemData");
+```
+
+目前提供的直接 API 以查询为主。不包含 sqlite-net 的完整 ORM 功能、LINQ 表查询或异步连接池。
+
+
+
+---
+url: /lite-db/zh/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/zh/llms.txt, the full documentation bundle is available at /lite-db/zh/llms-full.txt.
+
+# 更新日志
+
+## v1.0.1 — 2026.01.02
+
+- (新增) 代码生成功能
+- (修复) CsvImporterWindow
+
+## v1.0.0 — 2025.06.07
+
+- 包发布！
+
+
+
+---
+url: /lite-db/zh/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/zh/llms.txt, the full documentation bundle is available at /lite-db/zh/llms-full.txt.
+
+# 快速开始
+
+本页介绍从安装到第一次查询的最小流程。
+
+## 安装
+
+在 Unity Package Manager 中打开 `Add package from git URL...` 菜单，输入以下地址。
+
+```text
+https://github.com/achieveonepark/lite-db.git
+```
+
+### 依赖
+
+| 包                          | 用途             |
+| -------------------------- | -------------- |
+| `com.cysharp.unitask`      | 异步 DB 文件复制与初始化 |
+| `com.unity.test-framework` | Unity 测试环境     |
+
+面向 Unity `2022.3` 及以上版本。
+
+## 准备 DB 文件
+
+LiteDB 读取 SQLite DB 文件并映射到 C# 模型。你可以用 DB Browser for SQLite 之类的工具创建 DB 文件。
+
+默认的初始化 API 使用以下位置。
+
+| 用途    | 路径                                                       |
+| ----- | -------------------------------------------------------- |
+| 源 DB  | `Application.streamingAssetsPath/data/file.db`           |
+| 运行时副本 | `Application.persistentDataPath/data/localdatasqlite.db` |
+
+把源 DB 文件放在 `StreamingAssets/data/file.db`。
+
+## 编写数据模型
+
+为要查询的表编写对应的 C# 类。建议把 `Id` 作为主键。
+
+```csharp
+using Achieve.Database;
+using SQLite;
+
+[Table("Quest")]
+public sealed class Quest : IDataBase
+{
+    [PrimaryKey]
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int RewardGold { get; set; }
+}
+```
+
+## 初始化与第一次查询
+
+在游戏启动时调用 `await LiteDB.Initialize()`，会把源 DB 文件复制到运行时路径并连接。之后用 `LiteDB.Get<T>(id)` 等 API 读取数据。
+
+```csharp
+await LiteDB.Initialize();
+
+var quest = LiteDB.Get<Quest>(1);
+if (LiteDB.TryGetValue<Quest>(2, out var nextQuest))
+{
+    Debug.Log(nextQuest.Name);
+}
+```
+
+
+> **Info**
+> 
+> 在 Android 上通过 `UnityWebRequest` 读取 `StreamingAssets` 文件，其他平台使用文件复制。若要直接指定路径，请使用 `LiteDB.Initialize(path)`。
+> 
+
+
+## 后续步骤
+
+- [使用方法 › 数据模型](/lite-db/zh/usage/data-models.md) — 模型规则与 Attribute
+- [API](/lite-db/zh/api.md) — 完整运行时 API
+
+
+
+---
+url: /lite-db/zh/index.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/zh/llms.txt, the full documentation bundle is available at /lite-db/zh/llms-full.txt.
+
+# 简介
+
+LiteDB 是一个轻量级包，让你在 Unity 项目中把 SQLite 数据库当作只读的表数据存储来使用。你可以把随构建打包的静态数据（如游戏数值数据、任务、道具、本地化文本）映射到 C# 模型并进行查询。
+
+本包不封装 sqlite-net 或 SQLite Asset 包。它提供与 `SQLiteConnection`、`[Table]`、`[PrimaryKey]` 类似的熟悉接口，但内部直接调用原生 SQLite C API。
+
+## 功能
+
+- 将打包在 StreamingAssets 中的 DB 文件复制到运行时存储并初始化
+- 基于主键的单条数据查询
+- Id 范围查询、存在性检查与安全查询
+- 通过编辑器 CSV Importer 插入 CSV 表
+- 基于 CSV 表头生成数据模型代码
+- 本地化辅助工具
+
+## 后续步骤
+
+- [快速开始](/lite-db/zh/getting-started.md) — 从安装到第一次查询
+- [使用方法](/lite-db/zh/usage.md) — 数据模型、CSV Importer、本地化
+- [API](/lite-db/zh/api.md) — 运行时 API 参考
+
+
+
+---
+url: /lite-db/zh/usage/csv-importer.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/zh/llms.txt, the full documentation bundle is available at /lite-db/zh/llms-full.txt.
+
+# CSV Importer
+
+在编辑器菜单中，你可以把 CSV 插入到 DB 表并生成模型类。
+
+```text
+GameFramework/Data/CsvImporter
+```
+
+## 把 CSV 插入 DB
+
+1. 选择或新建一个 SQLite DB 文件。
+2. 选择一个 CSV 文件。
+3. 表名会根据 CSV 文件名自动设置。
+4. 在预览中确认表头和部分行。
+5. 点击 `Insert!` 按钮插入到 DB。
+
+第一行 CSV 用作列表头。如果存在空表头，或某行的字段数与表头数不一致，将抛出异常。
+
+## 生成 C# 类
+
+点击 `Generate C# Class` 按钮，会基于 CSV 列生成数据模型类。
+
+生成位置：
+
+```text
+Assets/Runtime/DataModel/{TableName}.cs
+```
+
+生成规则：
+
+- `id` 列会附加 `[PrimaryKey, AutoIncrement]`。
+- 若全部可解析为整数 → `int`
+- 若不是整数但可解析为浮点数 → `float`
+- 其他 → `string`
+
+请根据项目约定调整所生成类的 namespace 或类型后使用。
+
+
+
+---
+url: /lite-db/zh/usage/data-models.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/zh/llms.txt, the full documentation bundle is available at /lite-db/zh/llms-full.txt.
+
+# 数据模型
+
+数据模型必须是带有 public 无参构造函数的 C# 类。`LiteDB.Get<T>()` 和 `LiteDB.Query<T>()` 会把查询结果的列名匹配到模型中 public 可写的属性或 public 字段。
+
+```csharp
+using Achieve.Database;
+using SQLite;
+
+[Table("ItemData")]
+public sealed class ItemData : IDataBase
+{
+    [PrimaryKey]
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int Price { get; set; }
+    public float Weight { get; set; }
+}
+```
+
+## IDataBase
+
+`GetList`、`Exist`、`TryGetValue` 以 `IDataBase` 为基准，期望存在 `Id` 和 `Name`。
+
+```csharp
+public interface IDataBase
+{
+    int Id { get; set; }
+    string Name { get; set; }
+}
+```
+
+## 支持的 Attribute
+
+| Attribute          | 说明                  |
+| ------------------ | ------------------- |
+| `[Table("Name")]`  | 指定与类名不同的表名          |
+| `[Column("Name")]` | 指定与成员不同的列名          |
+| `[PrimaryKey]`     | 指定主键成员              |
+| `[AutoIncrement]`  | 用于代码生成兼容的 Attribute |
+| `[Ignore]`         | 从映射中排除              |
+| `[NotNull]`        | 用于模型表示的 Attribute   |
+
+`[AutoIncrement]` 和 `[NotNull]` 由于当前不提供建表 API，因此不用于运行时的架构生成。它们用于在使用 CSV Importer 或外部 DB 工具创建架构时保持语义一致。
+
+## 列映射
+
+默认映射不区分大小写。
+
+```csharp
+[Column("display_name")]
+public string DisplayName { get; set; }
+```
+
+没有 setter 的属性和 `readonly` 字段会被排除在映射之外。
+
+## 类型映射
+
+查询 API 以 `Id` 列为基准工作。SQLite 类型与 C# 类型的对应如下。
+
+| SQLite 类型 | C# 类型                        |
+| --------- | ---------------------------- |
+| `INTEGER` | `int`, `long`, `bool`, enum  |
+| `REAL`    | `float`, `double`            |
+| `TEXT`    | `string`, `DateTime`, `Guid` |
+| `BLOB`    | `byte[]`                     |
+
+推荐规则：
+
+- 给表设置 `Id` 列。
+- 对按单一键查询的模型，把 `Id` 作为主键管理。
+- 让 C# 属性名与 DB 列名保持一致。
+- 当类名与表名不同时，使用 `[Table("TableName")]`。
+
+
+
+---
+url: /lite-db/zh/usage/index.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/zh/llms.txt, the full documentation bundle is available at /lite-db/zh/llms-full.txt.
+
+# 使用方法
+
+- [数据模型](/lite-db/zh/usage/data-models.md)
+- [CSV Importer](/lite-db/zh/usage/csv-importer.md)
+- [本地化](/lite-db/zh/usage/localization.md)
+- [故障排查](/lite-db/zh/usage/troubleshooting.md)
+
+
+
+---
+url: /lite-db/zh/usage/localization.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/zh/llms.txt, the full documentation bundle is available at /lite-db/zh/llms-full.txt.
+
+# 本地化
+
+`Achieve.Database.Localization` 命名空间包含一个基于 SQLite 表数据的简单本地化辅助工具。
+
+## 设置语言
+
+```csharp
+LocalizationManager.SetLanguage(SystemLanguage.Korean);
+```
+
+语言改变时会触发 `LocalizationManager.onChangeLanguage` 事件。
+
+## 查询字符串
+
+```csharp
+var text = LocalizationManager.GetString(1001);
+```
+
+也可以显式指定语言。
+
+```csharp
+var english = LocalizationManager.GetString(1001, SystemLanguage.English);
+```
+
+## 查询集合
+
+```csharp
+var collection = LocalizationManager.GetCollection(1001);
+var data = collection.GetLocalizedData(SystemLanguage.Japanese);
+```
+
+本地化表模型需要支持基于 `LocalizationCollection` 的 `LiteDB.Get<LocalizationCollection>(key)`。
+
+
+
+---
+url: /lite-db/zh/usage/troubleshooting.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/zh/llms.txt, the full documentation bundle is available at /lite-db/zh/llms-full.txt.
+
+# 故障排查
+
+## DllNotFoundException
+
+如果找不到 `gilzoide-sqlite-net` 原生库，SQLite 连接会失败。
+
+需要检查：
+
+- 确认 `Runtime/Plugins/lib` 文件夹包含在包中。
+- 确认存在目标平台的二进制文件。
+- 确认 Unity Plugin Importer 的设置与平台保持一致。
+
+## Get\<T> 找不到数据
+
+需要检查：
+
+- 确认表名与 `[Table("...")]` 的名称一致。
+- 确认存在 `Id` 列或带 `[PrimaryKey]` 的列。
+- 确认 DB 文件位于 `StreamingAssets/data/file.db`。
+- 确认 `await LiteDB.Initialize()` 在查询之前被调用。
+
+## CSV Importer 的列错误
+
+第一行用作表头。如果存在空表头，或某行的字段数与表头数不一致，Importer 会停止。
+
+## 在非 Unity 项目环境中测试时
+
+Unity 会按平台加载 `Runtime/Plugins` 中的原生插件。如果直接在普通的 .NET 或 Mono 控制台中运行，由于没有 Unity 的插件加载器，你需要自行设置 DLL 搜索路径。
+
+

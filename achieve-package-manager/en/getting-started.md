@@ -1,0 +1,67 @@
+> For AI agents: the complete documentation index is available at /achieve-package-manager/en/llms.txt, the full documentation bundle is available at /achieve-package-manager/en/llms-full.txt.
+
+# Getting Started
+
+## Installation
+
+### Add via Git URL in Unity Package Manager (recommended)
+
+`Window > Package Manager` → top-left **+** → **Add package from git URL...**, then enter:
+
+```
+https://github.com/achieveonepark/achieve-package-manager.git
+```
+
+To pin a specific version, append a tag.
+
+```
+https://github.com/achieveonepark/achieve-package-manager.git#1.0.0
+```
+
+### Add to manifest.json directly
+
+Add to `dependencies` in `<Project>/Packages/manifest.json`.
+
+```json
+{
+  "dependencies": {
+    "com.achieve.achieve-package-manager": "https://github.com/achieveonepark/achieve-package-manager.git"
+  }
+}
+```
+
+### Requirements
+
+- Unity **2022.3** or later
+- `com.unity.nuget.newtonsoft-json`, `com.unity.serialization` (installed automatically as dependencies)
+- Network access (for OpenUPM catalog lookups and Git downloads)
+
+## Opening the window
+
+From the Unity menu:
+
+```
+Tools > Achieve Package Manager
+```
+
+## Layout
+
+- **Toolbar**: refresh, search, open the manifest file location
+- **Sidebar**: four category tabs
+- **Status bar**: number of installed packages / refresh status
+
+## The four tabs at a glance
+
+| Tab                                                             | Purpose                                                             |
+| --------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [Installed](/achieve-package-manager/en/usage/installed.md)     | View/remove packages in the current manifest and unresolved entries |
+| [OpenUPM](/achieve-package-manager/en/usage/openupm.md)         | Browse and install from the whole OpenUPM registry                  |
+| [Featured (Git)](/achieve-package-manager/en/usage/featured.md) | One-click install of curated Git packages                           |
+| [Custom Git URL](/achieve-package-manager/en/usage/git-url.md)  | Install by entering an arbitrary Git URL                            |
+
+## Search and refresh
+
+- The toolbar **search** applies to the list of the active tab.
+- `↻ Refresh` re-fetches the Unity package list (`Client.List`) and forces a re-download of the OpenUPM catalog. The OpenUPM catalog is cached automatically within a session.
+
+See [Usage](/achieve-package-manager/en/usage/installed.md) for details.

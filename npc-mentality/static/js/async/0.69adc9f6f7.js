@@ -1,0 +1,1 @@
+"use strict";(self.rspackChunknpc_mentality_docs=self.rspackChunknpc_mentality_docs||[]).push([[0],{Gs(){}}]);

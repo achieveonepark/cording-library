@@ -1,0 +1,14 @@
+# Infinity Value
+
+> Large-number values for Unity idle and incremental games.
+
+## Others
+
+- [API 参考](/infinity-value/zh/api/index.md)
+- [检视面板与精确序列化](/infinity-value/zh/api/inspector.md)
+- [JSON](/infinity-value/zh/api/json.md)
+- [数学辅助函数](/infinity-value/zh/api/math.md)
+- [单位名称](/infinity-value/zh/api/unit-names.md)
+- [更新日志](/infinity-value/zh/changelog.md)
+- [快速开始](/infinity-value/zh/getting-started.md)
+- [使用方法](/infinity-value/zh/usage.md)

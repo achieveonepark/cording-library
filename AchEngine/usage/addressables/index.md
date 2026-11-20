@@ -1,0 +1,85 @@
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# Addressables — 개요
+
+AchEngine Addressables 모듈은 Unity Addressable Asset System을 래핑하여
+**위치 메타데이터 캐싱**, **에셋 핸들 캐싱**, **감시 폴더 자동 그룹화**를 제공합니다.
+정적 `AddressableManager`만 사용하면 초기화·로드·해제를 한 흐름으로 처리할 수 있습니다.
+
+
+> **선택적 모듈**
+> 
+> `com.unity.addressables` 패키지가 설치된 경우에만 활성화됩니다.
+> **Project Settings › AchEngine** Overview에서 **설치** 버튼으로 바로 설치할 수 있습니다.
+> 
+
+
+## 핵심 구성 요소
+
+| 클래스                          | 역할                                      |
+| ---------------------------- | --------------------------------------- |
+| `AddressableManager`         | `AchTask` 기반 에셋·씬·원격 콘텐츠 API            |
+| `AssetHandleCache`           | 로드된 핸들 캐싱                               |
+| `LocationCache`              | 주소와 라벨의 위치 메타데이터 캐싱                     |
+| `AddressableManagerSettings` | Addressables 자동 초기화 설정 ScriptableObject |
+
+## 사용 원칙
+
+- 모든 비동기 API는 `AchTask` 또는 `AchTask<T>`를 반환하므로 일반적인 `await` 문법으로 사용할 수 있습니다. UniTask가 설치되어 있으면 UniTask로, 없으면 `Task`로 동작합니다.
+- `LoadAsync`는 같은 주소의 로드 핸들을, `LoadAllAsync`는 같은 라벨의 다건 로드 핸들을 재사용합니다.
+- 캐시된 핸들은 요청한 에셋 타입까지 확인합니다. 같은 주소나 라벨을 다른 타입으로 요청하면 호환되지 않는 핸들을 재사용하지 않습니다.
+- 캐시는 참조 횟수를 세지 않습니다. 에셋의 소유자가 더 이상 사용하지 않을 때 한 번 `Release(key)`를 호출합니다.
+- `InstantiateAsync`로 만든 오브젝트는 `ReleaseInstance`로 제거하고, 원본 프리팹 캐시는 `Release(address)`로 별도 해제합니다.
+- 씬은 자동으로 언로드되지 않습니다. `UnloadSceneAsync(address)`를 명시적으로 호출합니다.
+
+초기화, 다운로드 크기 조회, 종속성 다운로드, 카탈로그 확인·업데이트에 사용하는 임시 Addressables 작업 핸들은 작업이 끝나면 자동으로 해제됩니다. 반면 로드된 에셋과 씬은 명시적으로 `Release` 또는 `UnloadSceneAsync`를 호출해야 합니다.
+
+## 기본 사용
+
+```csharp
+using AchEngine.Assets;
+
+// 에셋 로드: 초기화는 자동으로 보장됨
+var sprite = await AddressableManager.LoadAsync<Sprite>("icon_sword");
+spriteRenderer.sprite = sprite;
+
+// 라벨의 에셋을 한 번에 로드
+var icons = await AddressableManager.LoadAllAsync<Sprite>("ui-icons");
+
+// 프리팹 생성과 해제
+var hero = await AddressableManager.InstantiateAsync("Characters/Hero", transform);
+AddressableManager.ReleaseInstance(hero);
+
+// 사용이 끝난 캐시 해제
+AddressableManager.Release("icon_sword");
+AddressableManager.Release("ui-icons");
+AddressableManager.Release("Characters/Hero");
+```
+
+### 씬 로드와 언로드
+
+```csharp
+await AddressableManager.LoadSceneAsync("Scenes/GameLevel");
+
+// 씬에서 별도로 로드한 에셋이 있다면 먼저 Release(...) 합니다.
+var unloaded = await AddressableManager.UnloadSceneAsync("Scenes/GameLevel");
+```
+
+`UnloadSceneAsync`는 이 API로 로드한 씬만 언로드하며, 관리 중이지 않은 주소에는 `false`를 반환합니다.
+
+### 원격 콘텐츠 다운로드
+
+```csharp
+await AddressableManager.DownloadDependenciesAsync(
+    "remote_assets",
+    progress => progressBar.value = progress.Percent);
+```
+
+## 캐시를 비울 때
+
+화면이나 씬의 수명이 끝날 때 필요한 주소만 `Release`하는 것이 기본입니다. 전체 전환이나 로그아웃처럼 모든 캐시를 버려도 되는 시점에는 `AddressableManager.ReleaseAll()`을 사용할 수 있습니다.
+
+## 다음 단계
+
+- [감시 폴더 & 그룹](/AchEngine/usage/addressables/folders.md)
+- [원격 콘텐츠](/AchEngine/usage/addressables/remote.md)

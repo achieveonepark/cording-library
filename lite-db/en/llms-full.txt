@@ -1,0 +1,428 @@
+---
+url: /lite-db/en/api.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/en/llms.txt, the full documentation bundle is available at /lite-db/en/llms-full.txt.
+
+# API
+
+The runtime entry point is `Achieve.Database.LiteDB`.
+
+## Initialize
+
+```csharp
+LiteDB.Initialize(path);
+```
+
+Connects immediately using the given SQLite file path.
+
+```csharp
+await LiteDB.Initialize();
+```
+
+Copies the default DB file from `StreamingAssets/data/file.db` to `persistentDataPath/data/localdatasqlite.db`, then connects.
+
+## Get
+
+```csharp
+var item = LiteDB.Get<ItemData>(1);
+```
+
+Returns the first row whose primary key or `Id` column equals the given value. Returns `default` when not initialized.
+
+## GetList
+
+```csharp
+var items = LiteDB.GetList<ItemData>(100, 199);
+```
+
+Queries rows in the range `Id >= startId AND Id <= endId`.
+
+## Exist
+
+```csharp
+if (LiteDB.Exist<ItemData>(10))
+{
+    // exists
+}
+```
+
+Checks whether an `Id` exists in the table for the given type.
+
+## TryGetValue
+
+```csharp
+if (LiteDB.TryGetValue<ItemData>(10, out var item))
+{
+    Debug.Log(item.Name);
+}
+```
+
+Checks existence and returns the data via `out` if present. Returns `false` when not initialized or when no data exists.
+
+## Using SQLiteConnection directly
+
+For advanced use, you can use `SQLite.SQLiteConnection` directly.
+
+```csharp
+using var db = new SQLiteConnection(path);
+var rows = db.Query<ItemData>("SELECT * FROM ItemData WHERE Price >= ?", 100);
+var count = db.ExecuteScalar<int>("SELECT COUNT(1) FROM ItemData");
+```
+
+The direct API provided is query-focused. It does not include the full sqlite-net ORM features, LINQ table queries, or an async connection pool.
+
+
+
+---
+url: /lite-db/en/changelog.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/en/llms.txt, the full documentation bundle is available at /lite-db/en/llms-full.txt.
+
+# Changelog
+
+## v1.0.1 — 2026.01.02
+
+- (Add) Code generation
+- (Fix) CsvImporterWindow
+
+## v1.0.0 — 2025.06.07
+
+- Package release!
+
+
+
+---
+url: /lite-db/en/getting-started.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/en/llms.txt, the full documentation bundle is available at /lite-db/en/llms-full.txt.
+
+# Getting Started
+
+This page walks through the minimal flow from installation to your first query.
+
+## Installation
+
+In Unity Package Manager, open `Add package from git URL...` and enter the address below.
+
+```text
+https://github.com/achieveonepark/lite-db.git
+```
+
+### Dependencies
+
+| Package                    | Purpose                                      |
+| -------------------------- | -------------------------------------------- |
+| `com.cysharp.unitask`      | Asynchronous DB file copy and initialization |
+| `com.unity.test-framework` | Unity test environment                       |
+
+Targets Unity `2022.3` or later.
+
+## Preparing the DB file
+
+LiteDB reads a SQLite DB file and maps it to C# models. You can create the DB file with a tool such as DB Browser for SQLite.
+
+The default initialization API uses the following locations.
+
+| Purpose      | Path                                                     |
+| ------------ | -------------------------------------------------------- |
+| Source DB    | `Application.streamingAssetsPath/data/file.db`           |
+| Runtime copy | `Application.persistentDataPath/data/localdatasqlite.db` |
+
+Place the source DB file at `StreamingAssets/data/file.db`.
+
+## Writing a data model
+
+Write a C# class that corresponds to the table you want to query. Using `Id` as the primary key is recommended.
+
+```csharp
+using Achieve.Database;
+using SQLite;
+
+[Table("Quest")]
+public sealed class Quest : IDataBase
+{
+    [PrimaryKey]
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int RewardGold { get; set; }
+}
+```
+
+## Initialization and first query
+
+Call `await LiteDB.Initialize()` at game start to copy the source DB file to the runtime path and connect. After that, read data with APIs like `LiteDB.Get<T>(id)`.
+
+```csharp
+await LiteDB.Initialize();
+
+var quest = LiteDB.Get<Quest>(1);
+if (LiteDB.TryGetValue<Quest>(2, out var nextQuest))
+{
+    Debug.Log(nextQuest.Name);
+}
+```
+
+
+> **Info**
+> 
+> On Android, `StreamingAssets` files are read via `UnityWebRequest`; on other platforms, file copy is used. To specify a path directly, use `LiteDB.Initialize(path)`.
+> 
+
+
+## Next steps
+
+- [Usage › Data Models](/lite-db/en/usage/data-models.md) — model rules and attributes
+- [API](/lite-db/en/api.md) — the full runtime API
+
+
+
+---
+url: /lite-db/en/index.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/en/llms.txt, the full documentation bundle is available at /lite-db/en/llms-full.txt.
+
+# Introduction
+
+LiteDB is a lightweight package that lets you treat a SQLite database as a read-only table data store in Unity projects. You can map static data that ships with your build — such as game balance data, quests, items, and localized text — to C# models and query it.
+
+This package does not wrap sqlite-net or the SQLite Asset package. It provides a familiar interface like `SQLiteConnection`, `[Table]`, and `[PrimaryKey]`, but internally calls the native SQLite C API directly.
+
+## Features
+
+- Copies a DB file bundled in StreamingAssets to runtime storage and initializes it
+- Single-record lookup by primary key
+- Id-range queries, existence checks, and safe lookups
+- CSV table insertion via the Editor CSV Importer
+- Data model code generation based on CSV headers
+- Localization helper
+
+## Next steps
+
+- [Getting Started](/lite-db/en/getting-started.md) — from installation to your first query
+- [Usage](/lite-db/en/usage.md) — data models, CSV Importer, localization
+- [API](/lite-db/en/api.md) — runtime API reference
+
+
+
+---
+url: /lite-db/en/usage/csv-importer.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/en/llms.txt, the full documentation bundle is available at /lite-db/en/llms-full.txt.
+
+# CSV Importer
+
+From the Editor menu you can insert CSV into a DB table and generate model classes.
+
+```text
+GameFramework/Data/CsvImporter
+```
+
+## Inserting CSV into the DB
+
+1. Select or create a SQLite DB file.
+2. Select a CSV file.
+3. The table name is set automatically from the CSV file name.
+4. Check the header and some rows in the preview.
+5. Press `Insert!` to insert into the DB.
+
+The first CSV row is used as column headers. If a header is empty, or a row's field count differs from the header count, an exception is thrown.
+
+## Generating a C# class
+
+Pressing `Generate C# Class` generates a data model class based on the CSV columns.
+
+Output location:
+
+```text
+Assets/Runtime/DataModel/{TableName}.cs
+```
+
+Generation rules:
+
+- The `id` column gets `[PrimaryKey, AutoIncrement]`.
+- If every value parses as an integer → `int`
+- If not an integer but parses as a float → `float`
+- Otherwise → `string`
+
+Adjust the namespace or types of the generated class to match your project conventions.
+
+
+
+---
+url: /lite-db/en/usage/data-models.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/en/llms.txt, the full documentation bundle is available at /lite-db/en/llms-full.txt.
+
+# Data Models
+
+A data model must be a C# class with a public parameterless constructor. `LiteDB.Get<T>()` and `LiteDB.Query<T>()` match the result column names to the model's public settable properties or public fields.
+
+```csharp
+using Achieve.Database;
+using SQLite;
+
+[Table("ItemData")]
+public sealed class ItemData : IDataBase
+{
+    [PrimaryKey]
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int Price { get; set; }
+    public float Weight { get; set; }
+}
+```
+
+## IDataBase
+
+`GetList`, `Exist`, and `TryGetValue` rely on `IDataBase`, expecting `Id` and `Name`.
+
+```csharp
+public interface IDataBase
+{
+    int Id { get; set; }
+    string Name { get; set; }
+}
+```
+
+## Supported attributes
+
+| Attribute          | Description                                          |
+| ------------------ | ---------------------------------------------------- |
+| `[Table("Name")]`  | Specifies a table name different from the class name |
+| `[Column("Name")]` | Specifies a column name different from the member    |
+| `[PrimaryKey]`     | Marks the primary key member                         |
+| `[AutoIncrement]`  | Attribute kept for code-generation compatibility     |
+| `[Ignore]`         | Excludes a member from mapping                       |
+| `[NotNull]`        | Attribute used for model representation              |
+
+`[AutoIncrement]` and `[NotNull]` are not used during runtime schema generation because the package does not provide a table-creation API. They exist to keep the meaning consistent when creating a schema with the CSV Importer or an external DB tool.
+
+## Column mapping
+
+Mapping is case-insensitive by default.
+
+```csharp
+[Column("display_name")]
+public string DisplayName { get; set; }
+```
+
+Properties without a setter and `readonly` fields are excluded from mapping.
+
+## Type mapping
+
+The query API operates on the `Id` column. SQLite types map to C# types as follows.
+
+| SQLite type | C# type                      |
+| ----------- | ---------------------------- |
+| `INTEGER`   | `int`, `long`, `bool`, enum  |
+| `REAL`      | `float`, `double`            |
+| `TEXT`      | `string`, `DateTime`, `Guid` |
+| `BLOB`      | `byte[]`                     |
+
+Recommended rules:
+
+- Give the table an `Id` column.
+- Manage `Id` as the primary key for models you look up by a single key.
+- Keep C# property names the same as DB column names.
+- Use `[Table("TableName")]` when the class name and table name differ.
+
+
+
+---
+url: /lite-db/en/usage/index.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/en/llms.txt, the full documentation bundle is available at /lite-db/en/llms-full.txt.
+
+# Usage
+
+- [Data Models](/lite-db/en/usage/data-models.md)
+- [CSV Importer](/lite-db/en/usage/csv-importer.md)
+- [Localization](/lite-db/en/usage/localization.md)
+- [Troubleshooting](/lite-db/en/usage/troubleshooting.md)
+
+
+
+---
+url: /lite-db/en/usage/localization.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/en/llms.txt, the full documentation bundle is available at /lite-db/en/llms-full.txt.
+
+# Localization
+
+The `Achieve.Database.Localization` namespace includes a simple localization helper backed by SQLite table data.
+
+## Setting the language
+
+```csharp
+LocalizationManager.SetLanguage(SystemLanguage.Korean);
+```
+
+When the language changes, the `LocalizationManager.onChangeLanguage` event is invoked.
+
+## Looking up a string
+
+```csharp
+var text = LocalizationManager.GetString(1001);
+```
+
+You can also specify the language explicitly.
+
+```csharp
+var english = LocalizationManager.GetString(1001, SystemLanguage.English);
+```
+
+## Looking up a collection
+
+```csharp
+var collection = LocalizationManager.GetCollection(1001);
+var data = collection.GetLocalizedData(SystemLanguage.Japanese);
+```
+
+The localization table model must support `LiteDB.Get<LocalizationCollection>(key)` based on `LocalizationCollection`.
+
+
+
+---
+url: /lite-db/en/usage/troubleshooting.md
+---
+
+> For AI agents: the complete documentation index is available at /lite-db/en/llms.txt, the full documentation bundle is available at /lite-db/en/llms-full.txt.
+
+# Troubleshooting
+
+## DllNotFoundException
+
+If the `gilzoide-sqlite-net` native library cannot be found, the SQLite connection fails.
+
+Things to check:
+
+- Confirm that the `Runtime/Plugins/lib` folder is included in the package.
+- Confirm that a binary for your target platform exists.
+- Confirm that the Unity Plugin Importer settings are kept correct for the platform.
+
+## Get\<T> cannot find data
+
+Things to check:
+
+- Confirm that the table name matches the `[Table("...")]` name.
+- Confirm that an `Id` column or a `[PrimaryKey]` column exists.
+- Confirm that the DB file is at `StreamingAssets/data/file.db`.
+- Confirm that `await LiteDB.Initialize()` is called before any lookup.
+
+## Column errors in the CSV Importer
+
+The first row is used as headers. If a header is empty, or a row's field count differs from the header count, the importer stops.
+
+## Testing outside a Unity project
+
+Unity loads the native plugins in `Runtime/Plugins` per platform. If you run directly in a plain .NET or Mono console, there is no Unity plugin loader, so you must set the DLL search path yourself.
+
+

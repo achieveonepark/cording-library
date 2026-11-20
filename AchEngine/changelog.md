@@ -1,0 +1,164 @@
+> For AI agents: the complete documentation index is available at /AchEngine/llms.txt, the full documentation bundle is available at /AchEngine/llms-full.txt.
+
+# 변경 내역
+
+## 1.3.2
+
+**신기능**
+
+- Unity Ads Legacy 4.16.4 기본 공급자로 초기화와 전면·보상형·배너 광고의 비동기 로드·표시를 관리하는 `AdsManager`를 추가했습니다.
+- `AdsShowResult.ShouldGrantReward`가 `true`일 때만 보상형 광고 보상을 지급하도록 했습니다.
+- Unity LevelPlay, AppLovin MAX, Google AdMob/Google Ad Manager, FairBid 등 미디에이션 SDK로 바꿀 수 있는 공개 `IAdsProvider` 경계를 추가했습니다.
+- `com.unity.ads` 4.16.4 의존성과 `AchManagerInstaller`의 `AdsManager` 자동 등록을 추가했습니다.
+
+**문서**
+
+- 직접 설정과 미디에이션 전환 조건을 포함한 4개 언어 `AdsManager` 가이드를 추가했습니다.
+
+## 1.3.1
+
+**개선**
+
+- Unity 에디터에서 `IAPManager`가 Unity IAP Fake Store를 명시적으로 사용합니다.
+- 에디터에서는 `ReceiptValidator` 또는 `PurchaseProcessor` 없이도 가짜 주문을 자동 확정하여 구매 UI 흐름을 테스트할 수 있습니다.
+- Full Sample의 구매 팝업이 에디터 Fake Store 테스트에서 검증기 없이도 활성화됩니다. 실제 빌드에서는 기존처럼 보상 처리 검증이 필요합니다.
+
+## 1.3.0
+
+**신기능**
+
+- Unity 6000.3 이상에서 Build Settings의 씬 목록을 보여 주고 현재 편집 씬을 추적하는 `AchEngine/Scene Navigator` 메인 툴바 컨트롤을 추가했습니다. 이동 전 저장하지 않은 변경 사항도 확인합니다.
+- `Screen`, `Popup`, `Tooltip` UI 레이어에 `UISafeAreaFitter`를 자동으로 추가합니다. `Background`와 `Overlay` 레이어는 전체 화면을 유지합니다.
+
+**개선**
+
+- Addressables 에셋·위치 캐시가 요청한 에셋 타입을 함께 확인하여 호환되지 않는 타입의 핸들을 잘못 재사용하지 않도록 했습니다.
+- 초기화, 다운로드 크기 조회, 종속성 다운로드, 카탈로그 확인·업데이트에 사용하는 임시 Addressables 핸들을 작업 완료 후 해제합니다.
+- 도메인 재로드를 끈 상태에서 Play Mode를 재진입해도 디버그 콘솔 로그 콜백이 중복 등록되지 않도록 했습니다.
+- 런타임 오브젝트 탐색을 `FindFirstObjectByType`으로 갱신하고, 자식 `UIRoot`에 `DontDestroyOnLoad`를 중복 호출하지 않도록 했습니다.
+- `IScene`을 선택적 씬 라이프사이클 훅으로 취급하여 구현하지 않은 씬에는 경고를 출력하지 않습니다.
+
+**문서**
+
+- 1.2.0 및 1.3.0 변경 내역과 Addressables, UI Safe Area, Scene Navigator, AI Assistant 스킬 문서를 갱신했습니다.
+
+## 1.2.0
+
+**신기능**
+
+- Addressables를 정적 `AddressableManager` 중심으로 재구성하고 `AchTask` 기반 에셋·씬·인스턴스화·해제·원격 다운로드·카탈로그 API를 제공했습니다.
+- 위치 메타데이터·에셋 핸들 캐시, 명시적 씬 핸들 추적, Addressables 에디터 설정·감시 폴더 도구를 추가하고 Addressables 샘플을 갱신했습니다.
+
+**문서**
+
+- 정적 매니저와 명시적 캐시 해제 흐름에 맞춰 Addressables 가이드, 통합 가이드, 샘플 문서를 갱신했습니다.
+
+## 1.1.2
+
+**삭제**
+
+- iOS 네이티브 디버그 콘솔을 제거했습니다. Android 오버레이와 에디터 IMGUI 오버레이는 유지됩니다.
+
+## 1.1.1
+
+**신기능**
+
+- `HttpIAPReceiptValidator`를 게임별 `IIAPReceiptValidator` 구현 지점(및 샘플용 `IAPReceiptValidatorBehaviour` 베이스 클래스)으로 대체했습니다. 게임 서버 전송 방식·플레이어 인증·영수증 검증·거래 ID 기준의 멱등 보상 저장은 게임 프로젝트에서 구현하고, 모두 성공한 경우에만 주문을 확정합니다.
+- Apple StoreKit 2의 JWS 거래 정보와 앱 계정 토큰을 `IAPPurchase` 및 영수증 검증 요청 계약에 추가했습니다.
+- Apple 수동 복원용 `RestoreTransactionsAsync()`와 같은 앱 실행 중 미확정 주문을 재처리하는 `RetryPendingFulfillmentsAsync()`를 추가했습니다.
+- 같은 상품의 기존 미확정 주문 결과가 새 구매 작업을 완료하지 않도록 거래 ID 기준으로 구매 요청을 연결했습니다.
+- `IAPManager` 단위 테스트를 위한 `AchEngine.IAP.Tests` 어셈블리를 추가했습니다.
+
+**버그 수정**
+
+- `AchDebugConsolePlugin.mm`에서 존재하지 않는 프로퍼티 호출과 `_AchConsole_Hide`의 언어 링키지 불일치로 발생하던 Xcode 빌드 실패를 수정했습니다.
+
+**문서**
+
+- IAPManager 가이드와 Full Sample을 게임별 `IIAPReceiptValidator` 구현, Apple JWS 검증, 수동 복원, 같은 세션 재시도 흐름에 맞춰 갱신했습니다.
+
+## 1.1.0
+
+**신기능**
+
+- Unity IAP 5.4.1 기반 `IAPManager`를 추가했습니다. 상점 연결, 상품 조회, 구매 요청, 지연 구매 처리, 구매 복원, 보상 지급 뒤 명시적 주문 확정을 지원합니다.
+- `HttpIAPReceiptValidator`를 추가했습니다. `HttpLink`로 거래 ID·Unity IAP 영수증·상품 목록을 게임 서버에 전달하며, 서버가 영수증 유효성 및 거래 ID 기준의 멱등 보상 저장을 모두 성공으로 응답할 때만 주문을 확정합니다.
+- `AchManagerInstaller`가 `IAPManager`를 자동 등록하며, `com.unity.purchasing` 5.4.1 의존성을 패키지에 선언했습니다.
+
+**문서**
+
+- IAPManager 가이드를 실제 Unity IAP 5.4.1 API, 서버 영수증 검증 JSON 계약, 미확정 주문 재처리 및 복원 흐름에 맞춰 전면 갱신했습니다.
+
+## 1.0.8
+
+**신기능**
+
+- `AIAssistantSkills/`를 추가했습니다. Unity Editor에 내장된 AI Assistant(Unity MCP)가 패키지 설치만으로 AchEngine의 내장 시스템을 자동 인식하도록, 패키지 루트에 12개의 `SKILL.md`(`ach-mover-movement`, `ach-task-async`, `ach-timer`, `addressables`, `ecs-ingame-logic`, `httplink-webrequest`, `imanager-managers`, `localization`, `pathfinding-astar`, `singleton`, `ui-catalog`, `vcontainer-di`)를 배포합니다. 자세한 내용은 [Unity MCP 스킬](/AchEngine/usage/mcp.md) 문서를 참고하세요.
+
+## 1.0.6
+
+**브레이킹 변경**
+
+- `AchEngine.Extensions` 어셈블리와 `Runtime/Extensions` 확장 메서드 소스 파일을 제거했습니다. 관련 확장 메서드 가이드 문서도 삭제했습니다.
+
+## 1.0.5
+
+**신기능**
+
+- `AchTask` / `AchTask<T>`를 추가했습니다. UniTask와 `System.Threading.Tasks.Task`를 단일 API로 통합하는 비동기 래퍼입니다. `com.cysharp.unitask` 패키지 감지 시 `ENABLE_UNITASK` 심볼이 자동 정의되어 UniTask로 동작하고, 없으면 `Task`로 폴백합니다. `Delay`, `DelayRealtime`, `WaitUntil`, `WhenAll`, `WhenAny`, `CompletedTask`, 암묵적 변환을 제공합니다.
+
+**문서**
+
+- `AchTask` 한국어·영어 문서를 추가했습니다 (`guide/async`).
+
+## 1.0.4
+
+**브레이킹 체인지**
+
+- `SoundManager`를 제거했습니다. 모든 사용처를 새로운 `AudioManager`로 교체해야 합니다.
+
+**신기능**
+
+- `AudioManager`를 추가했습니다. `SoundManager`를 대체하며 BGM 크로스페이드(`PlayBgm(clip, fadeDuration)`, `StopBgm(fadeDuration)`), BGM 볼륨 페이드(`SetBgmVolume(volume, fadeDuration)`), 채널별 뮤트(`MuteBgm`, `MuteSfx`, `MuteAll`), 8채널 동시 재생 SFX 풀, 3D 공간 음향(`PlaySfxAt(clip, worldPosition)`)을 제공합니다.
+- `AchTimer`를 추가했습니다. `AchTimer.Wait(seconds)` / `AchTimer.WaitRealtime(seconds)`으로 단순 대기를 처리하고, `AchTimer.Start(duration)`은 `Elapsed`, `Remaining`, `Progress`(0–1), `IsDone`, `Cancel()`, 직접 `await` 등을 제공하는 `AchTimerHandle`을 반환합니다. `CancellationToken`과 `useUnscaledTime`을 지원합니다. 내부 `AchTimerRunner`는 앱 시작 시 자동 생성되므로 씬 설치가 불필요합니다.
+- `UIAchTimer` 컴포넌트를 추가했습니다. `Bind(handle)` / `Unbind()`로 `AchTimerHandle`을 `Text`와 `Slider`에 연결해 실시간으로 진행 상황을 표시합니다.
+- `AchButtonCooldown` 컴포넌트를 추가했습니다. 클릭 직후 `Button`을 비활성화하고 지정된 시간 뒤 자동으로 재활성화합니다. 카운트다운 `Text` 레이블과 `OnCooldownStart` / `OnCooldownEnd` UnityEvent를 내장하고 있으며, `StartCooldown()`, `ResetCooldown()`, `IsCoolingDown`을 제공합니다.
+- `AchButtonHold` 컴포넌트를 추가했습니다. 버튼을 누르고 있는 동안 설정된 간격으로 UnityEvent를 반복 발동합니다. `InitialDelay`와 `RepeatInterval`을 조절할 수 있습니다.
+- `AchDebugConsole`을 추가했습니다. Unity 렌더 스레드에 영향을 주지 않는 네이티브 UI 오버레이 디버그 콘솔입니다. Android에서는 드래그 가능한 `WindowManager` 오버레이(`SYSTEM_ALERT_WINDOW` 권한 필요), iOS에서는 `UIWindowLevelAlert + 100`의 `UIWindow`, 에디터에서는 `DrawEditorGUI()`를 통한 IMGUI 폴백으로 동작합니다. API: `Show()`, `Hide()`, `Toggle()`, `Clear()`, `IsVisible`.
+- `RedDot.ClearAll()`을 추가했습니다. 모든 노드의 카운트를 한 번에 0으로 초기화합니다.
+- `RedDotBadge`에 클릭 클리어 기능을 추가했습니다. `Clear On Click`(기본값 `true`)과 `Button` 필드를 추가했으며, 연결된 버튼을 누르면 해당 키의 `RedDot.Clear(key)`가 자동 호출됩니다.
+
+**문서**
+
+- 소스 코드와 불일치하는 API 오류 15개를 수정했습니다. `ServiceLocator.Get<T>()` → `Resolve<T>()`, `UIView` 수명 주기 훅 시그니처 수정(`object payload`), `CloseSelf()` 교정, 존재하지 않는 `Show<T>()` / `Close<T>()` / `CloseLayer()` 오버로드 제거, `AchEngineScope` ↔ `ServiceLocator` 수명 주기 다이어그램 수정, `IServiceBuilder` 등록 문법 수정, `ISaveService.Configure()` 소유권 명시, 길찾기 문서에서 `Rigidbody2D.MovePosition()` 참조 제거, `Selectable<T>.mChanged` 이벤트명 수정, `Build()`의 GET/POST 전용 제한 명시.
+- 신규 기능 전체에 대한 한국어·영어 문서를 추가했습니다: `AudioManager`, `AchTimer` + `UIAchTimer`, `AchButtonCooldown` + `AchButtonHold`, `AchDebugConsole`.
+- RedDot 문서에 `ClearAll()` 및 클릭 클리어 배지 사용법을 추가했습니다.
+
+## 1.0.3
+
+- `SaveManager`, `ISaveService`, `LocalSaveService`를 추가했습니다. 저장 로직을 `PlayerManager`에서 분리한 추상화 레이어로, 동기/비동기 API를 모두 제공하며 향후 Firestore, AWS 등 클라우드 백엔드로 교체할 수 있도록 설계했습니다.
+- `PlayerManager`에서 저장·불러오기 로직을 제거했습니다. 이제 타입별 데이터 컨테이너 관리(`Add`, `Get`, `Remove`)만 담당합니다.
+- `AchProjectile`을 추가했습니다. Rigidbody2D가 필요 없는 직선·유도탄 통합 발사체 컴포넌트입니다.
+- `AchFollower`를 완전한 독립 컴포넌트로 리팩터했습니다. `AchMover` 의존성을 제거했습니다.
+- FontAsset Maker에 다국어 FontAsset 빌드 기능을 추가했습니다. 한국어·영어·일어를 멀티체크로 선택해 각각 별도의 `*_TMP.asset` 파일을 생성할 수 있습니다.
+- 모든 런타임 비동기 API를 `System.Threading.Tasks.Task`로 통일했습니다. 중간 추상화인 `AchTask`를 제거했습니다.
+
+## 1.0.2
+
+- Unity Entities용 선택 ECS 헬퍼를 추가했습니다. World, CommandBuffer, Baker, System, DI 래퍼를 포함합니다.
+- Managers, Singleton, Log, WebRequest, PlayerData, QuickSave 등 게임 프레임워크 런타임 모듈을 추가했습니다.
+- Unity 오브젝트, UI 컴포넌트, 컬렉션, 문자열, 델리게이트, Task, 공통 유틸리티를 다루는 Runtime Extensions 어셈블리를 추가했습니다.
+- A\* Pathfinding 유틸리티와 Grid Baker를 추가했습니다.
+- AchMover 기반 이동 헬퍼를 추가했습니다.
+- RedDot 알림 배지 런타임 기능을 추가했습니다.
+- Drag, Object Touch, Binding, Open/Close Button 등 UI 컴포넌트 헬퍼를 추가했습니다.
+- AchEngine 주요 시스템을 함께 보여주는 3개 씬 구성의 Full Sample을 추가했습니다.
+- Addressables, DI, Localization, Table, UI 문서를 한국어/영어 양쪽에서 보강했습니다.
+- Domain Reload가 꺼진 Enter Play Mode에서도 정적 상태가 초기화되도록 처리했습니다.
+- 문서 사이트, Mermaid 다이어그램, 교차 링크, JSON 처리 관련 문제를 수정했습니다.
+- Editor Decorators 모듈과 관련 문서를 제거했습니다.
+- 루트 README를 문서 링크 중심의 간단한 랜딩 페이지로 정리했습니다.
+
+## 1.0.1
+
+- Table JSON 데이터를 Google Sheets 임포트용 CSV로 내보내는 도구를 추가했습니다. 개별 파일과 폴더 단위 변환을 지원합니다.
