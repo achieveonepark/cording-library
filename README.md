@@ -2,8 +2,8 @@
 
 여러 Unity 패키지 문서를 `https://docs.somiri.dev/<패키지명>/` 형태로 통합 제공하는 문서 허브.
 
-- **랜딩** (`/`) = 이 레포의 **Fumadocs (Next.js)** — `app/page.tsx` 가 `packages.json` 을 읽어 카드 목록을 렌더
-- **각 패키지** (`/<패키지명>/`) = 해당 패키지 레포의 **`docs~/` (Fumadocs)** 를 CI 에서 빌드해 `site/<패키지명>/` 으로 합침
+- **랜딩** (`/`) = 이 레포의 **Rspress** — `docs/index.mdx` 의 히어로와 `packages.json` 기반 카드 목록
+- **각 패키지** (`/<패키지명>/`) = 해당 패키지 레포의 **`docs~/` (Rspress)** 를 CI 에서 빌드해 `site/<패키지명>/` 으로 합침
 - **호스팅**: Cloudflare Pages (`somiri-docs.pages.dev`, 커스텀 도메인 `docs.somiri.dev`)
 - **연결**: 포트폴리오 `www.somiri.dev`, 블로그 `blog.somiri.dev` (랜딩 상단/히어로 링크)
 
@@ -22,14 +22,15 @@
 - `href` 는 `name` 으로 자동 생성된다: `https://docs.somiri.dev/<name>/`
 - 배열 순서가 곧 카드 노출 순서다.
 - OpenUPM에 등록된 패키지는 `openupm` 필드에 실제 패키지 ID를 넣으면 버전 배지가 표시된다.
-  현재 등록된 항목은 `infinity-value` (`com.achieve.infinity-value`)와
-  `cheat-terminal` (`com.achieve.cheat-terminal`)이다. 관리 앱의 OpenUPM 조회 기능으로 갱신할 수 있다.
+  등록된 항목은 `infinity-value` (`com.achieve.infinity-value`),
+  `cheat-terminal` (`com.achieve.cheat-terminal`), `event-tracer` (`com.achive.event-tracer`),
+  `masked-value` (`com.achieve.masked-values`)이다. 관리 앱의 OpenUPM 조회 기능으로 갱신할 수 있다.
 
 ## 배포 워크플로우 (`.github/workflows/deploy.yml`)
 
 ```
 setup     packages.json → 빌드 매트릭스 생성
-landing   Fumadocs 랜딩 빌드 → landing 아티팩트
+landing   Rspress 랜딩 빌드 → landing 아티팩트
 package   패키지별 매트릭스 빌드. 각 레포 최신 커밋 SHA 로 캐싱 →
           변경된 패키지만 재빌드, 나머지는 캐시 복원 → pkg-<name> 아티팩트
 deploy    landing + 모든 pkg-* 아티팩트를 site/ 로 조립 → cloudflare-pages 브랜치에 저장
@@ -83,8 +84,8 @@ jobs:
 
 ### A. 패키지 레포 쪽 (한 번)
 
-1. 레포 루트에 **`docs~/`** 폴더로 Fumadocs 프로젝트를 만든다(기존 패키지의 `docs~/` 복사 후
-   `next.config.mjs` 의 `repo` 값만 새 레포명으로 바꾸면 가장 쉽다 — `basePath = /<name>` 매핑).
+1. 레포 루트에 **`docs~/`** 폴더로 Rspress 프로젝트를 만든다. Rspress의 `base`를 `/<name>/`으로,
+   `outDir`를 `out`으로 설정해 허브가 사용하는 URL 경로와 정적 빌드 경로를 맞춘다.
 2. **`*~` 전역 gitignore 주의**: `docs~` 는 `~` 로 끝나 무시될 수 있으니 레포 `.gitignore` 에
    `!docs~/` 한 줄을 넣어 추적되게 한다.
 3. 자체 GitHub Pages 는 쓰지 않는다 (Settings → Pages → Source = None).

@@ -1,11 +1,8 @@
 node_modules/
-.next/
 out/
+.rspress/
 
-# Next.js 가 빌드 시 자동 생성하는 타입 선언 파일
-next-env.d.ts
-
-# CI 빌드 산출물 (랜딩 + 각 패키지 Fumadocs 를 합치는 폴더)
+# CI 빌드 산출물 (Rspress 랜딩 + 각 패키지 문서를 합치는 폴더)
 site/
 
 # 패키지 변환 작업용 임시 클론 (커밋하지 않음)

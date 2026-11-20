@@ -32,6 +32,8 @@ on:
           - lite-db
           - ach-economy
           - ach-tempo
+          - event-tracer
+          - masked-value
 
 permissions:
   contents: write

@@ -65,5 +65,17 @@
     "name": "ach-tempo",
     "title": "Ach Tempo",
     "desc": "디렉터가 설정한 조건과 규칙 기반 월드 반응을 결합해 게임의 긴장 페이싱을 자동 조절하고 위기 상황을 동적으로 연출하는 Unity 시스템"
+  },
+  {
+    "name": "event-tracer",
+    "title": "Event Tracer",
+    "desc": "게임 이벤트와 데이터를 기록하고 원인·연쇄 이벤트·호출 스택을 추적해 상황을 분석하는 Unity 도구",
+    "openupm": "com.achive.event-tracer"
+  },
+  {
+    "name": "masked-value",
+    "title": "Masked Value",
+    "desc": "숫자·문자열·구조체 등 게임 값을 메모리에서 마스킹하고, GuardedValue<T>로 일반적인 메모리 변조를 감지하는 Unity 라이브러리",
+    "openupm": "com.achieve.masked-values"
   }
 ]
